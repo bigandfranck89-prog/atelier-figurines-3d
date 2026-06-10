@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0f1115">
+<meta name="theme-color" content="#0b0d12">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -12,79 +12,91 @@
 <title>Atelier Figurines 3D</title>
 <style>
   :root{
-    --bg:#0f1115; --panel:#171a21; --panel2:#1f232c; --line:#2a2f3a;
-    --txt:#e9edf4; --muted:#9aa3b2; --accent:#b9f24d; --accent2:#7c5cff;
-    --orange:#e8731f; --ok:#46c46a; --danger:#ff5c5c; --radius:16px;
+    --bg:#0b0d12; --panel:#141821; --panel2:#1c2230; --line:#283041;
+    --txt:#eef2f8; --muted:#97a1b4; --accent:#b9f24d; --accent2:#7c5cff;
+    --ok:#46c46a; --danger:#ff6a6a;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;height:100%;background:#05060a;color:var(--txt);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-  body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
-  .phone{width:100%;max-width:412px;height:min(860px,94vh);background:var(--bg);
-    border-radius:30px;border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;
-    box-shadow:0 24px 70px rgba(0,0,0,.55)}
-  .top{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--panel);
-    border-bottom:1px solid var(--line)}
-  .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
-    display:flex;align-items:center;justify-content:center;font-weight:800;color:#0c0e12}
-  .top h1{font-size:15px;margin:0;font-weight:650}
+  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#10141d,#05060a)}
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:14px;color:var(--txt)}
+  .phone{width:100%;max-width:420px;height:min(880px,95vh);background:var(--bg);border-radius:32px;
+    border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04)}
+  .top{display:flex;align-items:center;gap:11px;padding:15px 16px;
+    background:linear-gradient(180deg,#19202c,#141821);border-bottom:1px solid var(--line)}
+  .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#0b0d12;font-size:18px;
+    box-shadow:0 6px 18px rgba(124,92,255,.35)}
+  .top h1{font-size:15.5px;margin:0;font-weight:650;letter-spacing:.2px}
   .top .sub{font-size:11px;color:var(--muted)}
-  .credits{margin-left:auto;font-size:12px;color:var(--muted);background:var(--panel2);
-    padding:5px 9px;border-radius:20px;border:1px solid var(--line)}
+  .hbtns{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .iconbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);
+    color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
+  .iconbtn.on{color:var(--accent);border-color:rgba(185,242,77,.5)}
+  .credits{font-size:11.5px;color:var(--muted);background:var(--panel2);padding:6px 10px;border-radius:20px;
+    border:1px solid var(--line)}
   .credits b{color:var(--accent)}
-  .chat{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .chat{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:13px}
   .chat::-webkit-scrollbar{width:0}
-  .row{display:flex;gap:9px;max-width:92%}
+  .row{display:flex;gap:9px;max-width:93%;animation:in .3s ease}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .row.user{align-self:flex-end;flex-direction:row-reverse}
-  .av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:flex;align-items:center;
-    justify-content:center;font-size:13px;font-weight:700}
-  .av.bot{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0c0e12}
+  .av{width:30px;height:30px;border-radius:50%;flex:0 0 30px;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700}
+  .av.bot{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0b0d12}
   .av.user{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
-  .bubble{background:var(--panel);border:1px solid var(--line);padding:11px 13px;border-radius:14px;
-    font-size:14px;line-height:1.5}
-  .row.user .bubble{background:var(--accent2);border-color:transparent;color:#fff}
-  .bubble .small{font-size:12px;color:var(--muted);margin-top:4px}
-  .stage{font-size:11px;letter-spacing:.4px;color:var(--muted);text-align:center;margin:2px 0}
-  .stage span{background:var(--panel2);padding:3px 10px;border-radius:20px;border:1px solid var(--line)}
-  .cards{display:flex;gap:10px;margin-top:4px}
-  .card{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;overflow:hidden;
-    cursor:pointer;transition:.15s}
-  .card:hover{border-color:var(--accent)}
-  .card .thumb{height:118px;display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(circle at 50% 35%,#2c3340,#13161c)}
-  .card .lab{padding:7px 9px;font-size:12px}
-  .card .lab .t{font-weight:600}
-  .card .lab .d{color:var(--muted);font-size:11px}
-  .viewer{margin-top:6px;background:radial-gradient(circle at 50% 40%,#2c3340,#0e1116);
-    border:1px solid var(--line);border-radius:14px;height:210px;display:flex;align-items:center;
-    justify-content:center;position:relative;overflow:hidden}
-  .spin{animation:spin 7s linear infinite;transform-style:preserve-3d}
-  @keyframes spin{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
-  .badge{position:absolute;top:10px;left:10px;font-size:11px;background:rgba(70,196,106,.15);
-    color:var(--ok);border:1px solid rgba(70,196,106,.4);padding:4px 9px;border-radius:20px}
-  .badge.spinmark{left:auto;right:10px;background:rgba(124,92,255,.15);color:#c4b6ff;border-color:rgba(124,92,255,.4)}
-  .panel{margin-top:6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
-  .panel h3{margin:0 0 8px;font-size:13px}
-  .kv{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line)}
-  .kv:last-child{border-bottom:0}
-  .kv b{color:var(--accent)}
-  .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-  .btn{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:9px 13px;
-    border-radius:11px;font-size:13px;cursor:pointer;transition:.15s}
-  .btn:hover{border-color:var(--accent)}
-  .btn.primary{background:var(--accent);color:#0c0e12;border-color:transparent;font-weight:650}
+  .bubble{background:var(--panel);border:1px solid var(--line);padding:12px 14px;border-radius:16px;font-size:14.5px;
+    line-height:1.55;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+  .row.user .bubble{background:linear-gradient(135deg,#7c5cff,#6a49f2);border-color:transparent;color:#fff}
+  .bubble .small{font-size:12px;color:var(--muted);margin-top:5px}
+  .stage{font-size:10.5px;letter-spacing:.6px;color:var(--muted);text-align:center;margin:3px 0}
+  .stage span{background:var(--panel2);padding:4px 12px;border-radius:20px;border:1px solid var(--line)}
+  .cards{display:flex;gap:11px;margin-top:7px}
+  .card{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;
+    transition:.18s;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+  .card:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .card .thumb{height:130px;display:flex;align-items:flex-end;justify-content:center;
+    background:linear-gradient(180deg,#39414f,#11141c)}
+  .card .lab{padding:8px 10px}
+  .card .lab .t{font-weight:600;font-size:12.5px}
+  .card .lab .d{color:var(--muted);font-size:11px;margin-top:2px}
+  .viewer{margin-top:7px;border:1px solid var(--line);border-radius:16px;height:240px;position:relative;overflow:hidden;
+    background:radial-gradient(130% 95% at 50% 22%,#39414f,#0b0e15);touch-action:none;cursor:grab}
+  .stagefloor{position:absolute;left:50%;bottom:26px;width:62%;height:20px;transform:translateX(-50%);
+    background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);border-radius:50%}
+  .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .scene .obj{transform-style:preserve-3d;will-change:transform}
+  .badge{position:absolute;top:11px;left:11px;font-size:11px;background:rgba(70,196,106,.16);color:var(--ok);
+    border:1px solid rgba(70,196,106,.45);padding:4px 10px;border-radius:20px}
+  .hint{position:absolute;bottom:9px;left:0;right:0;text-align:center;font-size:10.5px;color:var(--muted)}
+  .panel{margin-top:7px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px}
+  .panel h3{margin:0 0 9px;font-size:13px}
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line)}
+  .kv:last-child{border-bottom:0}.kv b{color:var(--accent)}
+  .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .btn{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:10px 14px;border-radius:12px;
+    font-size:13px;cursor:pointer;transition:.15s}
+  .btn:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#a6e23e);color:#0b0d12;border-color:transparent;font-weight:650}
   .btn.ghost{background:transparent;color:var(--muted)}
-  .inputbar{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:var(--panel)}
-  .inputbar input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:22px;
-    padding:11px 14px;color:var(--txt);font-size:14px;outline:none}
-  .inputbar button{width:44px;border:0;border-radius:50%;background:var(--accent);color:#0c0e12;
-    font-size:18px;cursor:pointer}
+  .pill{display:inline-block;font-size:11px;color:#e89b4d;border:1px solid rgba(232,155,77,.4);
+    background:rgba(232,155,77,.12);padding:3px 9px;border-radius:20px;margin-top:7px}
+  .inputbar{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);
+    background:linear-gradient(0deg,#19202c,#141821)}
+  .inputbar input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:24px;padding:12px 15px;
+    color:var(--txt);font-size:14px;outline:none}
+  .inputbar input:focus{border-color:rgba(124,92,255,.6)}
+  .mic{width:46px;height:46px;flex:0 0 46px;border:1px solid var(--line);border-radius:50%;background:var(--panel2);
+    color:var(--muted);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .mic.rec{background:linear-gradient(135deg,#ff6a6a,#ff4d6d);color:#fff;border-color:transparent;animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,.5)}50%{box-shadow:0 0 0 9px rgba(255,77,109,0)}}
+  .send{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:50%;cursor:pointer;font-size:18px;color:#0b0d12;
+    background:linear-gradient(135deg,var(--accent),#a6e23e)}
   .typing{display:flex;gap:4px;padding:4px 2px}
   .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:b 1.2s infinite}
   .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
   @keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1}}
-  .pill{display:inline-block;font-size:11px;color:var(--orange);border:1px solid rgba(232,115,31,.4);
-    background:rgba(232,115,31,.12);padding:2px 8px;border-radius:20px;margin-top:6px}
 </style>
 </head>
 <body>
@@ -95,116 +107,149 @@
       <h1>Atelier Figurines 3D</h1>
       <div class="sub">Ton agent créatif &amp; commercial</div>
     </div>
-    <div class="credits">Meshy&nbsp;<b id="cred">72</b></div>
+    <div class="hbtns">
+      <div class="iconbtn on" id="voiceBtn" title="Voix de l'agent">&#128266;</div>
+      <div class="credits">Meshy&nbsp;<b id="cred">72</b></div>
+    </div>
   </div>
   <div class="chat" id="chat"></div>
   <div class="inputbar">
-    <input id="inp" placeholder="Décris ton idée…" autocomplete="off">
-    <button id="send">➤</button>
+    <div class="mic" id="mic" title="Parler">&#127908;</div>
+    <input id="inp" placeholder="Écris ou parle…" autocomplete="off">
+    <button class="send" id="send">&#10148;</button>
   </div>
 </div>
 
 <script>
-const chat=document.getElementById('chat');
-const inp=document.getElementById('inp');
-const cred=document.getElementById('cred');
+const chat=document.getElementById('chat'),inp=document.getElementById('inp'),cred=document.getElementById('cred');
+const micBtn=document.getElementById('mic'),voiceBtn=document.getElementById('voiceBtn');
 
-const dinoSVG=(c1,c2)=>`<svg width="120" height="120" viewBox="0 0 120 120">
-  <ellipse cx="60" cy="104" rx="34" ry="6" fill="#000" opacity=".35"/>
-  <path d="M70 30 q14 2 16 18 q12 4 14 18 q-10 -4 -16 -2 q-2 16 -14 22 l4 14 h-10 l-3 -12 h-10 l-3 12 h-10 l4 -16 q-12 -8 -10 -26 q-10 -2 -14 -12 q10 2 16 -2 q4 -16 22 -18 q4 -8 14 -10 q-2 8 0 12z"
-    fill="${c1}" stroke="${c2}" stroke-width="2" stroke-linejoin="round"/>
-  <circle cx="78" cy="34" r="3" fill="#0c0e12"/>
-  <path d="M84 44 l8 -2 l-7 5z" fill="#fff" opacity=".85"/>
-</svg>`;
+let DID=0;
+function dino(p){
+  const id="g"+(DID++);
+  return '<svg viewBox="0 0 260 220" width="200" height="170" xmlns="http://www.w3.org/2000/svg">'+
+  '<defs>'+
+  '<linearGradient id="skin'+id+'" x1="0" y1="0" x2="0" y2="1">'+
+  '<stop offset="0" stop-color="'+p.dark+'"/><stop offset=".55" stop-color="'+p.mid+'"/><stop offset="1" stop-color="'+p.low+'"/></linearGradient>'+
+  '<radialGradient id="ped'+id+'" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#8a93a3"/><stop offset="1" stop-color="#3a414e"/></radialGradient>'+
+  '</defs>'+
+  '<ellipse cx="130" cy="205" rx="92" ry="13" fill="rgba(0,0,0,.45)"/>'+
+  '<ellipse cx="130" cy="198" rx="90" ry="15" fill="url(#ped'+id+')"/>'+
+  '<path d="M150 150 Q176 152 196 140 L210 196 L192 200 L188 162 Q172 158 158 158 Z" fill="'+p.dark+'"/>'+
+  '<path d="M28 104 L30 92 Q44 80 66 82 Q76 64 96 74 Q120 60 150 84 Q190 66 214 96 Q236 112 252 134 Q236 134 220 128 Q198 124 182 138 Q170 150 150 150 Q120 156 96 150 Q74 146 60 128 Q44 120 30 118 L52 112 L28 108 Z" fill="url(#skin'+id+')" stroke="'+p.dark+'" stroke-width="2" stroke-linejoin="round"/>'+
+  '<path d="M96 150 Q120 156 150 150 Q150 168 120 170 Q100 168 96 150 Z" fill="'+p.belly+'" opacity=".75"/>'+
+  '<path d="M108 150 Q124 154 138 151 L132 196 L116 198 L114 160 Z" fill="'+p.mid+'" stroke="'+p.dark+'" stroke-width="1.5"/>'+
+  '<path d="M78 120 q14 4 12 16 q-8 2 -14 -4 Z" fill="'+p.dark+'"/>'+
+  '<circle cx="54" cy="92" r="5.5" fill="#10141d"/><circle cx="56" cy="90" r="1.8" fill="#fff"/>'+
+  '<path d="M30 105 l7 7 4 -6 5 6 4 -6 5 5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/>'+
+  '<path d="M150 84 Q170 78 188 86" fill="none" stroke="'+p.dark+'" stroke-width="2" opacity=".5"/>'+
+  '</svg>';
+}
+const GREEN={dark:"#33502e",mid:"#5b8c4e",low:"#7fae6a",belly:"#bfe0a6"};
+const BRONZE={dark:"#5b3a1a",mid:"#9c6b34",low:"#c08f4f",belly:"#e8c794"};
 
-function scroll(){chat.scrollTop=chat.scrollHeight;}
-function stage(t){const d=document.createElement('div');d.className='stage';d.innerHTML='<span>'+t+'</span>';chat.appendChild(d);scroll();}
-function user(t){const r=document.createElement('div');r.className='row user';
-  r.innerHTML='<div class="av user">F</div><div class="bubble">'+t+'</div>';chat.appendChild(r);scroll();}
-function bot(html,cb){
-  const tr=document.createElement('div');tr.className='row';
+let voiceOn=true;
+voiceBtn.onclick=function(){voiceOn=!voiceOn;voiceBtn.classList.toggle('on',voiceOn);
+  voiceBtn.innerHTML=voiceOn?'&#128266;':'&#128263;';if(!voiceOn&&window.speechSynthesis)speechSynthesis.cancel();};
+function speak(t){if(!voiceOn||!('speechSynthesis' in window))return;
+  var clean=t.replace(/<[^>]+>/g,' ').replace(/[\u{1F000}-\u{1FFFF}←-➿]/gu,'').replace(/\s+/g,' ').trim();
+  if(!clean)return;try{var u=new SpeechSynthesisUtterance(clean);u.lang='fr-FR';u.rate=1.03;
+    var v=speechSynthesis.getVoices().find(function(x){return x.lang&&x.lang.toLowerCase().indexOf('fr')===0;});if(v)u.voice=v;
+    speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+
+var rec=null,listening=false;
+(function(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){micBtn.title="Reconnaissance vocale non supportée ici (essaie Chrome / Android)";micBtn.style.opacity=.45;return;}
+  rec=new SR();rec.lang='fr-FR';rec.interimResults=true;rec.continuous=false;
+  rec.onresult=function(e){var t='';for(var i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;inp.value=t;
+    if(e.results[e.results.length-1].isFinal){stopRec();var v=inp.value.trim();if(v)pick(v);}};
+  rec.onend=function(){listening=false;micBtn.classList.remove('rec');};
+  rec.onerror=function(){listening=false;micBtn.classList.remove('rec');};
+})();
+function stopRec(){if(rec&&listening){try{rec.stop();}catch(e){}}listening=false;micBtn.classList.remove('rec');}
+micBtn.onclick=function(){if(!rec){alert("La reconnaissance vocale n'est pas disponible sur ce navigateur. Sur iPhone, utilise le micro du clavier, ou ouvre l'app dans Chrome (Android/PC).");return;}
+  if(listening){stopRec();}else{inp.value='';try{rec.start();listening=true;micBtn.classList.add('rec');}catch(e){}}};
+
+function sc(){chat.scrollTop=chat.scrollHeight;}
+function stage(t){var d=document.createElement('div');d.className='stage';d.innerHTML='<span>'+t+'</span>';chat.appendChild(d);sc();}
+function usr(t){var r=document.createElement('div');r.className='row user';
+  r.innerHTML='<div class="av user">F</div><div class="bubble">'+t+'</div>';chat.appendChild(r);sc();}
+function bot(html,cb){var tr=document.createElement('div');tr.className='row';
   tr.innerHTML='<div class="av bot">A</div><div class="bubble"><div class="typing"><i></i><i></i><i></i></div></div>';
-  chat.appendChild(tr);scroll();
-  setTimeout(()=>{tr.querySelector('.bubble').innerHTML=html;scroll();if(cb)cb();},700);
-}
-function spend(n){let c=parseInt(cred.textContent)-n;cred.textContent=c;}
+  chat.appendChild(tr);sc();
+  setTimeout(function(){var b=tr.querySelector('.bubble');b.innerHTML=html;sc();speak(b.textContent);if(cb)cb();},700);}
+function money(n){cred.textContent=parseInt(cred.textContent)-n;}
 
-// ---- Flow state machine ----
-let step=0;
-function go(){
-  if(step===0){
-    bot('Salut Franck 👋 Je suis ton bras droit de l\'atelier. Dis-moi l\'objet que tu veux créer — ou choisis une idée.'+
-      '<div class="acts"><button class="btn primary" onclick="pick(\'Un beau gros T-Rex\')">Un beau gros T-Rex</button>'+
-      '<button class="btn" onclick="pick(\'Surprends-moi (catalogue rentable)\')">Catalogue rentable</button></div>');
-    step=1;
-  }
-}
-function pick(t){user(t);inp.value='';next2D();}
-document.getElementById('send').onclick=()=>{if(inp.value.trim()){pick(inp.value.trim());}};
-inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&inp.value.trim())pick(inp.value.trim());});
+function turntable(el){var a=0,drag=false,lx=0;
+  function r(){el.style.transform='perspective(700px) rotateY('+a+'deg)';}
+  function loop(){if(!drag){a+=0.35;r();}requestAnimationFrame(loop);}
+  var v=el.closest('.viewer');
+  v.addEventListener('pointerdown',function(e){drag=true;lx=e.clientX;v.style.cursor='grabbing';});
+  window.addEventListener('pointermove',function(e){if(drag){a+=(e.clientX-lx)*0.6;lx=e.clientX;r();}});
+  window.addEventListener('pointerup',function(){drag=false;v.style.cursor='grab';});
+  loop();}
 
-function next2D(){
-  stage('ÉTAPE 2D — propositions');
-  bot('Top ! Voici 2 propositions <b>2D couleur</b> (ça sert aussi de guide de peinture). Itération gratuite : tu valides, tu affines, ou tu relances.'+
+function start(){bot('Salut Franck&nbsp;👋 Je suis ton bras droit de l\'atelier. Dis-moi de vive voix (clique sur le micro) ou par écrit l\'objet que tu veux créer — ou choisis une idée.'+
+  '<div class="acts"><button class="btn primary" onclick="pick(\'Un beau gros T-Rex\')">Un beau gros T-Rex</button>'+
+  '<button class="btn" onclick="pick(\'Propose-moi le catalogue rentable\')">Catalogue rentable</button></div>');}
+document.getElementById('send').onclick=function(){if(inp.value.trim())pick(inp.value.trim());};
+inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&inp.value.trim())pick(inp.value.trim());});
+function pick(t){usr(t);inp.value='';next2D();}
+
+function next2D(){stage('ÉTAPE 2D · propositions');
+  bot('Parfait&nbsp;! Voici 2 propositions <b>2D couleur</b> (elles servent aussi de guide de peinture). On itère ici : tu valides, tu affines, ou tu relances.'+
     '<div class="cards">'+
-      '<div class="card" onclick="choose2D(\'verte\')"><div class="thumb">'+dinoSVG('#4f7d4a','#2f5230')+'</div><div class="lab"><div class="t">Option A — verte</div><div class="d">type Jurassic, socle clair</div></div></div>'+
-      '<div class="card" onclick="choose2D(\'bronze\')"><div class="thumb">'+dinoSVG('#8a5a2b','#5c3a17')+'</div><div class="lab"><div class="t">Option B — bronze</div><div class="d">plus agressif, écailles marquées</div></div></div>'+
+    '<div class="card" onclick="choose2D(\'verte\')"><div class="thumb">'+dino(GREEN)+'</div><div class="lab"><div class="t">Option A · verte</div><div class="d">type Jurassic, socle clair</div></div></div>'+
+    '<div class="card" onclick="choose2D(\'bronze\')"><div class="thumb">'+dino(BRONZE)+'</div><div class="lab"><div class="t">Option B · bronze</div><div class="d">plus agressif, écailles marquées</div></div></div>'+
     '</div>'+
-    '<div class="acts"><button class="btn ghost" onclick="relance2D()">↻ Relancer une série</button></div>'+
-    '<div class="pill">0 crédit débité tant que tu n\'as pas validé une 2D ✦</div>');
-}
-function relance2D(){user('Relance une autre série');bot('Je relance une variante… (dans l\'app branchée, nouvelle génération 2D).',()=>next2D());}
-function choose2D(c){
-  user('Je valide l\'option '+(c==='bronze'?'B (bronze, plus agressif)':'A (verte)'));
-  stage('ÉTAPE 3D — conversion');
-  bot('Validé. Je convertis cette 2D en <b>3D</b> (image→3D, plus fidèle). Tu pourras le faire pivoter.',()=>{
-    spend(20);
-    const col=c==='bronze'?['#8a5a2b','#5c3a17']:['#4f7d4a','#2f5230'];
-    bot('Voilà ton T-Rex en 3D 🦖 Fais-le tourner. Meshy confirme l\'imprimabilité.'+
-      '<div class="viewer"><span class="badge">Imprimabilité ✓</span><span class="badge spinmark">↻ 360°</span>'+
-        '<div class="spin">'+dinoSVG(col[0],col[1])+'</div></div>'+
+    '<div class="acts"><button class="btn ghost" onclick="relance()">↻ Relancer une série</button></div>'+
+    '<div class="pill">Itération 2D · on corrige ICI, jamais sur la 3D</div>');}
+function relance(){usr('Relance une autre série');bot('Je relance une variante…',function(){next2D();});}
+
+function choose2D(c){usr('Je valide l\'option '+(c==='bronze'?'B (bronze, plus agressif)':'A (verte)'));
+  stage('ÉTAPE 3D · conversion');
+  bot('Validé. Je convertis cette 2D en <b>3D</b> (image→3D, plus fidèle). Fais-le tourner au doigt&nbsp;!',function(){
+    money(20);var pal=c==='bronze'?BRONZE:GREEN;
+    var r=document.createElement('div');r.className='row';
+    r.innerHTML='<div class="av bot">A</div><div class="bubble" style="width:100%">'+
+      '<div class="viewer"><span class="badge">&#10003; Imprimabilité OK</span><div class="stagefloor"></div>'+
+      '<div class="scene"><div class="obj" id="obj3d">'+dino(pal)+'</div></div>'+
+      '<div class="hint">glisse pour faire pivoter</div></div>'+
       '<div class="acts"><button class="btn primary" onclick="valid3D()">Valider la 3D</button>'+
-      '<button class="btn" onclick="affine3D()">Affiner</button></div>'+
-      '<div class="bubble small" style="margin-top:6px;background:transparent;border:0;padding:0">433 k faces · 217 k sommets · maillage étanche</div>');
-  });
-}
-function affine3D(){user('Affine la 3D');bot('Note : idéalement on affine d\'abord sur la 2D pour ne pas regénérer la 3D. Je te ré-ouvre la 2D ?'+
+      '<button class="btn" onclick="affine()">Affiner</button></div>'+
+      '<div class="small">433 k faces · 217 k sommets · maillage étanche</div></div>';
+    chat.appendChild(r);sc();turntable(document.getElementById('obj3d'));
+    speak('Voilà ton T-Rex en 3D. Fais-le tourner au doigt. L\'imprimabilité est validée.');});}
+function affine(){usr('Affine la 3D');bot('Idéalement on affine sur la 2D pour ne pas regénérer la 3D. On y revient ?'+
   '<div class="acts"><button class="btn" onclick="next2D()">Revenir à la 2D</button><button class="btn primary" onclick="valid3D()">Garder cette 3D</button></div>');}
 
-function valid3D(){
-  user('Je valide la 3D');
-  stage('ÉTAPE IMPRESSION');
+function valid3D(){usr('Je valide la 3D');stage('ÉTAPE IMPRESSION');
   bot('Parfait. Je prépare le fichier imprimable et j\'estime la production (FDM filament).'+
     '<div class="panel"><h3>Aperçu impression</h3>'+
     '<div class="kv"><span>Matière (PLA)</span><b>~85 g</b></div>'+
     '<div class="kv"><span>Temps machine</span><b>~6 h 30</b></div>'+
     '<div class="kv"><span>Coût matière + énergie</span><b>~2,40 €</b></div>'+
-    '<div class="kv"><span>Fichier</span><b>T-Rex.stl ✓ étanche</b></div></div>'+
-    '<div class="acts"><button class="btn primary" onclick="exportSTL()">⬇ Exporter le STL</button>'+
-    '<button class="btn" onclick="sell()">Passer à la vente</button></div>');
-}
-function exportSTL(){user('Exporte le STL');bot('STL exporté vers ton dossier — prêt pour Bambu Studio / Cura. (Version branchée : envoi direct au slicer.)'+
+    '<div class="kv"><span>Fichier</span><b>T-Rex.stl · étanche &#10003;</b></div></div>'+
+    '<div class="acts"><button class="btn primary" onclick="expo()">⬇ Exporter le STL</button>'+
+    '<button class="btn" onclick="sell()">Passer à la vente</button></div>');}
+function expo(){usr('Exporte le STL');bot('STL exporté vers ton dossier — prêt pour Bambu Studio / Cura.'+
   '<div class="acts"><button class="btn primary" onclick="sell()">On le met en vente ?</button></div>');}
 
-function sell(){
-  user('On le met en vente');
-  stage('ÉTAPE VENTE');
-  bot('Voici l\'annonce prête. Étude rapide : les figurines de dinosaure imprimées partent bien sur Etsy/eBay.'+
-    '<div class="panel"><h3>Annonce — brouillon</h3>'+
+function sell(){usr('On le met en vente');stage('ÉTAPE VENTE');
+  bot('Voici l\'annonce prête. Les figurines de dinosaure imprimées partent bien sur Etsy/eBay.'+
+    '<div class="panel"><h3>Annonce · brouillon</h3>'+
     '<div class="kv"><span>Titre</span><b>T-Rex Roar · figurine 14 cm</b></div>'+
     '<div class="kv"><span>Prix conseillé</span><b>18–24 €</b></div>'+
     '<div class="kv"><span>Marge estimée</span><b>~14–20 €</b></div>'+
     '<div class="kv"><span>Canaux</span><b>eBay + Cults3D</b></div></div>'+
-    '<div class="bubble small" style="margin-top:6px;background:transparent;border:0;padding:0">⚠️ Création originale (pas de licence) → revente OK.</div>'+
-    '<div class="acts"><button class="btn primary" onclick="publish()">Publier (après ta validation)</button>'+
-    '<button class="btn ghost" onclick="restart()">Nouvelle création</button></div>');
-}
-function publish(){user('Publie');bot('Je n\'effectue jamais la publication ni le paiement à ta place — je te prépare tout, et c\'est <b>toi qui valides la mise en ligne</b> sur le canal choisi. Parcours A→Z terminé ✅'+
-  '<div class="acts"><button class="btn" onclick="restart()">↺ Recommencer une figurine</button></div>');}
-function restart(){stage('— nouveau projet —');step=0;go();}
+    '<div class="pill">Création originale (pas de licence) → revente OK</div>'+
+    '<div class="acts"><button class="btn primary" onclick="pub()">Publier (après ta validation)</button>'+
+    '<button class="btn ghost" onclick="restart()">Nouvelle création</button></div>');}
+function pub(){usr('Publie');bot('Je ne fais jamais le paiement ni la publication finale sans ton accord — je prépare tout, tu valides d\'un tap, et je diffuse. Parcours A→Z terminé&nbsp;✅'+
+  '<div class="acts"><button class="btn" onclick="restart()">↺ Recommencer</button></div>');}
+function restart(){stage('— nouveau projet —');start();}
 
-go();
+start();
 </script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 </body>
 </html>
