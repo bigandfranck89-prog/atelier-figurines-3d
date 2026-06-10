@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1115">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Atelier 3D">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Atelier Figurines 3D</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1f232c; --line:#2a2f3a;
+    --txt:#e9edf4; --muted:#9aa3b2; --accent:#b9f24d; --accent2:#7c5cff;
+    --orange:#e8731f; --ok:#46c46a; --danger:#ff5c5c; --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:#05060a;color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+  .phone{width:100%;max-width:412px;height:min(860px,94vh);background:var(--bg);
+    border-radius:30px;border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:0 24px 70px rgba(0,0,0,.55)}
+  .top{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--panel);
+    border-bottom:1px solid var(--line)}
+  .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#0c0e12}
+  .top h1{font-size:15px;margin:0;font-weight:650}
+  .top .sub{font-size:11px;color:var(--muted)}
+  .credits{margin-left:auto;font-size:12px;color:var(--muted);background:var(--panel2);
+    padding:5px 9px;border-radius:20px;border:1px solid var(--line)}
+  .credits b{color:var(--accent)}
+  .chat{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .chat::-webkit-scrollbar{width:0}
+  .row{display:flex;gap:9px;max-width:92%}
+  .row.user{align-self:flex-end;flex-direction:row-reverse}
+  .av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:flex;align-items:center;
+    justify-content:center;font-size:13px;font-weight:700}
+  .av.bot{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0c0e12}
+  .av.user{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+  .bubble{background:var(--panel);border:1px solid var(--line);padding:11px 13px;border-radius:14px;
+    font-size:14px;line-height:1.5}
+  .row.user .bubble{background:var(--accent2);border-color:transparent;color:#fff}
+  .bubble .small{font-size:12px;color:var(--muted);margin-top:4px}
+  .stage{font-size:11px;letter-spacing:.4px;color:var(--muted);text-align:center;margin:2px 0}
+  .stage span{background:var(--panel2);padding:3px 10px;border-radius:20px;border:1px solid var(--line)}
+  .cards{display:flex;gap:10px;margin-top:4px}
+  .card{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    cursor:pointer;transition:.15s}
+  .card:hover{border-color:var(--accent)}
+  .card .thumb{height:118px;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 35%,#2c3340,#13161c)}
+  .card .lab{padding:7px 9px;font-size:12px}
+  .card .lab .t{font-weight:600}
+  .card .lab .d{color:var(--muted);font-size:11px}
+  .viewer{margin-top:6px;background:radial-gradient(circle at 50% 40%,#2c3340,#0e1116);
+    border:1px solid var(--line);border-radius:14px;height:210px;display:flex;align-items:center;
+    justify-content:center;position:relative;overflow:hidden}
+  .spin{animation:spin 7s linear infinite;transform-style:preserve-3d}
+  @keyframes spin{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+  .badge{position:absolute;top:10px;left:10px;font-size:11px;background:rgba(70,196,106,.15);
+    color:var(--ok);border:1px solid rgba(70,196,106,.4);padding:4px 9px;border-radius:20px}
+  .badge.spinmark{left:auto;right:10px;background:rgba(124,92,255,.15);color:#c4b6ff;border-color:rgba(124,92,255,.4)}
+  .panel{margin-top:6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .panel h3{margin:0 0 8px;font-size:13px}
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line)}
+  .kv:last-child{border-bottom:0}
+  .kv b{color:var(--accent)}
+  .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .btn{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:9px 13px;
+    border-radius:11px;font-size:13px;cursor:pointer;transition:.15s}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#0c0e12;border-color:transparent;font-weight:650}
+  .btn.ghost{background:transparent;color:var(--muted)}
+  .inputbar{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:var(--panel)}
+  .inputbar input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:22px;
+    padding:11px 14px;color:var(--txt);font-size:14px;outline:none}
+  .inputbar button{width:44px;border:0;border-radius:50%;background:var(--accent);color:#0c0e12;
+    font-size:18px;cursor:pointer}
+  .typing{display:flex;gap:4px;padding:4px 2px}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:b 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1}}
+  .pill{display:inline-block;font-size:11px;color:var(--orange);border:1px solid rgba(232,115,31,.4);
+    background:rgba(232,115,31,.12);padding:2px 8px;border-radius:20px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top">
+    <div class="logo">A</div>
+    <div>
+      <h1>Atelier Figurines 3D</h1>
+      <div class="sub">Ton agent créatif &amp; commercial</div>
+    </div>
+    <div class="credits">Meshy&nbsp;<b id="cred">72</b></div>
+  </div>
+  <div class="chat" id="chat"></div>
+  <div class="inputbar">
+    <input id="inp" placeholder="Décris ton idée…" autocomplete="off">
+    <button id="send">➤</button>
+  </div>
+</div>
+
+<script>
+const chat=document.getElementById('chat');
+const inp=document.getElementById('inp');
+const cred=document.getElementById('cred');
+
+const dinoSVG=(c1,c2)=>`<svg width="120" height="120" viewBox="0 0 120 120">
+  <ellipse cx="60" cy="104" rx="34" ry="6" fill="#000" opacity=".35"/>
+  <path d="M70 30 q14 2 16 18 q12 4 14 18 q-10 -4 -16 -2 q-2 16 -14 22 l4 14 h-10 l-3 -12 h-10 l-3 12 h-10 l4 -16 q-12 -8 -10 -26 q-10 -2 -14 -12 q10 2 16 -2 q4 -16 22 -18 q4 -8 14 -10 q-2 8 0 12z"
+    fill="${c1}" stroke="${c2}" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="78" cy="34" r="3" fill="#0c0e12"/>
+  <path d="M84 44 l8 -2 l-7 5z" fill="#fff" opacity=".85"/>
+</svg>`;
+
+function scroll(){chat.scrollTop=chat.scrollHeight;}
+function stage(t){const d=document.createElement('div');d.className='stage';d.innerHTML='<span>'+t+'</span>';chat.appendChild(d);scroll();}
+function user(t){const r=document.createElement('div');r.className='row user';
+  r.innerHTML='<div class="av user">F</div><div class="bubble">'+t+'</div>';chat.appendChild(r);scroll();}
+function bot(html,cb){
+  const tr=document.createElement('div');tr.className='row';
+  tr.innerHTML='<div class="av bot">A</div><div class="bubble"><div class="typing"><i></i><i></i><i></i></div></div>';
+  chat.appendChild(tr);scroll();
+  setTimeout(()=>{tr.querySelector('.bubble').innerHTML=html;scroll();if(cb)cb();},700);
+}
+function spend(n){let c=parseInt(cred.textContent)-n;cred.textContent=c;}
+
+// ---- Flow state machine ----
+let step=0;
+function go(){
+  if(step===0){
+    bot('Salut Franck 👋 Je suis ton bras droit de l\'atelier. Dis-moi l\'objet que tu veux créer — ou choisis une idée.'+
+      '<div class="acts"><button class="btn primary" onclick="pick(\'Un beau gros T-Rex\')">Un beau gros T-Rex</button>'+
+      '<button class="btn" onclick="pick(\'Surprends-moi (catalogue rentable)\')">Catalogue rentable</button></div>');
+    step=1;
+  }
+}
+function pick(t){user(t);inp.value='';next2D();}
+document.getElementById('send').onclick=()=>{if(inp.value.trim()){pick(inp.value.trim());}};
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&inp.value.trim())pick(inp.value.trim());});
+
+function next2D(){
+  stage('ÉTAPE 2D — propositions');
+  bot('Top ! Voici 2 propositions <b>2D couleur</b> (ça sert aussi de guide de peinture). Itération gratuite : tu valides, tu affines, ou tu relances.'+
+    '<div class="cards">'+
+      '<div class="card" onclick="choose2D(\'verte\')"><div class="thumb">'+dinoSVG('#4f7d4a','#2f5230')+'</div><div class="lab"><div class="t">Option A — verte</div><div class="d">type Jurassic, socle clair</div></div></div>'+
+      '<div class="card" onclick="choose2D(\'bronze\')"><div class="thumb">'+dinoSVG('#8a5a2b','#5c3a17')+'</div><div class="lab"><div class="t">Option B — bronze</div><div class="d">plus agressif, écailles marquées</div></div></div>'+
+    '</div>'+
+    '<div class="acts"><button class="btn ghost" onclick="relance2D()">↻ Relancer une série</button></div>'+
+    '<div class="pill">0 crédit débité tant que tu n\'as pas validé une 2D ✦</div>');
+}
+function relance2D(){user('Relance une autre série');bot('Je relance une variante… (dans l\'app branchée, nouvelle génération 2D).',()=>next2D());}
+function choose2D(c){
+  user('Je valide l\'option '+(c==='bronze'?'B (bronze, plus agressif)':'A (verte)'));
+  stage('ÉTAPE 3D — conversion');
+  bot('Validé. Je convertis cette 2D en <b>3D</b> (image→3D, plus fidèle). Tu pourras le faire pivoter.',()=>{
+    spend(20);
+    const col=c==='bronze'?['#8a5a2b','#5c3a17']:['#4f7d4a','#2f5230'];
+    bot('Voilà ton T-Rex en 3D 🦖 Fais-le tourner. Meshy confirme l\'imprimabilité.'+
+      '<div class="viewer"><span class="badge">Imprimabilité ✓</span><span class="badge spinmark">↻ 360°</span>'+
+        '<div class="spin">'+dinoSVG(col[0],col[1])+'</div></div>'+
+      '<div class="acts"><button class="btn primary" onclick="valid3D()">Valider la 3D</button>'+
+      '<button class="btn" onclick="affine3D()">Affiner</button></div>'+
+      '<div class="bubble small" style="margin-top:6px;background:transparent;border:0;padding:0">433 k faces · 217 k sommets · maillage étanche</div>');
+  });
+}
+function affine3D(){user('Affine la 3D');bot('Note : idéalement on affine d\'abord sur la 2D pour ne pas regénérer la 3D. Je te ré-ouvre la 2D ?'+
+  '<div class="acts"><button class="btn" onclick="next2D()">Revenir à la 2D</button><button class="btn primary" onclick="valid3D()">Garder cette 3D</button></div>');}
+
+function valid3D(){
+  user('Je valide la 3D');
+  stage('ÉTAPE IMPRESSION');
+  bot('Parfait. Je prépare le fichier imprimable et j\'estime la production (FDM filament).'+
+    '<div class="panel"><h3>Aperçu impression</h3>'+
+    '<div class="kv"><span>Matière (PLA)</span><b>~85 g</b></div>'+
+    '<div class="kv"><span>Temps machine</span><b>~6 h 30</b></div>'+
+    '<div class="kv"><span>Coût matière + énergie</span><b>~2,40 €</b></div>'+
+    '<div class="kv"><span>Fichier</span><b>T-Rex.stl ✓ étanche</b></div></div>'+
+    '<div class="acts"><button class="btn primary" onclick="exportSTL()">⬇ Exporter le STL</button>'+
+    '<button class="btn" onclick="sell()">Passer à la vente</button></div>');
+}
+function exportSTL(){user('Exporte le STL');bot('STL exporté vers ton dossier — prêt pour Bambu Studio / Cura. (Version branchée : envoi direct au slicer.)'+
+  '<div class="acts"><button class="btn primary" onclick="sell()">On le met en vente ?</button></div>');}
+
+function sell(){
+  user('On le met en vente');
+  stage('ÉTAPE VENTE');
+  bot('Voici l\'annonce prête. Étude rapide : les figurines de dinosaure imprimées partent bien sur Etsy/eBay.'+
+    '<div class="panel"><h3>Annonce — brouillon</h3>'+
+    '<div class="kv"><span>Titre</span><b>T-Rex Roar · figurine 14 cm</b></div>'+
+    '<div class="kv"><span>Prix conseillé</span><b>18–24 €</b></div>'+
+    '<div class="kv"><span>Marge estimée</span><b>~14–20 €</b></div>'+
+    '<div class="kv"><span>Canaux</span><b>eBay + Cults3D</b></div></div>'+
+    '<div class="bubble small" style="margin-top:6px;background:transparent;border:0;padding:0">⚠️ Création originale (pas de licence) → revente OK.</div>'+
+    '<div class="acts"><button class="btn primary" onclick="publish()">Publier (après ta validation)</button>'+
+    '<button class="btn ghost" onclick="restart()">Nouvelle création</button></div>');
+}
+function publish(){user('Publie');bot('Je n\'effectue jamais la publication ni le paiement à ta place — je te prépare tout, et c\'est <b>toi qui valides la mise en ligne</b> sur le canal choisi. Parcours A→Z terminé ✅'+
+  '<div class="acts"><button class="btn" onclick="restart()">↺ Recommencer une figurine</button></div>');}
+function restart(){stage('— nouveau projet —');step=0;go();}
+
+go();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+</body>
+</html>
