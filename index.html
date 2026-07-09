@@ -14,242 +14,229 @@
   :root{
     --bg:#0b0d12; --panel:#141821; --panel2:#1c2230; --line:#283041;
     --txt:#eef2f8; --muted:#97a1b4; --accent:#b9f24d; --accent2:#7c5cff;
-    --ok:#46c46a; --danger:#ff6a6a;
+    --ok:#46c46a; --warn:#e89b4d; --danger:#ff6a6a;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:radial-gradient(1200px 600px at 50% -10%,#10141d,#05060a)}
-  body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:14px;color:var(--txt)}
-  .phone{width:100%;max-width:420px;height:min(880px,95vh);background:var(--bg);border-radius:32px;
-    border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;
-    box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04)}
-  .top{display:flex;align-items:center;gap:11px;padding:15px 16px;
+  html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#10141d,#05060a);color:var(--txt)}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+  header{display:flex;align-items:center;gap:11px;padding:15px 16px;position:sticky;top:0;z-index:5;
     background:linear-gradient(180deg,#19202c,#141821);border-bottom:1px solid var(--line)}
   .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
-    display:flex;align-items:center;justify-content:center;font-weight:800;color:#0b0d12;font-size:18px;
-    box-shadow:0 6px 18px rgba(124,92,255,.35)}
-  .top h1{font-size:15.5px;margin:0;font-weight:650;letter-spacing:.2px}
-  .top .sub{font-size:11px;color:var(--muted)}
-  .hbtns{margin-left:auto;display:flex;align-items:center;gap:8px}
-  .iconbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);
-    color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
-  .iconbtn.on{color:var(--accent);border-color:rgba(185,242,77,.5)}
-  .credits{font-size:11.5px;color:var(--muted);background:var(--panel2);padding:6px 10px;border-radius:20px;
-    border:1px solid var(--line)}
-  .credits b{color:var(--accent)}
-  .chat{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:13px}
-  .chat::-webkit-scrollbar{width:0}
-  .row{display:flex;gap:9px;max-width:93%;animation:in .3s ease}
-  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .row.user{align-self:flex-end;flex-direction:row-reverse}
-  .av{width:30px;height:30px;border-radius:50%;flex:0 0 30px;display:flex;align-items:center;justify-content:center;
-    font-size:13px;font-weight:700}
-  .av.bot{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0b0d12}
-  .av.user{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
-  .bubble{background:var(--panel);border:1px solid var(--line);padding:12px 14px;border-radius:16px;font-size:14.5px;
-    line-height:1.55;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-  .row.user .bubble{background:linear-gradient(135deg,#7c5cff,#6a49f2);border-color:transparent;color:#fff}
-  .bubble .small{font-size:12px;color:var(--muted);margin-top:5px}
-  .stage{font-size:10.5px;letter-spacing:.6px;color:var(--muted);text-align:center;margin:3px 0}
-  .stage span{background:var(--panel2);padding:4px 12px;border-radius:20px;border:1px solid var(--line)}
-  .cards{display:flex;gap:11px;margin-top:7px}
-  .card{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;
-    transition:.18s;box-shadow:0 4px 14px rgba(0,0,0,.3)}
-  .card:hover{border-color:var(--accent);transform:translateY(-2px)}
-  .card .thumb{height:130px;display:flex;align-items:flex-end;justify-content:center;
-    background:linear-gradient(180deg,#39414f,#11141c)}
-  .card .lab{padding:8px 10px}
-  .card .lab .t{font-weight:600;font-size:12.5px}
-  .card .lab .d{color:var(--muted);font-size:11px;margin-top:2px}
-  .viewer{margin-top:7px;border:1px solid var(--line);border-radius:16px;height:240px;position:relative;overflow:hidden;
-    background:radial-gradient(130% 95% at 50% 22%,#39414f,#0b0e15);touch-action:none;cursor:grab}
-  .stagefloor{position:absolute;left:50%;bottom:26px;width:62%;height:20px;transform:translateX(-50%);
-    background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);border-radius:50%}
-  .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-  .scene .obj{transform-style:preserve-3d;will-change:transform}
-  .badge{position:absolute;top:11px;left:11px;font-size:11px;background:rgba(70,196,106,.16);color:var(--ok);
-    border:1px solid rgba(70,196,106,.45);padding:4px 10px;border-radius:20px}
-  .hint{position:absolute;bottom:9px;left:0;right:0;text-align:center;font-size:10.5px;color:var(--muted)}
-  .panel{margin-top:7px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px}
-  .panel h3{margin:0 0 9px;font-size:13px}
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#0b0d12;font-size:18px}
+  header h1{font-size:15.5px;margin:0;font-weight:650}
+  header .sub{font-size:11px;color:var(--muted)}
+  .refresh{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);
+    color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+  main{flex:1;padding:14px 14px 90px}
+  nav{position:fixed;bottom:0;left:0;right:0;z-index:10;display:flex;justify-content:center;
+    background:linear-gradient(0deg,#12161f,#141821f2);border-top:1px solid var(--line)}
+  .navin{display:flex;width:100%;max-width:480px}
+  nav button{flex:1;background:none;border:0;color:var(--muted);padding:10px 2px calc(10px + env(safe-area-inset-bottom));
+    font-size:10.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+  nav button .ico{font-size:19px}
+  nav button.on{color:var(--accent)}
+  h2{font-size:14px;margin:4px 2px 12px;color:var(--muted);font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px}
+  .fig{display:flex;gap:11px}
+  .fig img{width:74px;height:74px;border-radius:12px;object-fit:cover;background:var(--panel2);flex:0 0 74px}
+  .fig .noimg{width:74px;height:74px;border-radius:12px;background:var(--panel2);display:flex;align-items:center;
+    justify-content:center;font-size:26px;flex:0 0 74px}
+  .fig .t{font-weight:600;font-size:13.5px;line-height:1.35}
+  .fig .d{color:var(--muted);font-size:11px;margin-top:3px}
+  .badge{display:inline-block;font-size:10.5px;padding:3px 9px;border-radius:20px;margin-top:6px;margin-right:5px;
+    border:1px solid var(--line);color:var(--muted);background:var(--panel2)}
+  .badge.b-image_en_cours,.badge.b-3d_en_cours{color:var(--warn);border-color:rgba(232,155,77,.4);background:rgba(232,155,77,.1)}
+  .badge.b-image_validee,.badge.b-3d_valide,.badge.b-fichier_pret{color:var(--accent);border-color:rgba(185,242,77,.4);background:rgba(185,242,77,.08)}
+  .badge.b-imprimee{color:var(--ok);border-color:rgba(70,196,106,.45);background:rgba(70,196,106,.12)}
+  .badge.lic{color:var(--danger);border-color:rgba(255,106,106,.4);background:rgba(255,106,106,.08)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid var(--line);background:var(--panel2)}
+  .gcap{font-size:10.5px;color:var(--muted);margin:4px 2px 10px}
+  .btn{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:11px 14px;border-radius:12px;
+    font-size:13px;cursor:pointer;width:100%;margin-top:8px}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#a6e23e);color:#0b0d12;border-color:transparent;font-weight:650}
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:34px 10px;line-height:1.6}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 2px 4px}
+  input[type=number],input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;color:var(--txt);font-size:14px;outline:none}
+  .row2{display:flex;gap:10px}.row2>div{flex:1}
+  .res{margin-top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
   .kv{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line)}
   .kv:last-child{border-bottom:0}.kv b{color:var(--accent)}
-  .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  .btn{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:10px 14px;border-radius:12px;
-    font-size:13px;cursor:pointer;transition:.15s}
-  .btn:hover{border-color:var(--accent);transform:translateY(-1px)}
-  .btn.primary{background:linear-gradient(135deg,var(--accent),#a6e23e);color:#0b0d12;border-color:transparent;font-weight:650}
-  .btn.ghost{background:transparent;color:var(--muted)}
-  .pill{display:inline-block;font-size:11px;color:#e89b4d;border:1px solid rgba(232,155,77,.4);
-    background:rgba(232,155,77,.12);padding:3px 9px;border-radius:20px;margin-top:7px}
-  .inputbar{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);
-    background:linear-gradient(0deg,#19202c,#141821)}
-  .inputbar input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:24px;padding:12px 15px;
-    color:var(--txt);font-size:14px;outline:none}
-  .inputbar input:focus{border-color:rgba(124,92,255,.6)}
-  .mic{width:46px;height:46px;flex:0 0 46px;border:1px solid var(--line);border-radius:50%;background:var(--panel2);
-    color:var(--muted);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
-  .mic.rec{background:linear-gradient(135deg,#ff6a6a,#ff4d6d);color:#fff;border-color:transparent;animation:pulse 1s infinite}
-  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,.5)}50%{box-shadow:0 0 0 9px rgba(255,77,109,0)}}
-  .send{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:50%;cursor:pointer;font-size:18px;color:#0b0d12;
-    background:linear-gradient(135deg,var(--accent),#a6e23e)}
-  .typing{display:flex;gap:4px;padding:4px 2px}
-  .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:b 1.2s infinite}
-  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
-  @keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1}}
+  .note{font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:10px}
+  .aide p{font-size:13.5px;line-height:1.65;color:var(--txt)}
+  .aide .etape{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
+  .aide .n{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#0b0d12;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 26px;margin-top:2px}
+  a{color:var(--accent)}
 </style>
 </head>
 <body>
-<div class="phone">
-  <div class="top">
+<div class="app">
+  <header>
     <div class="logo">A</div>
     <div>
       <h1>Atelier Figurines 3D</h1>
-      <div class="sub">Ton agent créatif &amp; commercial</div>
+      <div class="sub">Suivi de tes figurines, de l'idée à l'impression</div>
     </div>
-    <div class="hbtns">
-      <div class="iconbtn on" id="voiceBtn" title="Voix de l'agent">&#128266;</div>
-      <div class="credits">Meshy&nbsp;<b id="cred">72</b></div>
-    </div>
-  </div>
-  <div class="chat" id="chat"></div>
-  <div class="inputbar">
-    <div class="mic" id="mic" title="Parler">&#127908;</div>
-    <input id="inp" placeholder="Écris ou parle…" autocomplete="off">
-    <button class="send" id="send">&#10148;</button>
-  </div>
+    <div class="refresh" onclick="rafraichir()">↻</div>
+  </header>
+  <main id="main"></main>
+  <nav><div class="navin">
+    <button data-tab="suivi" class="on" onclick="go('suivi')"><span class="ico">🧾</span>Suivi</button>
+    <button data-tab="galerie" onclick="go('galerie')"><span class="ico">🖼️</span>Galerie</button>
+    <button data-tab="troisd" onclick="go('troisd')"><span class="ico">🗿</span>3D</button>
+    <button data-tab="calculs" onclick="go('calculs')"><span class="ico">🧮</span>Calculs</button>
+    <button data-tab="aide" onclick="go('aide')"><span class="ico">💡</span>Aide</button>
+  </div></nav>
 </div>
 
 <script>
-const chat=document.getElementById('chat'),inp=document.getElementById('inp'),cred=document.getElementById('cred');
-const micBtn=document.getElementById('mic'),voiceBtn=document.getElementById('voiceBtn');
+const SB_URL = 'https://bmvytqfddrfgcgokoxfn.supabase.co';
+const SB_KEY = 'sb_publishable_tGwuRROW7-AjWdE8K8ZbFA_R8_V2LUU';
+const main = document.getElementById('main');
+let TAB = 'suivi';
 
-let DID=0;
-function dino(p){
-  const id="g"+(DID++);
-  return '<svg viewBox="0 0 260 220" width="200" height="170" xmlns="http://www.w3.org/2000/svg">'+
-  '<defs>'+
-  '<linearGradient id="skin'+id+'" x1="0" y1="0" x2="0" y2="1">'+
-  '<stop offset="0" stop-color="'+p.dark+'"/><stop offset=".55" stop-color="'+p.mid+'"/><stop offset="1" stop-color="'+p.low+'"/></linearGradient>'+
-  '<radialGradient id="ped'+id+'" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#8a93a3"/><stop offset="1" stop-color="#3a414e"/></radialGradient>'+
-  '</defs>'+
-  '<ellipse cx="130" cy="205" rx="92" ry="13" fill="rgba(0,0,0,.45)"/>'+
-  '<ellipse cx="130" cy="198" rx="90" ry="15" fill="url(#ped'+id+')"/>'+
-  '<path d="M150 150 Q176 152 196 140 L210 196 L192 200 L188 162 Q172 158 158 158 Z" fill="'+p.dark+'"/>'+
-  '<path d="M28 104 L30 92 Q44 80 66 82 Q76 64 96 74 Q120 60 150 84 Q190 66 214 96 Q236 112 252 134 Q236 134 220 128 Q198 124 182 138 Q170 150 150 150 Q120 156 96 150 Q74 146 60 128 Q44 120 30 118 L52 112 L28 108 Z" fill="url(#skin'+id+')" stroke="'+p.dark+'" stroke-width="2" stroke-linejoin="round"/>'+
-  '<path d="M96 150 Q120 156 150 150 Q150 168 120 170 Q100 168 96 150 Z" fill="'+p.belly+'" opacity=".75"/>'+
-  '<path d="M108 150 Q124 154 138 151 L132 196 L116 198 L114 160 Z" fill="'+p.mid+'" stroke="'+p.dark+'" stroke-width="1.5"/>'+
-  '<path d="M78 120 q14 4 12 16 q-8 2 -14 -4 Z" fill="'+p.dark+'"/>'+
-  '<circle cx="54" cy="92" r="5.5" fill="#10141d"/><circle cx="56" cy="90" r="1.8" fill="#fff"/>'+
-  '<path d="M30 105 l7 7 4 -6 5 6 4 -6 5 5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/>'+
-  '<path d="M150 84 Q170 78 188 86" fill="none" stroke="'+p.dark+'" stroke-width="2" opacity=".5"/>'+
-  '</svg>';
+async function sb(path){
+  const r = await fetch(SB_URL + '/rest/v1/' + path, { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+  if (!r.ok) throw new Error('Supabase ' + r.status);
+  return r.json();
 }
-const GREEN={dark:"#33502e",mid:"#5b8c4e",low:"#7fae6a",belly:"#bfe0a6"};
-const BRONZE={dark:"#5b3a1a",mid:"#9c6b34",low:"#c08f4f",belly:"#e8c794"};
+const STATUTS = {
+  idee:'💭 Idée', image_en_cours:'🎨 Image en cours', image_validee:'✅ Image validée',
+  '3d_en_cours':'🔧 Sculpture 3D…', '3d_valide':'✅ 3D validée', fichier_pret:'📦 Fichier prêt',
+  imprimee:'🖨️ Imprimée', abandonnee:'🗑️ Abandonnée'
+};
+const esc = s => String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dateFr = s => new Date(s).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
 
-let voiceOn=true;
-voiceBtn.onclick=function(){voiceOn=!voiceOn;voiceBtn.classList.toggle('on',voiceOn);
-  voiceBtn.innerHTML=voiceOn?'&#128266;':'&#128263;';if(!voiceOn&&window.speechSynthesis)speechSynthesis.cancel();};
-function speak(t){if(!voiceOn||!('speechSynthesis' in window))return;
-  var clean=t.replace(/<[^>]+>/g,' ').replace(/[\u{1F000}-\u{1FFFF}←-➿]/gu,'').replace(/\s+/g,' ').trim();
-  if(!clean)return;try{var u=new SpeechSynthesisUtterance(clean);u.lang='fr-FR';u.rate=1.03;
-    var v=speechSynthesis.getVoices().find(function(x){return x.lang&&x.lang.toLowerCase().indexOf('fr')===0;});if(v)u.voice=v;
-    speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+function go(t){ TAB=t; document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t)); render(); }
+function rafraichir(){ render(true); }
 
-var rec=null,listening=false;
-(function(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){micBtn.title="Reconnaissance vocale non supportée ici (essaie Chrome / Android)";micBtn.style.opacity=.45;return;}
-  rec=new SR();rec.lang='fr-FR';rec.interimResults=true;rec.continuous=false;
-  rec.onresult=function(e){var t='';for(var i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;inp.value=t;
-    if(e.results[e.results.length-1].isFinal){stopRec();var v=inp.value.trim();if(v)pick(v);}};
-  rec.onend=function(){listening=false;micBtn.classList.remove('rec');};
-  rec.onerror=function(){listening=false;micBtn.classList.remove('rec');};
-})();
-function stopRec(){if(rec&&listening){try{rec.stop();}catch(e){}}listening=false;micBtn.classList.remove('rec');}
-micBtn.onclick=function(){if(!rec){alert("La reconnaissance vocale n'est pas disponible sur ce navigateur. Sur iPhone, utilise le micro du clavier, ou ouvre l'app dans Chrome (Android/PC).");return;}
-  if(listening){stopRec();}else{inp.value='';try{rec.start();listening=true;micBtn.classList.add('rec');}catch(e){}}};
+async function render(){
+  if (TAB==='suivi') return vueSuivi();
+  if (TAB==='galerie') return vueGalerie();
+  if (TAB==='troisd') return vue3D();
+  if (TAB==='calculs') return vueCalculs();
+  return vueAide();
+}
 
-function sc(){chat.scrollTop=chat.scrollHeight;}
-function stage(t){var d=document.createElement('div');d.className='stage';d.innerHTML='<span>'+t+'</span>';chat.appendChild(d);sc();}
-function usr(t){var r=document.createElement('div');r.className='row user';
-  r.innerHTML='<div class="av user">F</div><div class="bubble">'+t+'</div>';chat.appendChild(r);sc();}
-function bot(html,cb){var tr=document.createElement('div');tr.className='row';
-  tr.innerHTML='<div class="av bot">A</div><div class="bubble"><div class="typing"><i></i><i></i><i></i></div></div>';
-  chat.appendChild(tr);sc();
-  setTimeout(function(){var b=tr.querySelector('.bubble');b.innerHTML=html;sc();speak(b.textContent);if(cb)cb();},700);}
-function money(n){cred.textContent=parseInt(cred.textContent)-n;}
+async function vueSuivi(){
+  main.innerHTML = '<h2>Mes figurines</h2><div class="empty">Chargement…</div>';
+  try{
+    const figs = await sb('atelier_figurines?order=maj_le.desc&limit=50');
+    if(!figs.length){ main.innerHTML = '<h2>Mes figurines</h2><div class="empty">Aucune figurine pour l\'instant.<br>Envoie ton idée au bot Telegram pour démarrer ! 🚀</div>'; return; }
+    main.innerHTML = '<h2>Mes figurines</h2>' + figs.map(f => `
+      <div class="card"><div class="fig">
+        ${f.image_url ? `<img src="${esc(f.image_url)}" loading="lazy">` : '<div class="noimg">🧸</div>'}
+        <div style="flex:1">
+          <div class="t">${esc(f.demande)}</div>
+          <div class="d">#${f.id} · ${dateFr(f.cree_le)}${f.cout_total_eur ? ' · coût réel ' + Number(f.cout_total_eur).toFixed(2) + ' €' : ''}</div>
+          <span class="badge b-${esc(f.statut)}">${STATUTS[f.statut]||esc(f.statut)}</span>
+          ${f.licence ? '<span class="badge lic">⚠️ licence — vente interdite</span>' : ''}
+          ${f.usage==='vente' ? '<span class="badge">🏷️ vente</span>' : ''}
+        </div>
+      </div>
+      ${f.model_url ? `<button class="btn" onclick="location.href='viewer.html?src='+encodeURIComponent('${esc(f.model_url)}')">🗿 Voir la 3D</button>` : ''}
+      </div>`).join('');
+  }catch(e){ main.innerHTML = '<h2>Mes figurines</h2><div class="empty">Impossible de charger 😕<br>' + esc(e.message) + '</div>'; }
+}
 
-function turntable(el){var a=0,drag=false,lx=0;
-  function r(){el.style.transform='perspective(700px) rotateY('+a+'deg)';}
-  function loop(){if(!drag){a+=0.35;r();}requestAnimationFrame(loop);}
-  var v=el.closest('.viewer');
-  v.addEventListener('pointerdown',function(e){drag=true;lx=e.clientX;v.style.cursor='grabbing';});
-  window.addEventListener('pointermove',function(e){if(drag){a+=(e.clientX-lx)*0.6;lx=e.clientX;r();}});
-  window.addEventListener('pointerup',function(){drag=false;v.style.cursor='grab';});
-  loop();}
+async function vueGalerie(){
+  main.innerHTML = '<h2>Galerie des images</h2><div class="empty">Chargement…</div>';
+  try{
+    const it = await sb('atelier_iterations?etape=eq.image&resultat_url=not.is.null&order=id.desc&limit=60');
+    if(!it.length){ main.innerHTML = '<h2>Galerie des images</h2><div class="empty">Encore rien à montrer — les images créées avec le bot apparaîtront ici.</div>'; return; }
+    main.innerHTML = '<h2>Galerie des images</h2><div class="grid">' + it.map(i => `
+      <div><a href="${esc(i.resultat_url)}" target="_blank" rel="noopener"><img src="${esc(i.resultat_url)}" loading="lazy"></a>
+      <div class="gcap">Figurine #${i.figurine_id} · v${i.version}${i.valide?' · ✅ validée':''}</div></div>`).join('') + '</div>';
+  }catch(e){ main.innerHTML = '<h2>Galerie</h2><div class="empty">Impossible de charger 😕<br>' + esc(e.message) + '</div>'; }
+}
 
-function start(){bot('Salut Franck&nbsp;👋 Je suis ton bras droit de l\'atelier. Dis-moi de vive voix (clique sur le micro) ou par écrit l\'objet que tu veux créer — ou choisis une idée.'+
-  '<div class="acts"><button class="btn primary" onclick="pick(\'Un beau gros T-Rex\')">Un beau gros T-Rex</button>'+
-  '<button class="btn" onclick="pick(\'Propose-moi le catalogue rentable\')">Catalogue rentable</button></div>');}
-document.getElementById('send').onclick=function(){if(inp.value.trim())pick(inp.value.trim());};
-inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&inp.value.trim())pick(inp.value.trim());});
-function pick(t){usr(t);inp.value='';next2D();}
+async function vue3D(){
+  main.innerHTML = '<h2>Figurines en 3D</h2><div class="empty">Chargement…</div>';
+  try{
+    const figs = await sb('atelier_figurines?model_url=not.is.null&order=maj_le.desc&limit=30');
+    if(!figs.length){ main.innerHTML = '<h2>Figurines en 3D</h2><div class="empty">Pas encore de 3D — dès qu\'une image est validée, la sculpture apparaît ici.</div>'; return; }
+    main.innerHTML = '<h2>Figurines en 3D</h2>' + figs.map(f => `
+      <div class="card">
+        <div class="fig">${f.image_url?`<img src="${esc(f.image_url)}" loading="lazy">`:'<div class="noimg">🗿</div>'}
+        <div style="flex:1"><div class="t">${esc(f.demande)}</div>
+        <span class="badge b-${esc(f.statut)}">${STATUTS[f.statut]||esc(f.statut)}</span></div></div>
+        <button class="btn primary" onclick="location.href='viewer.html?src='+encodeURIComponent('${esc(f.model_url)}')">🗿 Ouvrir la visionneuse 3D</button>
+      </div>`).join('');
+  }catch(e){ main.innerHTML = '<h2>3D</h2><div class="empty">Impossible de charger 😕<br>' + esc(e.message) + '</div>'; }
+}
 
-function next2D(){stage('ÉTAPE 2D · propositions');
-  bot('Parfait&nbsp;! Voici 2 propositions <b>2D couleur</b> (elles servent aussi de guide de peinture). On itère ici : tu valides, tu affines, ou tu relances.'+
-    '<div class="cards">'+
-    '<div class="card" onclick="choose2D(\'verte\')"><div class="thumb">'+dino(GREEN)+'</div><div class="lab"><div class="t">Option A · verte</div><div class="d">type Jurassic, socle clair</div></div></div>'+
-    '<div class="card" onclick="choose2D(\'bronze\')"><div class="thumb">'+dino(BRONZE)+'</div><div class="lab"><div class="t">Option B · bronze</div><div class="d">plus agressif, écailles marquées</div></div></div>'+
-    '</div>'+
-    '<div class="acts"><button class="btn ghost" onclick="relance()">↻ Relancer une série</button></div>'+
-    '<div class="pill">Itération 2D · on corrige ICI, jamais sur la 3D</div>');}
-function relance(){usr('Relance une autre série');bot('Je relance une variante…',function(){next2D();});}
+function vueCalculs(){
+  main.innerHTML = `
+  <h2>Remplissage du plateau (P2S · 256×256)</h2>
+  <div class="card">
+    <div class="row2">
+      <div><label>Largeur figurine (mm)</label><input type="number" id="px" value="80"></div>
+      <div><label>Profondeur (mm)</label><input type="number" id="py" value="80"></div>
+    </div>
+    <label>Espace entre pièces (mm)</label><input type="number" id="pm" value="10">
+    <button class="btn primary" onclick="calcPlateau()">Calculer</button>
+    <div class="res" id="resPlateau" style="display:none"></div>
+    <div class="note">Rappel : on n'attend JAMAIS un plateau plein pour lancer — c'est juste pour savoir s'il reste de la place.</div>
+  </div>
+  <h2>Coût d'une impression</h2>
+  <div class="card">
+    <div class="row2">
+      <div><label>Poids (g)</label><input type="number" id="cg" value="85"></div>
+      <div><label>Prix bobine (€/kg)</label><input type="number" id="ck" value="20"></div>
+    </div>
+    <div class="row2">
+      <div><label>Temps (heures)</label><input type="number" id="ch" value="6.5" step="0.5"></div>
+      <div><label>Puissance moy. (W)</label><input type="number" id="cw" value="100"></div>
+    </div>
+    <label>Prix du kWh (€)</label><input type="number" id="ce" value="0.2016" step="0.001">
+    <button class="btn primary" onclick="calcCout()">Calculer</button>
+    <div class="res" id="resCout" style="display:none"></div>
+    <div class="note">Pour la VENTE : jamais à perte — prix conseillé = coût total × 3 minimum (matière + énergie + usure + ton temps).</div>
+  </div>`;
+}
+function calcPlateau(){
+  const x=+px.value, y=+py.value, m=+pm.value, BED=256;
+  const nx=Math.floor((BED+m)/(x+m)), ny=Math.floor((BED+m)/(y+m));
+  const n=Math.max(0,nx*ny);
+  const el=document.getElementById('resPlateau'); el.style.display='block';
+  el.innerHTML = n===0 ? 'Trop grand pour le plateau 😅 (max 256×256 mm)' :
+    `<div class="kv"><span>Figurines par plateau</span><b>${n}</b></div>
+     <div class="kv"><span>Disposition</span><b>${nx} × ${ny}</b></div>
+     <div class="kv"><span>Place perdue</span><b>${Math.round(100-(n*x*y)/(BED*BED)*100)} %</b></div>`;
+}
+function calcCout(){
+  const g=+cg.value, k=+ck.value, h=+ch.value, w=+cw.value, e=+ce.value;
+  const mat=g/1000*k, ener=h*w/1000*e, usure=(mat+ener)*0.10, tot=mat+ener+usure;
+  const el=document.getElementById('resCout'); el.style.display='block';
+  el.innerHTML = `
+    <div class="kv"><span>Matière (PLA)</span><b>${mat.toFixed(2)} €</b></div>
+    <div class="kv"><span>Électricité</span><b>${ener.toFixed(2)} €</b></div>
+    <div class="kv"><span>Usure machine (~10 %)</span><b>${usure.toFixed(2)} €</b></div>
+    <div class="kv"><span>Coût total</span><b>${tot.toFixed(2)} €</b></div>
+    <div class="kv"><span>Prix de vente conseillé (×3)</span><b>${(tot*3).toFixed(2)} € min.</b></div>`;
+}
 
-function choose2D(c){usr('Je valide l\'option '+(c==='bronze'?'B (bronze, plus agressif)':'A (verte)'));
-  stage('ÉTAPE 3D · conversion');
-  bot('Validé. Je convertis cette 2D en <b>3D</b> (image→3D, plus fidèle). Fais-le tourner au doigt&nbsp;!',function(){
-    money(20);var pal=c==='bronze'?BRONZE:GREEN;
-    var r=document.createElement('div');r.className='row';
-    r.innerHTML='<div class="av bot">A</div><div class="bubble" style="width:100%">'+
-      '<div class="viewer"><span class="badge">&#10003; Imprimabilité OK</span><div class="stagefloor"></div>'+
-      '<div class="scene"><div class="obj" id="obj3d">'+dino(pal)+'</div></div>'+
-      '<div class="hint">glisse pour faire pivoter</div></div>'+
-      '<div class="acts"><button class="btn primary" onclick="valid3D()">Valider la 3D</button>'+
-      '<button class="btn" onclick="affine()">Affiner</button></div>'+
-      '<div class="small">433 k faces · 217 k sommets · maillage étanche</div></div>';
-    chat.appendChild(r);sc();turntable(document.getElementById('obj3d'));
-    speak('Voilà ton T-Rex en 3D. Fais-le tourner au doigt. L\'imprimabilité est validée.');});}
-function affine(){usr('Affine la 3D');bot('Idéalement on affine sur la 2D pour ne pas regénérer la 3D. On y revient ?'+
-  '<div class="acts"><button class="btn" onclick="next2D()">Revenir à la 2D</button><button class="btn primary" onclick="valid3D()">Garder cette 3D</button></div>');}
+function vueAide(){
+  main.innerHTML = `
+  <h2>Comment ça marche</h2>
+  <div class="card aide">
+    <div class="etape"><div class="n">1</div><p>Tu envoies ton idée de figurine au <b>bot Telegram</b> (une phrase suffit).</p></div>
+    <div class="etape"><div class="n">2</div><p>L'IA te propose une <b>image</b>. Tu critiques, elle corrige — autant de fois qu'il faut. On ne passe à la suite que quand TU valides.</p></div>
+    <div class="etape"><div class="n">3</div><p>L'image validée est <b>sculptée en 3D</b> (Meshy). Même principe : tu regardes, tu critiques, tu valides.</p></div>
+    <div class="etape"><div class="n">4</div><p>Franck prépare le <b>fichier d'impression .3mf</b> (réglages P2S inclus) et te l'envoie. Tu n'as plus qu'à imprimer ! 🖨️</p></div>
+  </div>
+  <div class="card aide">
+    <p><b>⚠️ Personnages sous licence</b> (Marvel, Pokémon, Disney…) : autorisés pour TOI (usage perso), mais <b>interdits à la vente</b>. Le bot te le rappelle automatiquement.</p>
+    <p><b>🧪 Comparer les générateurs d'images</b> : <a href="comparatif.html">ouvrir le banc d'essai</a>.</p>
+  </div>`;
+}
 
-function valid3D(){usr('Je valide la 3D');stage('ÉTAPE IMPRESSION');
-  bot('Parfait. Je prépare le fichier imprimable et j\'estime la production (FDM filament).'+
-    '<div class="panel"><h3>Aperçu impression</h3>'+
-    '<div class="kv"><span>Matière (PLA)</span><b>~85 g</b></div>'+
-    '<div class="kv"><span>Temps machine</span><b>~6 h 30</b></div>'+
-    '<div class="kv"><span>Coût matière + énergie</span><b>~2,40 €</b></div>'+
-    '<div class="kv"><span>Fichier</span><b>T-Rex.stl · étanche &#10003;</b></div></div>'+
-    '<div class="acts"><button class="btn primary" onclick="expo()">⬇ Exporter le STL</button>'+
-    '<button class="btn" onclick="sell()">Passer à la vente</button></div>');}
-function expo(){usr('Exporte le STL');bot('STL exporté vers ton dossier — prêt pour Bambu Studio / Cura.'+
-  '<div class="acts"><button class="btn primary" onclick="sell()">On le met en vente ?</button></div>');}
-
-function sell(){usr('On le met en vente');stage('ÉTAPE VENTE');
-  bot('Voici l\'annonce prête. Les figurines de dinosaure imprimées partent bien sur Etsy/eBay.'+
-    '<div class="panel"><h3>Annonce · brouillon</h3>'+
-    '<div class="kv"><span>Titre</span><b>T-Rex Roar · figurine 14 cm</b></div>'+
-    '<div class="kv"><span>Prix conseillé</span><b>18–24 €</b></div>'+
-    '<div class="kv"><span>Marge estimée</span><b>~14–20 €</b></div>'+
-    '<div class="kv"><span>Canaux</span><b>eBay + Cults3D</b></div></div>'+
-    '<div class="pill">Création originale (pas de licence) → revente OK</div>'+
-    '<div class="acts"><button class="btn primary" onclick="pub()">Publier (après ta validation)</button>'+
-    '<button class="btn ghost" onclick="restart()">Nouvelle création</button></div>');}
-function pub(){usr('Publie');bot('Je ne fais jamais le paiement ni la publication finale sans ton accord — je prépare tout, tu valides d\'un tap, et je diffuse. Parcours A→Z terminé&nbsp;✅'+
-  '<div class="acts"><button class="btn" onclick="restart()">↺ Recommencer</button></div>');}
-function restart(){stage('— nouveau projet —');start();}
-
-start();
+render();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
 </html>

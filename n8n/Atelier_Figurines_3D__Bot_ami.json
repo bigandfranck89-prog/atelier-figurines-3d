@@ -1,0 +1,81 @@
+{
+  "name": "Atelier Figurines 3D - Bot ami (Telegram)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "a1000000-0000-0000-0000-000000000001",
+      "name": "Toutes les 15 s",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ============================================================\n// CODE A — \"Relever Telegram\" (workflow: Atelier Figurines 3D - Bot ami)\n// Récupère les nouveaux messages du bot et les passe au nœud suivant.\n// ⚠️ À REMPLIR une seule fois : le token BotFather ci-dessous.\n// ============================================================\nconst CONFIG = {\n  TELEGRAM_TOKEN: 'A_REMPLIR_token_botfather',\n  SUPABASE_URL: 'https://bmvytqfddrfgcgokoxfn.supabase.co',\n  SUPABASE_SERVICE_KEY: 'A_REMPLIR_service_role_key',\n  MESHY_KEY: 'A_REMPLIR_cle_api_meshy',          // laisser tel quel tant que le compte Meshy n'existe pas\n  FRANCK_CHAT_ID: 'A_REMPLIR_chat_id_franck',     // pour les notifications à Franck\n  APP_URL: 'https://bigandfranck89-prog.github.io/atelier-figurines-3d',\n};\n\nif (CONFIG.TELEGRAM_TOKEN.startsWith('A_REMPLIR')) return [];\n\nconst sd = $getWorkflowStaticData('global');\nconst offset = sd.tgOffset || 0;\n\nconst res = await this.helpers.httpRequest({\n  method: 'GET',\n  url: `https://api.telegram.org/bot${CONFIG.TELEGRAM_TOKEN}/getUpdates`,\n  qs: { offset, timeout: 0, allowed_updates: JSON.stringify(['message', 'callback_query']) },\n  json: true,\n});\n\nconst updates = (res && res.result) || [];\nif (updates.length === 0) return [];\n\n// Marque immédiatement les updates comme consommés (évite les doublons si deux\n// exécutions se chevauchent pendant une génération d'image un peu longue).\nconst maxId = Math.max(...updates.map(u => u.update_id));\nsd.tgOffset = maxId + 1;\nawait this.helpers.httpRequest({\n  method: 'GET',\n  url: `https://api.telegram.org/bot${CONFIG.TELEGRAM_TOKEN}/getUpdates`,\n  qs: { offset: maxId + 1, limit: 1, timeout: 0 },\n  json: true,\n});\n\nreturn updates.map(u => ({ json: { update: u, config: CONFIG } }));\n"
+      },
+      "id": "a1000000-0000-0000-0000-000000000002",
+      "name": "Relever Telegram",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ============================================================\n// CODE B — \"Machine à figurines\" (workflow: Atelier Figurines 3D - Bot ami)\n// Toute la logique : création, boucle de critique image, lancement 3D,\n// boucle de validation 3D, alerte licence, notifications Franck.\n// Rien à remplir ici : la config vient du nœud \"Relever Telegram\".\n// ============================================================\nconst out = [];\n\n// ---------- petits helpers ----------\nconst mkTg = (C) => async (method, body) =>\n  this.helpers.httpRequest({\n    method: 'POST',\n    url: `https://api.telegram.org/bot${C.TELEGRAM_TOKEN}/${method}`,\n    body, json: true,\n  }).catch(e => ({ error: String(e && e.message || e) }));\n\nconst mkSb = (C) => async (method, path, body) =>\n  this.helpers.httpRequest({\n    method,\n    url: `${C.SUPABASE_URL}/rest/v1/${path}`,\n    headers: {\n      apikey: C.SUPABASE_SERVICE_KEY,\n      Authorization: `Bearer ${C.SUPABASE_SERVICE_KEY}`,\n      Prefer: 'return=representation',\n      'Content-Type': 'application/json',\n    },\n    body, json: true,\n  });\n\nconst LICENCE_MOTS = ['marvel','pokemon','pokémon','pikachu','disney','star wars','starwars','mario','luigi','zelda','link ','batman','superman','spiderman','spider-man','naruto','dragon ball','goku','vegeta','harry potter','avengers','hulk','iron man','thor ','sonic','kirby','minecraft','fortnite','one piece','luffy','stitch','groot','yoda','dark vador','darth vader','deadpool','wolverine','ninjago','transformers','gundam','demon slayer','tanjiro'];\n\nconst detecteLicence = (t) => {\n  const s = ' ' + t.toLowerCase() + ' ';\n  return LICENCE_MOTS.some(m => s.includes(m));\n};\n\nconst promptFigurine = (description) =>\n  `${description}, figurine de collection, corps entier, un seul personnage, sur un petit socle rond simple, ` +\n  `fond de studio uni et clair, très détaillé, style adapté à l'impression 3D, collectible figurine, full body, plain background`;\n\nconst urlImage = (prompt, seed) =>\n  `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;\n\n// Force la génération côté Pollinations (met l'image en cache) avant que Telegram n'aille la chercher.\nconst chauffeImage = async (url) => {\n  try { await this.helpers.httpRequest({ method: 'GET', url, encoding: 'arraybuffer', timeout: 120000 }); }\n  catch (e) { /* tant pis, Telegram réessaiera */ }\n};\n\nconst AVERT_LICENCE = '\\n\\n⚠️ Personnage sous licence : impression PERSO uniquement — interdit à la vente.';\n\nconst clavierImage = (id) => ({ inline_keyboard: [[\n  { text: '✅ Je valide cette image', callback_data: `v_img:${id}` },\n  { text: '🔄 Refaire', callback_data: `r_img:${id}` },\n]]});\n\nconst clavier3D = (id) => ({ inline_keyboard: [\n  [{ text: '✅ Je valide la 3D', callback_data: `v_3d:${id}` }],\n  [{ text: '🔁 Relancer la sculpture 3D', callback_data: `r_3d:${id}` },\n   { text: '↩️ Modifier l\\'image', callback_data: `b_img:${id}` }],\n]});\n\nconst lanceMeshy = async (C, fig, tg, sb) => {\n  if (!C.MESHY_KEY || C.MESHY_KEY.startsWith('A_REMPLIR')) {\n    await tg('sendMessage', { chat_id: fig.telegram_chat_id,\n      text: '✅ Image validée et enregistrée !\\n\\n(La sculpture 3D automatique n\\'est pas encore branchée — Franck s\\'en occupe et tu recevras ta 3D ici dès que c\\'est prêt.)' });\n    if (!String(C.FRANCK_CHAT_ID).startsWith('A_REMPLIR')) {\n      await tg('sendMessage', { chat_id: C.FRANCK_CHAT_ID,\n        text: `🔔 Figurine #${fig.id} : image validée par l'ami, Meshy pas encore branché.\\nImage : ${fig.image_url}` });\n    }\n    return;\n  }\n  const task = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://api.meshy.ai/openapi/v1/image-to-3d',\n    headers: { Authorization: `Bearer ${C.MESHY_KEY}` },\n    body: { image_url: fig.image_url, should_remesh: true, should_texture: true, enable_pbr: false },\n    json: true,\n  });\n  const taskId = task && (task.result || task.id);\n  await sb('PATCH', `atelier_figurines?id=eq.${fig.id}`,\n    { meshy_task_id: String(taskId), statut: '3d_en_cours', maj_le: new Date().toISOString() });\n  await tg('sendMessage', { chat_id: fig.telegram_chat_id,\n    text: '🔧 Je sculpte ta figurine en 3D… Ça prend en général 2 à 5 minutes, je t\\'envoie le résultat ici dès que c\\'est prêt !' });\n};\n\n// ---------- boucle principale ----------\nfor (const item of $input.all()) {\n  const u = item.json.update;\n  const C = item.json.config;\n  const tg = mkTg(C);\n  const sb = mkSb(C);\n\n  try {\n    // ============ BOUTONS ============\n    if (u.callback_query) {\n      const cq = u.callback_query;\n      const chat = cq.message.chat.id;\n      const [action, idStr] = String(cq.data || '').split(':');\n      const id = parseInt(idStr, 10);\n      await tg('answerCallbackQuery', { callback_query_id: cq.id });\n\n      const figs = await sb('GET', `atelier_figurines?id=eq.${id}&limit=1`);\n      const fig = figs && figs[0];\n      if (!fig) { await tg('sendMessage', { chat_id: chat, text: 'Hmm, je ne retrouve plus cette figurine. Décris-m\\'en une nouvelle !' }); continue; }\n\n      if (action === 'v_img') {\n        const iters = await sb('GET', `atelier_iterations?figurine_id=eq.${id}&etape=eq.image&order=version.desc&limit=1`);\n        const derniere = iters && iters[0];\n        const imageUrl = (derniere && derniere.resultat_url) || fig.image_url;\n        await sb('PATCH', `atelier_iterations?id=eq.${derniere.id}`, { valide: true });\n        const upd = await sb('PATCH', `atelier_figurines?id=eq.${id}`,\n          { statut: 'image_validee', image_url: imageUrl, maj_le: new Date().toISOString() });\n        await lanceMeshy(C, upd[0], tg, sb);\n      }\n      else if (action === 'r_img') {\n        await tg('sendMessage', { chat_id: chat,\n          text: '🔄 Pas de souci ! Dis-moi ce qui ne va pas (couleurs, pose, style, détails…) et je refais une proposition.' });\n      }\n      else if (action === 'v_3d') {\n        await sb('PATCH', `atelier_figurines?id=eq.${id}`, { statut: '3d_valide', maj_le: new Date().toISOString() });\n        await tg('sendMessage', { chat_id: chat,\n          text: '🎉 Excellent ! Ta figurine 3D est validée. Franck prépare maintenant le fichier d\\'impression (.3mf) avec les bons réglages pour ta P2S — tu le reçois bientôt !' });\n        if (!String(C.FRANCK_CHAT_ID).startsWith('A_REMPLIR')) {\n          await tg('sendMessage', { chat_id: C.FRANCK_CHAT_ID,\n            text: `✅ Figurine #${id} — 3D VALIDÉE par l'ami !\\n« ${fig.demande} »\\nModèle : ${fig.model_url}\\n→ À préparer en .3mf (Bambu Studio, profil P2S).${fig.licence ? AVERT_LICENCE : ''}` });\n        }\n      }\n      else if (action === 'r_3d') {\n        await sb('PATCH', `atelier_figurines?id=eq.${id}`, { model_url: null, maj_le: new Date().toISOString() });\n        const figR = { ...fig, model_url: null };\n        await lanceMeshy(C, figR, tg, sb);\n      }\n      else if (action === 'b_img') {\n        await sb('PATCH', `atelier_figurines?id=eq.${id}`, { statut: 'image_en_cours', maj_le: new Date().toISOString() });\n        await tg('sendMessage', { chat_id: chat, text: '↩️ Ok, on retravaille l\\'image de départ. Dis-moi ce que tu veux changer !' });\n      }\n      out.push({ json: { ok: true, action, figurine: id } });\n      continue;\n    }\n\n    // ============ MESSAGES TEXTE ============\n    if (!u.message || !u.message.text) continue;\n    const chat = u.message.chat.id;\n    const texte = u.message.text.trim();\n\n    if (texte === '/start' || texte === '/aide') {\n      await tg('sendMessage', { chat_id: chat, text:\n        '👋 Salut ! Je suis l\\'Atelier Figurines 3D.\\n\\n' +\n        '1️⃣ Décris-moi la figurine de tes rêves (ex : « un dragon qui dort sur un tas d\\'or »)\\n' +\n        '2️⃣ Je te propose une image — tu critiques, je corrige, jusqu\\'à ce que ce soit EXACTEMENT ce que tu veux\\n' +\n        '3️⃣ Je la sculpte en 3D — pareil, tu valides quand c\\'est parfait\\n' +\n        '4️⃣ Franck te prépare le fichier d\\'impression pour ta P2S 🖨️\\n\\nVas-y, décris-moi ta première figurine !' });\n      continue;\n    }\n\n    const enCours = await sb('GET',\n      `atelier_figurines?telegram_chat_id=eq.${chat}&statut=in.(image_en_cours,3d_en_cours)&order=id.desc&limit=1`);\n    const fig = enCours && enCours[0];\n\n    if (!fig) {\n      // ---- Nouvelle figurine ----\n      const licence = detecteLicence(texte);\n      const prompt = promptFigurine(texte);\n      const seed = (Date.now() % 900000) + 1;\n      const img = urlImage(prompt, seed);\n      const inserted = await sb('POST', 'atelier_figurines', {\n        demande: texte, usage: 'perso', licence, statut: 'image_en_cours',\n        prompt_image: prompt, telegram_chat_id: String(chat),\n      });\n      const nid = inserted[0].id;\n      await sb('POST', 'atelier_iterations', { figurine_id: nid, etape: 'image', version: 1, prompt, resultat_url: img });\n      await tg('sendMessage', { chat_id: chat, text: '🎨 Super idée ! Je dessine ta figurine, quelques secondes…' });\n      await chauffeImage(img);\n      await tg('sendPhoto', { chat_id: chat, photo: img,\n        caption: `Voilà ma première proposition pour : « ${texte} »\\n\\nDis-moi ce que tu en penses — ou valide si c'est déjà ça !${licence ? AVERT_LICENCE : ''}`,\n        reply_markup: clavierImage(nid) });\n    }\n    else if (fig.statut === 'image_en_cours') {\n      // ---- Critique de l'image → nouvelle version ----\n      const iters = await sb('GET', `atelier_iterations?figurine_id=eq.${fig.id}&etape=eq.image&order=version.desc&limit=1`);\n      const prev = iters && iters[0];\n      const version = (prev ? prev.version : 0) + 1;\n      if (prev) await sb('PATCH', `atelier_iterations?id=eq.${prev.id}`, { retour_ami: texte });\n      const prompt = `${fig.prompt_image}. Correction demandée : ${texte}`;\n      const seed = (Date.now() % 900000) + 1;\n      const img = urlImage(prompt, seed);\n      await sb('PATCH', `atelier_figurines?id=eq.${fig.id}`, { prompt_image: prompt, maj_le: new Date().toISOString() });\n      await sb('POST', 'atelier_iterations', { figurine_id: fig.id, etape: 'image', version, prompt, resultat_url: img });\n      await tg('sendMessage', { chat_id: chat, text: `🖌️ C'est noté ! Je corrige (version ${version})…` });\n      await chauffeImage(img);\n      await tg('sendPhoto', { chat_id: chat, photo: img,\n        caption: `Version ${version} — j'ai tenu compte de : « ${texte} »${fig.licence ? AVERT_LICENCE : ''}`,\n        reply_markup: clavierImage(fig.id) });\n    }\n    else if (fig.statut === '3d_en_cours') {\n      // ---- Remarque pendant/après la 3D ----\n      await sb('POST', 'atelier_iterations', { figurine_id: fig.id, etape: '3d', version: 1, retour_ami: texte });\n      await tg('sendMessage', { chat_id: chat,\n        text: 'Bien noté ! Pour la 3D, le mieux est de choisir :\\n• relancer une nouvelle sculpture,\\n• ou revenir à l\\'image pour la modifier (c\\'est là qu\\'on contrôle le mieux le résultat).',\n        reply_markup: clavier3D(fig.id) });\n    }\n    out.push({ json: { ok: true, chat, texte } });\n  } catch (e) {\n    out.push({ json: { ok: false, erreur: String(e && e.message || e), update_id: u.update_id } });\n  }\n}\n\nreturn out.length ? out : [{ json: { ok: true, rien: true } }];\n"
+      },
+      "id": "a1000000-0000-0000-0000-000000000003",
+      "name": "Machine à figurines",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Toutes les 15 s": {
+      "main": [
+        [
+          {
+            "node": "Relever Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relever Telegram": {
+      "main": [
+        [
+          {
+            "node": "Machine à figurines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

@@ -1,0 +1,56 @@
+{
+  "name": "Atelier Figurines 3D - Suivi Meshy",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "b2000000-0000-0000-0000-000000000001",
+      "name": "Toutes les minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ============================================================\n// CODE — \"Vérifier les sculptures Meshy\" (workflow: Atelier Figurines 3D - Suivi Meshy)\n// Toutes les minutes : regarde les figurines en cours de sculpture,\n// et dès que Meshy a fini, envoie la 3D à l'ami avec les boutons de validation.\n// ⚠️ À REMPLIR : les mêmes valeurs que dans le workflow \"Bot ami\".\n// ============================================================\nconst CONFIG = {\n  TELEGRAM_TOKEN: 'A_REMPLIR_token_botfather',\n  SUPABASE_URL: 'https://bmvytqfddrfgcgokoxfn.supabase.co',\n  SUPABASE_SERVICE_KEY: 'A_REMPLIR_service_role_key',\n  MESHY_KEY: 'A_REMPLIR_cle_api_meshy',\n  APP_URL: 'https://bigandfranck89-prog.github.io/atelier-figurines-3d',\n};\nif (CONFIG.MESHY_KEY.startsWith('A_REMPLIR') || CONFIG.TELEGRAM_TOKEN.startsWith('A_REMPLIR')) return [];\n\nconst sb = async (method, path, body) => this.helpers.httpRequest({\n  method, url: `${CONFIG.SUPABASE_URL}/rest/v1/${path}`,\n  headers: { apikey: CONFIG.SUPABASE_SERVICE_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_SERVICE_KEY}`,\n    Prefer: 'return=representation', 'Content-Type': 'application/json' },\n  body, json: true,\n});\nconst tg = async (method, body) => this.helpers.httpRequest({\n  method: 'POST', url: `https://api.telegram.org/bot${CONFIG.TELEGRAM_TOKEN}/${method}`, body, json: true,\n}).catch(e => ({ error: String(e && e.message || e) }));\n\nconst enCours = await sb('GET',\n  'atelier_figurines?statut=eq.3d_en_cours&meshy_task_id=not.is.null&model_url=is.null&limit=10');\nconst out = [];\n\nfor (const fig of (enCours || [])) {\n  try {\n    const task = await this.helpers.httpRequest({\n      method: 'GET',\n      url: `https://api.meshy.ai/openapi/v1/image-to-3d/${fig.meshy_task_id}`,\n      headers: { Authorization: `Bearer ${CONFIG.MESHY_KEY}` }, json: true,\n    });\n    const statut = task && task.status;\n\n    if (statut === 'SUCCEEDED') {\n      const glb = task.model_urls && (task.model_urls.glb || task.model_urls.obj);\n      await sb('PATCH', `atelier_figurines?id=eq.${fig.id}`,\n        { model_url: glb, maj_le: new Date().toISOString() });\n      await sb('POST', 'atelier_iterations',\n        { figurine_id: fig.id, etape: '3d', version: 1, resultat_url: glb });\n      const viewer = `${CONFIG.APP_URL}/viewer.html?src=${encodeURIComponent(glb)}`;\n      const apercu = task.thumbnail_url;\n      if (apercu) await tg('sendPhoto', { chat_id: fig.telegram_chat_id, photo: apercu, caption: '🗿 Ta figurine 3D est prête !' });\n      await tg('sendMessage', { chat_id: fig.telegram_chat_id,\n        text: `👉 Regarde-la sous tous les angles ici :\\n${viewer}\\n\\nQu'est-ce que tu en dis ?${fig.licence ? '\\n\\n⚠️ Personnage sous licence : impression PERSO uniquement — interdit à la vente.' : ''}`,\n        reply_markup: { inline_keyboard: [\n          [{ text: '✅ Je valide la 3D', callback_data: `v_3d:${fig.id}` }],\n          [{ text: '🔁 Relancer la sculpture 3D', callback_data: `r_3d:${fig.id}` },\n           { text: '↩️ Modifier l\\'image', callback_data: `b_img:${fig.id}` }],\n        ]} });\n      out.push({ json: { figurine: fig.id, statut: 'prete' } });\n    }\n    else if (statut === 'FAILED' || statut === 'CANCELED') {\n      await sb('PATCH', `atelier_figurines?id=eq.${fig.id}`,\n        { statut: 'image_validee', meshy_task_id: null, maj_le: new Date().toISOString() });\n      await tg('sendMessage', { chat_id: fig.telegram_chat_id,\n        text: '😕 La sculpture 3D a échoué (ça arrive). On peut réessayer ou modifier l\\'image.',\n        reply_markup: { inline_keyboard: [[\n          { text: '🔁 Réessayer', callback_data: `r_3d:${fig.id}` },\n          { text: '↩️ Modifier l\\'image', callback_data: `b_img:${fig.id}` }]] } });\n      out.push({ json: { figurine: fig.id, statut: 'echec' } });\n    }\n    else {\n      out.push({ json: { figurine: fig.id, statut: statut || 'en_cours', avancement: task && task.progress } });\n    }\n  } catch (e) {\n    out.push({ json: { figurine: fig.id, erreur: String(e && e.message || e) } });\n  }\n}\nreturn out.length ? out : [{ json: { rien_en_cours: true } }];\n"
+      },
+      "id": "b2000000-0000-0000-0000-000000000002",
+      "name": "Vérifier les sculptures Meshy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Toutes les minutes": {
+      "main": [
+        [
+          {
+            "node": "Vérifier les sculptures Meshy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

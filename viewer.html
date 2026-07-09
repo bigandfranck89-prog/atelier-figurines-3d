@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0d12">
+<title>Visionneuse 3D — Atelier Figurines</title>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<style>
+  :root{--bg:#0b0d12;--panel:#141821;--line:#283041;--txt:#eef2f8;--muted:#97a1b4;--accent:#b9f24d}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:radial-gradient(1200px 600px at 50% -10%,#10141d,#05060a);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--txt)}
+  .top{display:flex;align-items:center;gap:10px;padding:13px 16px;background:linear-gradient(180deg,#19202c,#141821);
+    border-bottom:1px solid var(--line)}
+  .top a{color:var(--muted);text-decoration:none;font-size:20px}
+  .top h1{font-size:15px;margin:0;font-weight:650}
+  model-viewer{width:100%;height:calc(100vh - 110px);--poster-color:transparent}
+  .hint{text-align:center;color:var(--muted);font-size:12px;padding:10px}
+  .err{padding:40px 20px;text-align:center;color:var(--muted);line-height:1.7}
+</style>
+</head>
+<body>
+<div class="top"><a href="index.html">←</a><h1>Ta figurine en 3D</h1></div>
+<div id="zone"></div>
+<div class="hint">Glisse pour tourner · pince pour zoomer</div>
+<script>
+const src = new URLSearchParams(location.search).get('src');
+const zone = document.getElementById('zone');
+if (!src) {
+  zone.innerHTML = '<div class="err">Aucun modèle à afficher.<br>Ouvre cette page depuis le lien envoyé par le bot ou depuis l\'app.</div>';
+} else {
+  const mv = document.createElement('model-viewer');
+  mv.setAttribute('src', src);
+  mv.setAttribute('camera-controls','');
+  mv.setAttribute('auto-rotate','');
+  mv.setAttribute('shadow-intensity','1');
+  mv.setAttribute('exposure','1.1');
+  mv.setAttribute('ar','');
+  mv.addEventListener('error', () => {
+    zone.innerHTML = '<div class="err">Impossible de charger ce modèle 😕<br>Le lien a peut-être expiré (les liens Meshy sont temporaires) — redemande la 3D au bot.</div>';
+  });
+  zone.appendChild(mv);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0d12">
+<title>Banc d'essai — générateurs d'images</title>
+<style>
+  :root{--bg:#0b0d12;--panel:#141821;--panel2:#1c2230;--line:#283041;--txt:#eef2f8;--muted:#97a1b4;--accent:#b9f24d;--accent2:#7c5cff}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#10141d,#05060a);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:40px}
+  .wrap{max-width:900px;margin:0 auto;padding:16px}
+  .top{display:flex;align-items:center;gap:10px;padding:4px 0 14px}
+  .top a{color:var(--muted);text-decoration:none;font-size:20px}
+  h1{font-size:17px;margin:0}
+  .sub{color:var(--muted);font-size:12.5px;margin:4px 0 16px;line-height:1.6}
+  .bar{display:flex;gap:8px}
+  input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--txt);font-size:14px;outline:none}
+  button{border:0;border-radius:12px;padding:12px 18px;background:linear-gradient(135deg,var(--accent),#a6e23e);
+    color:#0b0d12;font-weight:650;font-size:14px;cursor:pointer}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:18px}
+  .cell{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .cell img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--panel2)}
+  .cell .lab{padding:8px 10px;font-size:12px}
+  .cell .lab b{display:block;font-size:12.5px}
+  .cell .lab span{color:var(--muted);font-size:11px}
+  .info{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:18px;font-size:13px;line-height:1.65;color:var(--muted)}
+  .info b{color:var(--txt)}
+  .load{text-align:center;color:var(--muted);padding:20px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="index.html">←</a><h1>🧪 Banc d'essai des générateurs d'images</h1></div>
+  <div class="sub">Le MÊME prompt est envoyé à plusieurs moteurs 100 % gratuits (Pollinations.ai, sans compte).
+  Chaque image peut mettre 10-60 s à apparaître la première fois — c'est la génération en direct. Recharge pour d'autres variantes.</div>
+  <div class="bar">
+    <input id="idee" value="un dragon mignon endormi sur un tas de pièces d'or" placeholder="Décris une figurine…">
+    <button onclick="lancer()">Générer</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="info">
+    <b>Comment choisir ?</b> Regarde : la fidélité à la description, les détails, et surtout si l'image ressemble à une
+    <b>figurine imprimable</b> (un seul personnage, bien détouré, socle simple).<br><br>
+    <b>Option qualité supérieure (gratuite aussi)</b> : Google AI Studio (Imagen) — meilleure qualité en général, mais il faut
+    créer une clé API sur ton compte Google. On peut la brancher dans n8n en 5 minutes quand tu veux.<br>
+    <b>Option finale (payante, plus tard)</b> : Midjourney / DALL·E, à brancher tout à la fin comme convenu.
+  </div>
+</div>
+<script>
+const MODELES = [
+  { m:'flux',  n:'Flux',  d:'le plus fidèle, bon détail' },
+  { m:'turbo', n:'Turbo', d:'rapide, style plus brut' },
+];
+const SUFFIXE = ', figurine de collection, corps entier, un seul personnage, sur un petit socle rond simple, fond de studio uni et clair, très détaillé, style adapté à l\'impression 3D, collectible figurine, full body, plain background';
+function lancer(){
+  const idee = document.getElementById('idee').value.trim() || 'un dragon mignon';
+  const prompt = encodeURIComponent(idee + SUFFIXE);
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for (const mod of MODELES){
+    for (let v=1; v<=2; v++){
+      const seed = Math.floor(Math.random()*900000);
+      const url = `https://image.pollinations.ai/prompt/${prompt}?width=768&height=768&model=${mod.m}&nologo=true&seed=${seed}`;
+      const cell = document.createElement('div');
+      cell.className='cell';
+      cell.innerHTML = `<img src="${url}" loading="lazy" alt=""><div class="lab"><b>${mod.n} · essai ${v}</b><span>${mod.d}</span></div>`;
+      grid.appendChild(cell);
+    }
+  }
+}
+lancer();
+</script>
+</body>
+</html>
