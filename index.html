@@ -35,19 +35,23 @@
   .kb button { flex: 1; background: #2a2f3a; color: #dbe4ff; border: 1px solid #39404e; border-radius: 12px; padding: 9px 10px; font-size: 13.5px; cursor: pointer; }
   .kb button:active { background: #39404e; }
   .typing { align-self: flex-start; color: #9aa0a6; font-size: 13px; padding: 2px 8px; display: none; }
-  .inbar { flex: 0 0 auto; display: flex; gap: 8px; padding: 8px 10px; background: #14171d; border-top: 1px solid #23262e; }
-  .inbar input { flex: 1; background: #0f1115; border: 1px solid #2f3542; color: #fff; border-radius: 22px; padding: 11px 16px; font-size: 15px; outline: none; }
+  .inbar { flex: 0 0 auto; display: flex; gap: 6px; padding: 8px 10px; background: #14171d; border-top: 1px solid #23262e; align-items: center; }
+  .inbar input { flex: 1; min-width: 0; background: #0f1115; border: 1px solid #2f3542; color: #fff; border-radius: 22px; padding: 11px 14px; font-size: 15px; outline: none; }
   .inbar button { background: #2563eb; border: 0; color: #fff; border-radius: 50%; width: 44px; height: 44px; font-size: 18px; cursor: pointer; flex: 0 0 auto; }
+  .inbar button.gris { background: #2a2f3a; }
+  .inbar button.rec { background: #dc2626; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .6; } }
 
   /* ---------- FIGURINES ---------- */
-  .list { overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .figzone { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+  .list { flex: 1 1 auto; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
   .card { background: #1a1d24; border: 1px solid #262a33; border-radius: 14px; padding: 12px; display: flex; gap: 12px; cursor: pointer; align-items: center; }
   .card img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; background: #0f1115; flex: 0 0 auto; }
   .card .t { font-size: 14px; font-weight: 600; }
   .card .s { font-size: 12px; color: #9aa0a6; margin-top: 3px; }
   .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #262a33; color: #cbd5e1; margin-top: 4px; }
   .badge.ok { background: #123b2a; color: #34d399; }
-  .detail { overflow-y: auto; padding: 12px; display: none; flex-direction: column; gap: 12px; }
+  .detail { flex: 1 1 auto; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
   .detail img.big { width: 100%; max-width: 380px; border-radius: 14px; align-self: center; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .tile { background: #1a1d24; border: 1px solid #262a33; border-radius: 12px; padding: 10px 12px; }
@@ -58,12 +62,13 @@
   .abtn.sec { background: #2a2f3a; }
   .abtn.dis { background: #1c1f27; color: #6b7280; pointer-events: none; }
 
-  /* ---------- 3D ---------- */
-  .viewwrap { display: flex; height: 100%; }
-  .viewwrap iframe { flex: 1 1 60%; border: 0; background: #0f1115; }
-  .sidechat { flex: 1 1 40%; min-width: 280px; max-width: 420px; border-left: 1px solid #23262e; display: flex; flex-direction: column; }
-  @media (max-width: 700px) { .viewwrap { flex-direction: column; } .viewwrap iframe { flex: 1 1 52%; } .sidechat { max-width: none; min-width: 0; border-left: 0; border-top: 1px solid #23262e; flex: 1 1 48%; } }
-  .empty3d { flex: 1; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 14px; padding: 20px; text-align: center; }
+  /* ---------- VUE 3D (dans la fiche) ---------- */
+  .v3wrap { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+  .v3top { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
+  .v3top button { background: #2a2f3a; border: 0; color: #fff; border-radius: 10px; padding: 9px 14px; font-size: 14px; font-weight: 600; cursor: pointer; flex: 0 0 auto; }
+  .v3top .tt { font-size: 13px; color: #9aa0a6; }
+  .v3wrap iframe { flex: 1 1 48%; border: 0; background: #0f1115; min-height: 0; }
+  .v3chat { flex: 1 1 52%; min-height: 0; border-top: 1px solid #23262e; display: flex; flex-direction: column; }
 
   /* ---------- AIDE ---------- */
   .aide { overflow-y: auto; padding: 16px; line-height: 1.6; font-size: 14.5px; }
@@ -78,36 +83,31 @@
   <section class="page on" id="p-chat"><div class="chatwrap">
     <div class="msgs" id="msgs"></div>
     <div class="typing" id="typing">⌛ l'atelier travaille…</div>
-    <div class="inbar"><button id="photo" style="background:#2a2f3a" title="Envoyer une photo">📎</button><input id="inp" placeholder="Décris ta figurine…" autocomplete="off"><button id="send">➤</button></div>
+    <div class="inbar">
+      <button id="photo" class="gris" title="Envoyer une photo">📎</button>
+      <button id="mic" class="gris" title="Parler au lieu d'écrire">🎤</button>
+      <input id="inp" placeholder="Décris ta figurine…" autocomplete="off">
+      <button id="send">➤</button>
+    </div>
     <input type="file" id="file" accept="image/*" hidden>
   </div></section>
 
-  <!-- FIGURINES -->
-  <section class="page" id="p-figs">
-    <div class="list" id="figlist"></div>
-    <div class="detail" id="figdetail"></div>
-  </section>
-
-  <!-- 3D -->
-  <section class="page" id="p-3d">
-    <div class="viewwrap" id="viewwrap">
-      <div class="empty3d" id="empty3d">⌛ Chargement…</div>
-    </div>
-  </section>
+  <!-- FIGURINES (liste → fiche → 3D) -->
+  <section class="page" id="p-figs"><div class="figzone" id="figzone"></div></section>
 
   <!-- AIDE -->
   <section class="page" id="p-aide"><div class="aide">
-    <h2>💬 Chat</h2><p>Décris ta figurine (ou colle une idée). L'atelier te propose une image : critique-la ou valide. Ensuite choisis perso/vente, la taille, et la sculpture 3D se lance toute seule.</p>
-    <h2>📎 Photos</h2><p>Avec le trombone 📎 du chat, envoie jusqu'à 4 photos (plusieurs angles = meilleure sculpture). L'atelier fabrique la figurine d'après tes photos.</p>
-    <h2>🧊 Voir la 3D</h2><p>Onglet 🧊 3D → choisis ta figurine dans la liste. Tu peux tourner le modèle ET écrire tes remarques dans le chat juste à côté. (Ça marche aussi depuis l'onglet Figurines → « Voir en 3D ».)</p>
-    <h2>🖨️ Imprimer</h2><p>Quand Franck a préparé le fichier, le bouton « Télécharger le fichier d'impression (.3mf) » apparaît sur la figurine. Ouvre-le avec Bambu Studio / Bambu Handy et lance l'impression.</p>
+    <h2>💬 Chat</h2><p>Décris ta figurine en parlant (🎤) ou en écrivant. L'atelier te propose une image : critique-la ou valide. Ensuite choisis perso/vente, la taille, et la sculpture 3D se lance toute seule.</p>
+    <h2>🎤 Parler</h2><p>Appuie sur le micro, parle, et ton message part tout seul quand tu as fini. Appuie encore pour arrêter.</p>
+    <h2>📎 Photos</h2><p>Avec le trombone, envoie jusqu'à 4 photos (plusieurs angles = meilleure sculpture).</p>
+    <h2>📋 Figurines</h2><p>La liste de tes figurines. Clique sur une figurine : sa fiche montre les coûts, le prix conseillé, l'annonce de vente, et le bouton « Voir en 3D » — la 3D s'affiche en haut, le chat en bas pour dire les défauts en direct.</p>
+    <h2>🖨️ Imprimer</h2><p>Quand Franck a préparé le fichier, le bouton « Télécharger le fichier d'impression (.3mf) » apparaît sur la fiche. Ouvre-le avec Bambu Studio / Bambu Handy.</p>
     <h2>🔑 Porte-clés</h2><p>La boucle d'accroche est intégrée à la pièce. L'anneau métallique n'est pas fourni.</p>
   </div></section>
 </main>
 <nav>
   <button class="on" data-p="chat"><span class="ic">💬</span>Chat</button>
   <button data-p="figs"><span class="ic">📋</span>Figurines</button>
-  <button data-p="3d"><span class="ic">🧊</span>3D</button>
   <button data-p="aide"><span class="ic">❓</span>Aide</button>
 </nav>
 
@@ -122,7 +122,7 @@ let SESSION = localStorage.getItem("atelier_session");
 if (!SESSION) { SESSION = Math.random().toString(36).slice(2, 10); localStorage.setItem("atelier_session", SESSION); }
 
 const $ = id => document.getElementById(id);
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const linkify = s => esc(s).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
 
 /* ================= NAVIGATION ================= */
@@ -131,7 +131,6 @@ document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".page").forEach(x => x.classList.remove("on"));
   b.classList.add("on"); $("p-" + b.dataset.p).classList.add("on");
   if (b.dataset.p === "figs") chargerFigs();
-  if (b.dataset.p === "3d") montreSideChat();
 });
 
 /* ================= CHAT ================= */
@@ -152,7 +151,7 @@ function bulleHTML(m) {
   if (m.boutons) {
     h += `<div class="kb">` + m.boutons.map(row =>
       `<div class="row">` + row.map(b =>
-        `<button onclick="clicBtn('${esc(b.callback_data)}','${esc(b.text).replace(/'/g, "\\'")}')">${esc(b.text)}</button>`
+        `<button onclick="clicBtn('${esc(b.callback_data)}')">${esc(b.text)}</button>`
       ).join("") + `</div>`).join("") + `</div>`;
   }
   return h;
@@ -177,7 +176,7 @@ async function envoyer(texte) {
   await fetch(`${SUPA}/rest/v1/app_messages`, { method: "POST", headers: { ...H, Prefer: "return=minimal" }, body: JSON.stringify({ session: SESSION, role: "user", texte }) });
   pollChat();
 }
-window.clicBtn = (data, label) => envoyer("cb:" + data);
+window.clicBtn = (data) => envoyer("cb:" + data);
 
 async function envoyerPhoto(file) {
   if (!file) return;
@@ -198,6 +197,39 @@ async function envoyerPhoto(file) {
 $("photo").onclick = () => $("file").click();
 $("file").addEventListener("change", e => { const f = e.target.files[0]; if (f) envoyerPhoto(f); e.target.value = ""; });
 
+/* ================= MICRO (parler au lieu d'écrire) ================= */
+let recActive = null;
+function demarrerMicro(btn, inp) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    document.querySelectorAll(".msgs").forEach(bx => bx.insertAdjacentHTML("beforeend", `<div class="b bot">😕 La dictée vocale n'est pas disponible dans ce navigateur. Essaie avec Chrome.</div>`));
+    return;
+  }
+  if (recActive) { recActive.stop(); return; }
+  const rec = new SR();
+  rec.lang = "fr-FR"; rec.interimResults = true; rec.continuous = true;
+  recActive = rec;
+  btn.classList.add("rec");
+  let final = "";
+  rec.onresult = e => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    inp.value = (final + " " + interim).trim();
+  };
+  rec.onerror = () => {};
+  rec.onend = () => {
+    btn.classList.remove("rec");
+    recActive = null;
+    const v = inp.value.trim();
+    if (v) { envoyer(v); inp.value = ""; }
+  };
+  rec.start();
+}
+$("mic").onclick = () => demarrerMicro($("mic"), $("inp"));
+
 $("send").onclick = () => { const v = $("inp").value.trim(); if (v) { envoyer(v); $("inp").value = ""; } };
 $("inp").addEventListener("keydown", e => { if (e.key === "Enter") $("send").onclick(); });
 setInterval(pollChat, 2500);
@@ -206,36 +238,46 @@ pollChat();
 setTimeout(async () => {
   const r = await fetch(`${SUPA}/rest/v1/app_messages?session=eq.${SESSION}&limit=1`, { headers: H });
   const rows = await r.json();
-  if (!rows.length) $("msgs").insertAdjacentHTML("beforeend", `<div class="b bot">👋 Salut ! Décris-moi la figurine de tes rêves (ex. « un dragon qui lit un livre ») et je te la fabrique : image → tes corrections → 3D → impression.</div>`);
+  if (!rows.length) $("msgs").insertAdjacentHTML("beforeend", `<div class="b bot">👋 Salut ! Décris-moi la figurine de tes rêves (au micro 🎤 ou au clavier) et je te la fabrique : image → tes corrections → 3D → impression.</div>`);
 }, 800);
 
-/* ================= FIGURINES ================= */
+/* ================= FIGURINES : liste → fiche → 3D ================= */
 const STATUTS = { idee: "💭 Idée", image_en_cours: "🎨 Image en cours", image_validee: "✅ Image validée", attente_taille: "📏 Choix de la taille", "3d_en_cours": "🔧 Sculpture 3D…", "3d_valide": "🎉 3D validée", abandonnee: "🗑️ Abandonnée", collecte_photos: "📸 Photos en cours" };
 const fmtMn = mn => !mn ? "—" : (mn < 60 ? `${Math.round(mn)} min` : `${Math.floor(mn / 60)} h ${String(Math.round(mn % 60)).padStart(2, "0")}`);
 const eur = n => n == null ? "—" : Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2 }) + " €";
+let FIGS = [], figIdx = -1;
 
 async function chargerFigs() {
-  $("figdetail").style.display = "none"; $("figlist").style.display = "flex";
-  const r = await fetch(`${SUPA}/rest/v1/atelier_figurines?order=id.desc&limit=60&statut=neq.abandonnee`, { headers: H });
-  const figs = await r.json();
-  $("figlist").innerHTML = figs.length ? figs.map(f => `
-    <div class="card" onclick='detailFig(${JSON.stringify(JSON.stringify(f))})'>
-      ${f.image_url ? `<img src="${esc(f.image_url)}" loading="lazy">` : `<img alt="">`}
-      <div><div class="t">#${f.id} — ${esc((f.demande || "").slice(0, 60))}</div>
-      <div class="s">${esc(f.taille || "")} ${f.usage === "vente" ? "· 🏷️ vente" : ""}</div>
-      <span class="badge ${f.statut === "3d_valide" ? "ok" : ""}">${STATUTS[f.statut] || esc(f.statut)}</span></div>
-    </div>`).join("") : `<div style="color:#6b7280;text-align:center;padding:30px">Aucune figurine — passe par l'onglet 💬 Chat !</div>`;
+  try {
+    const r = await fetch(`${SUPA}/rest/v1/atelier_figurines?order=id.desc&limit=60&statut=neq.abandonnee`, { headers: H });
+    FIGS = await r.json();
+    if (!Array.isArray(FIGS)) FIGS = [];
+  } catch (e) { FIGS = []; }
+  vueListe();
 }
 
-window.detailFig = (js) => {
-  const f = JSON.parse(js);
-  $("figlist").style.display = "none";
-  const d = $("figdetail"); d.style.display = "flex";
-  d.innerHTML = `
-    <button class="abtn sec" onclick="chargerFigs()">← Retour</button>
+function vueListe() {
+  figIdx = -1;
+  $("figzone").innerHTML = `<div class="list">` + (FIGS.length ? FIGS.map((f, i) => `
+    <div class="card" onclick="ouvrirFig(${i})">
+      ${f.image_url ? `<img src="${esc(f.image_url)}" loading="lazy">` : `<img alt="">`}
+      <div><div class="t">#${f.id} — ${esc((f.demande || "").slice(0, 60))}</div>
+      <div class="s">${esc(f.taille || "")} ${f.usage === "vente" ? "· 🏷️ vente" : ""} ${f.model_url ? "· 🧊 3D prête" : ""}</div>
+      <span class="badge ${f.statut === "3d_valide" ? "ok" : ""}">${STATUTS[f.statut] || esc(f.statut)}</span></div>
+    </div>`).join("") : `<div style="color:#6b7280;text-align:center;padding:30px">Aucune figurine — passe par l'onglet 💬 Chat !</div>`) + `</div>`;
+}
+
+window.ouvrirFig = (i) => {
+  const f = FIGS[i]; if (!f) return vueListe();
+  figIdx = i;
+  $("figzone").innerHTML = `<div class="detail">
+    <button class="abtn sec" onclick="vueListe()">← Retour à la liste</button>
     ${f.image_url ? `<img class="big" src="${esc(f.image_url)}">` : ""}
     <div><div style="font-weight:800;font-size:16px">#${f.id} — ${esc(f.demande || "")}</div>
     <span class="badge ${f.statut === "3d_valide" ? "ok" : ""}">${STATUTS[f.statut] || esc(f.statut)}</span></div>
+    <div class="btnrow">
+      ${f.model_url ? `<button class="abtn" onclick="vue3D()">🧊 Voir en 3D et critiquer en direct</button>` : `<span class="abtn dis">🧊 3D pas encore prête</span>`}
+    </div>
     <div class="grid2">
       <div class="tile"><div class="l">Taille</div><div class="v">${esc(f.taille || "—")}</div></div>
       <div class="tile"><div class="l">Usage</div><div class="v">${f.usage === "vente" ? "🏷️ Vente" : "🎮 Perso"}</div></div>
@@ -246,42 +288,31 @@ window.detailFig = (js) => {
     </div>
     ${f.annonce_titre || f.annonce_texte ? `<div class="tile"><div class="l">📝 Annonce de vente (brouillon)</div><div class="v" style="font-size:14.5px">${esc(f.annonce_titre || "")}</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${esc(f.annonce_texte || "")}</div></div>` : ""}
     <div class="btnrow">
-      ${f.model_url ? `<button class="abtn" onclick="voir3D('${esc(f.model_url)}')">🧊 Voir en 3D (et critiquer à côté)</button>` : `<span class="abtn dis">🧊 3D pas encore prête</span>`}
       ${f.fichier_3mf_url ? `<a class="abtn" href="${esc(f.fichier_3mf_url)}" download>🖨️ Télécharger le fichier d'impression (.3mf)</a>` : `<span class="abtn dis">🖨️ Fichier d'impression en préparation chez Franck</span>`}
-    </div>`;
+    </div>
+  </div>`;
+  document.querySelector("#figzone .detail").scrollTop = 0;
 };
 
-/* ================= 3D + CHAT CÔTE À CÔTE ================= */
-let modelCourant = null;
-window.voir3D = (url) => {
-  modelCourant = url;
-  document.querySelector('nav button[data-p="3d"]').click();
-};
-async function montreSideChat() {
-  const w = $("viewwrap");
-  if (!modelCourant) {
-    w.innerHTML = `<div class="empty3d">⌛ Je cherche tes sculptures…</div>`;
-    try {
-      const r = await fetch(`${SUPA}/rest/v1/atelier_figurines?model_url=not.is.null&order=id.desc&limit=30`, { headers: H });
-      const figs = await r.json();
-      w.innerHTML = figs.length ? `<div class="list" style="flex:1">
-        <div style="color:#9aa0a6;font-size:13px;padding:0 2px 2px">Choisis la figurine à regarder en 3D :</div>` +
-        figs.map(f => `<div class="card" onclick="voir3D('${esc(f.model_url)}')">
-          ${f.image_url ? `<img src="${esc(f.image_url)}" loading="lazy">` : `<img alt="">`}
-          <div><div class="t">#${f.id} — ${esc((f.demande || "").slice(0, 60))}</div><div class="s">${esc(f.taille || "")} · 🧊 3D prête</div></div>
-        </div>`).join("") + `</div>`
-        : `<div class="empty3d">Aucune sculpture 3D prête pour l'instant.<br>Crée une figurine dans l'onglet 💬 Chat !</div>`;
-    } catch (e) { w.innerHTML = `<div class="empty3d">Connexion impossible, réessaie.</div>`; }
-    return;
-  }
-  w.innerHTML = `<iframe src="${VIEWER}${encodeURIComponent(modelCourant)}"></iframe>
-    <div class="sidechat"><div class="msgs" id="msgs3d"></div>
-    <div class="inbar"><button id="photo3d" style="background:#2a2f3a" title="Envoyer une photo" onclick="document.getElementById('file').click()">📎</button><input id="inp3d" placeholder="Un défaut ? Dis-le ici…" autocomplete="off"><button id="send3d">➤</button></div></div>`;
+window.vue3D = () => {
+  const f = FIGS[figIdx]; if (!f || !f.model_url) return;
+  $("figzone").innerHTML = `<div class="v3wrap">
+    <div class="v3top"><button onclick="ouvrirFig(${figIdx})">← Fiche</button><div class="tt">#${f.id} en 3D — tourne-la, et dis les défauts en dessous 👇</div></div>
+    <iframe src="${VIEWER}${encodeURIComponent(f.model_url)}"></iframe>
+    <div class="v3chat"><div class="msgs" id="msgs3d"></div>
+    <div class="inbar">
+      <button id="photo3d" class="gris" onclick="document.getElementById('file').click()">📎</button>
+      <button id="mic3d" class="gris">🎤</button>
+      <input id="inp3d" placeholder="Un défaut ? Dis-le ici…" autocomplete="off">
+      <button id="send3d">➤</button>
+    </div></div>
+  </div>`;
   // recharge l'historique dans le panneau
-  lastId = 0; $("msgs").innerHTML = ""; pollChat();
+  lastId = 0; document.querySelectorAll(".msgs").forEach(bx => bx.innerHTML = ""); pollChat();
   $("send3d").onclick = () => { const v = $("inp3d").value.trim(); if (v) { envoyer(v); $("inp3d").value = ""; } };
   $("inp3d").addEventListener("keydown", e => { if (e.key === "Enter") $("send3d").onclick(); });
-}
+  $("mic3d").onclick = () => demarrerMicro($("mic3d"), $("inp3d"));
+};
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
