@@ -78,7 +78,8 @@
   <section class="page on" id="p-chat"><div class="chatwrap">
     <div class="msgs" id="msgs"></div>
     <div class="typing" id="typing">⌛ l'atelier travaille…</div>
-    <div class="inbar"><input id="inp" placeholder="Décris ta figurine…" autocomplete="off"><button id="send">➤</button></div>
+    <div class="inbar"><button id="photo" style="background:#2a2f3a" title="Envoyer une photo">📎</button><input id="inp" placeholder="Décris ta figurine…" autocomplete="off"><button id="send">➤</button></div>
+    <input type="file" id="file" accept="image/*" hidden>
   </div></section>
 
   <!-- FIGURINES -->
@@ -90,14 +91,15 @@
   <!-- 3D -->
   <section class="page" id="p-3d">
     <div class="viewwrap" id="viewwrap">
-      <div class="empty3d" id="empty3d">Choisis une figurine (onglet Figurines → « Voir en 3D »)<br>et discute des défauts ici, en la regardant.</div>
+      <div class="empty3d" id="empty3d">⌛ Chargement…</div>
     </div>
   </section>
 
   <!-- AIDE -->
   <section class="page" id="p-aide"><div class="aide">
     <h2>💬 Chat</h2><p>Décris ta figurine (ou colle une idée). L'atelier te propose une image : critique-la ou valide. Ensuite choisis perso/vente, la taille, et la sculpture 3D se lance toute seule.</p>
-    <h2>🧊 Voir la 3D</h2><p>Onglet Figurines → ta figurine → « Voir en 3D ». Tu peux tourner le modèle ET écrire tes remarques dans le chat juste à côté.</p>
+    <h2>📎 Photos</h2><p>Avec le trombone 📎 du chat, envoie jusqu'à 4 photos (plusieurs angles = meilleure sculpture). L'atelier fabrique la figurine d'après tes photos.</p>
+    <h2>🧊 Voir la 3D</h2><p>Onglet 🧊 3D → choisis ta figurine dans la liste. Tu peux tourner le modèle ET écrire tes remarques dans le chat juste à côté. (Ça marche aussi depuis l'onglet Figurines → « Voir en 3D ».)</p>
     <h2>🖨️ Imprimer</h2><p>Quand Franck a préparé le fichier, le bouton « Télécharger le fichier d'impression (.3mf) » apparaît sur la figurine. Ouvre-le avec Bambu Studio / Bambu Handy et lance l'impression.</p>
     <h2>🔑 Porte-clés</h2><p>La boucle d'accroche est intégrée à la pièce. L'anneau métallique n'est pas fourni.</p>
   </div></section>
@@ -138,7 +140,10 @@ let lastId = 0, attente = false;
 function bulleHTML(m) {
   if (m.role === "user") {
     const t = String(m.texte || "");
-    return `<div class="b user">${t.startsWith("cb:") ? "👆 " + esc(t.slice(3).split(":")[0]) : linkify(t)}</div>`;
+    let hu = `<div class="b user">`;
+    if (m.image_url) hu += `<img src="${esc(m.image_url)}" loading="lazy">`;
+    hu += t.startsWith("cb:") ? "👆 " + esc(t.slice(3).split(":")[0]) : linkify(t);
+    return hu + `</div>`;
   }
   let h = `<div class="b bot">`;
   if (m.image_url) h += `<img src="${esc(m.image_url)}" loading="lazy">`;
@@ -173,6 +178,25 @@ async function envoyer(texte) {
   pollChat();
 }
 window.clicBtn = (data, label) => envoyer("cb:" + data);
+
+async function envoyerPhoto(file) {
+  if (!file) return;
+  attente = true; $("typing").style.display = "block";
+  try {
+    const ext = file.type === "image/png" ? "png" : "jpg";
+    const path = `app/${SESSION}_${Date.now()}.${ext}`;
+    const up = await fetch(`${SUPA}/storage/v1/object/photos/${path}`, { method: "POST", headers: { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": file.type || "image/jpeg" }, body: file });
+    if (!up.ok) throw new Error("upload " + up.status);
+    const url = `${SUPA}/storage/v1/object/public/photos/${path}`;
+    await fetch(`${SUPA}/rest/v1/app_messages`, { method: "POST", headers: { ...H, Prefer: "return=minimal" }, body: JSON.stringify({ session: SESSION, role: "user", texte: "", image_url: url }) });
+    pollChat();
+  } catch (e) {
+    attente = false; $("typing").style.display = "none";
+    document.querySelectorAll(".msgs").forEach(bx => bx.insertAdjacentHTML("beforeend", `<div class="b bot">⚠️ La photo n'est pas passée, réessaie.</div>`));
+  }
+}
+$("photo").onclick = () => $("file").click();
+$("file").addEventListener("change", e => { const f = e.target.files[0]; if (f) envoyerPhoto(f); e.target.value = ""; });
 
 $("send").onclick = () => { const v = $("inp").value.trim(); if (v) { envoyer(v); $("inp").value = ""; } };
 $("inp").addEventListener("keydown", e => { if (e.key === "Enter") $("send").onclick(); });
@@ -220,6 +244,7 @@ window.detailFig = (js) => {
       <div class="tile"><div class="l">Coût de revient</div><div class="v">${eur(f.cout_total_eur)}</div></div>
       <div class="tile"><div class="l">Prix conseillé</div><div class="v">${f.prix_conseille_eur ? f.prix_conseille_eur + " €" : "—"}</div></div>
     </div>
+    ${f.annonce_titre || f.annonce_texte ? `<div class="tile"><div class="l">📝 Annonce de vente (brouillon)</div><div class="v" style="font-size:14.5px">${esc(f.annonce_titre || "")}</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${esc(f.annonce_texte || "")}</div></div>` : ""}
     <div class="btnrow">
       ${f.model_url ? `<button class="abtn" onclick="voir3D('${esc(f.model_url)}')">🧊 Voir en 3D (et critiquer à côté)</button>` : `<span class="abtn dis">🧊 3D pas encore prête</span>`}
       ${f.fichier_3mf_url ? `<a class="abtn" href="${esc(f.fichier_3mf_url)}" download>🖨️ Télécharger le fichier d'impression (.3mf)</a>` : `<span class="abtn dis">🖨️ Fichier d'impression en préparation chez Franck</span>`}
@@ -232,12 +257,26 @@ window.voir3D = (url) => {
   modelCourant = url;
   document.querySelector('nav button[data-p="3d"]').click();
 };
-function montreSideChat() {
+async function montreSideChat() {
   const w = $("viewwrap");
-  if (!modelCourant) return;
+  if (!modelCourant) {
+    w.innerHTML = `<div class="empty3d">⌛ Je cherche tes sculptures…</div>`;
+    try {
+      const r = await fetch(`${SUPA}/rest/v1/atelier_figurines?model_url=not.is.null&order=id.desc&limit=30`, { headers: H });
+      const figs = await r.json();
+      w.innerHTML = figs.length ? `<div class="list" style="flex:1">
+        <div style="color:#9aa0a6;font-size:13px;padding:0 2px 2px">Choisis la figurine à regarder en 3D :</div>` +
+        figs.map(f => `<div class="card" onclick="voir3D('${esc(f.model_url)}')">
+          ${f.image_url ? `<img src="${esc(f.image_url)}" loading="lazy">` : `<img alt="">`}
+          <div><div class="t">#${f.id} — ${esc((f.demande || "").slice(0, 60))}</div><div class="s">${esc(f.taille || "")} · 🧊 3D prête</div></div>
+        </div>`).join("") + `</div>`
+        : `<div class="empty3d">Aucune sculpture 3D prête pour l'instant.<br>Crée une figurine dans l'onglet 💬 Chat !</div>`;
+    } catch (e) { w.innerHTML = `<div class="empty3d">Connexion impossible, réessaie.</div>`; }
+    return;
+  }
   w.innerHTML = `<iframe src="${VIEWER}${encodeURIComponent(modelCourant)}"></iframe>
     <div class="sidechat"><div class="msgs" id="msgs3d"></div>
-    <div class="inbar"><input id="inp3d" placeholder="Un défaut ? Dis-le ici…" autocomplete="off"><button id="send3d">➤</button></div></div>`;
+    <div class="inbar"><button id="photo3d" style="background:#2a2f3a" title="Envoyer une photo" onclick="document.getElementById('file').click()">📎</button><input id="inp3d" placeholder="Un défaut ? Dis-le ici…" autocomplete="off"><button id="send3d">➤</button></div></div>`;
   // recharge l'historique dans le panneau
   lastId = 0; $("msgs").innerHTML = ""; pollChat();
   $("send3d").onclick = () => { const v = $("inp3d").value.trim(); if (v) { envoyer(v); $("inp3d").value = ""; } };
