@@ -2,241 +2,249 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0b0d12">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Atelier 3D">
-<link rel="apple-touch-icon" href="icon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Atelier Figurines 3D</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<meta name="theme-color" content="#0f1115">
 <style>
-  :root{
-    --bg:#0b0d12; --panel:#141821; --panel2:#1c2230; --line:#283041;
-    --txt:#eef2f8; --muted:#97a1b4; --accent:#b9f24d; --accent2:#7c5cff;
-    --ok:#46c46a; --warn:#e89b4d; --danger:#ff6a6a;
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:radial-gradient(1200px 600px at 50% -10%,#10141d,#05060a);color:var(--txt)}
-  .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
-  header{display:flex;align-items:center;gap:11px;padding:15px 16px;position:sticky;top:0;z-index:5;
-    background:linear-gradient(180deg,#19202c,#141821);border-bottom:1px solid var(--line)}
-  .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
-    display:flex;align-items:center;justify-content:center;font-weight:800;color:#0b0d12;font-size:18px}
-  header h1{font-size:15.5px;margin:0;font-weight:650}
-  header .sub{font-size:11px;color:var(--muted)}
-  .refresh{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);
-    color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
-  main{flex:1;padding:14px 14px 90px}
-  nav{position:fixed;bottom:0;left:0;right:0;z-index:10;display:flex;justify-content:center;
-    background:linear-gradient(0deg,#12161f,#141821f2);border-top:1px solid var(--line)}
-  .navin{display:flex;width:100%;max-width:480px}
-  nav button{flex:1;background:none;border:0;color:var(--muted);padding:10px 2px calc(10px + env(safe-area-inset-bottom));
-    font-size:10.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
-  nav button .ico{font-size:19px}
-  nav button.on{color:var(--accent)}
-  h2{font-size:14px;margin:4px 2px 12px;color:var(--muted);font-weight:600;letter-spacing:.4px;text-transform:uppercase}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px}
-  .fig{display:flex;gap:11px}
-  .fig img{width:74px;height:74px;border-radius:12px;object-fit:cover;background:var(--panel2);flex:0 0 74px}
-  .fig .noimg{width:74px;height:74px;border-radius:12px;background:var(--panel2);display:flex;align-items:center;
-    justify-content:center;font-size:26px;flex:0 0 74px}
-  .fig .t{font-weight:600;font-size:13.5px;line-height:1.35}
-  .fig .d{color:var(--muted);font-size:11px;margin-top:3px}
-  .badge{display:inline-block;font-size:10.5px;padding:3px 9px;border-radius:20px;margin-top:6px;margin-right:5px;
-    border:1px solid var(--line);color:var(--muted);background:var(--panel2)}
-  .badge.b-image_en_cours,.badge.b-3d_en_cours{color:var(--warn);border-color:rgba(232,155,77,.4);background:rgba(232,155,77,.1)}
-  .badge.b-image_validee,.badge.b-3d_valide,.badge.b-fichier_pret{color:var(--accent);border-color:rgba(185,242,77,.4);background:rgba(185,242,77,.08)}
-  .badge.b-imprimee{color:var(--ok);border-color:rgba(70,196,106,.45);background:rgba(70,196,106,.12)}
-  .badge.lic{color:var(--danger);border-color:rgba(255,106,106,.4);background:rgba(255,106,106,.08)}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid var(--line);background:var(--panel2)}
-  .gcap{font-size:10.5px;color:var(--muted);margin:4px 2px 10px}
-  .btn{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:11px 14px;border-radius:12px;
-    font-size:13px;cursor:pointer;width:100%;margin-top:8px}
-  .btn.primary{background:linear-gradient(135deg,var(--accent),#a6e23e);color:#0b0d12;border-color:transparent;font-weight:650}
-  .empty{color:var(--muted);font-size:13px;text-align:center;padding:34px 10px;line-height:1.6}
-  label{display:block;font-size:12px;color:var(--muted);margin:10px 2px 4px}
-  input[type=number],input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:12px;
-    padding:11px 13px;color:var(--txt);font-size:14px;outline:none}
-  .row2{display:flex;gap:10px}.row2>div{flex:1}
-  .res{margin-top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
-  .kv{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line)}
-  .kv:last-child{border-bottom:0}.kv b{color:var(--accent)}
-  .note{font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:10px}
-  .aide p{font-size:13.5px;line-height:1.65;color:var(--txt)}
-  .aide .etape{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
-  .aide .n{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
-    color:#0b0d12;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 26px;margin-top:2px}
-  a{color:var(--accent)}
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1115; color: #e8eaed; display: flex; flex-direction: column; overflow: hidden; }
+  header { padding: 12px 16px 8px; display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+  header h1 { font-size: 17px; font-weight: 800; }
+  header .dot { width: 9px; height: 9px; border-radius: 50%; background: #34d399; margin-left: auto; }
+  main { flex: 1 1 auto; overflow: hidden; position: relative; }
+  .page { position: absolute; inset: 0; display: none; flex-direction: column; overflow: hidden; }
+  .page.on { display: flex; }
+  nav { flex: 0 0 auto; display: flex; border-top: 1px solid #23262e; background: #14171d; padding-bottom: env(safe-area-inset-bottom); }
+  nav button { flex: 1; background: none; border: 0; color: #9aa0a6; font-size: 11px; padding: 8px 2px 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  nav button .ic { font-size: 22px; }
+  nav button.on { color: #60a5fa; }
+
+  /* ---------- CHAT ---------- */
+  .chatwrap { display: flex; flex-direction: column; height: 100%; }
+  .msgs { flex: 1 1 auto; overflow-y: auto; padding: 12px 12px 6px; display: flex; flex-direction: column; gap: 8px; }
+  .b { max-width: 86%; border-radius: 16px; padding: 9px 13px; font-size: 15px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+  .b.user { align-self: flex-end; background: #2563eb; color: #fff; border-bottom-right-radius: 5px; }
+  .b.bot { align-self: flex-start; background: #1e222b; border-bottom-left-radius: 5px; }
+  .b.bot a { color: #7ab8ff; }
+  .b img { max-width: 100%; border-radius: 12px; display: block; margin-bottom: 6px; }
+  .kb { align-self: flex-start; display: flex; flex-direction: column; gap: 6px; max-width: 86%; }
+  .kb .row { display: flex; gap: 6px; }
+  .kb button { flex: 1; background: #2a2f3a; color: #dbe4ff; border: 1px solid #39404e; border-radius: 12px; padding: 9px 10px; font-size: 13.5px; cursor: pointer; }
+  .kb button:active { background: #39404e; }
+  .typing { align-self: flex-start; color: #9aa0a6; font-size: 13px; padding: 2px 8px; display: none; }
+  .inbar { flex: 0 0 auto; display: flex; gap: 8px; padding: 8px 10px; background: #14171d; border-top: 1px solid #23262e; }
+  .inbar input { flex: 1; background: #0f1115; border: 1px solid #2f3542; color: #fff; border-radius: 22px; padding: 11px 16px; font-size: 15px; outline: none; }
+  .inbar button { background: #2563eb; border: 0; color: #fff; border-radius: 50%; width: 44px; height: 44px; font-size: 18px; cursor: pointer; flex: 0 0 auto; }
+
+  /* ---------- FIGURINES ---------- */
+  .list { overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .card { background: #1a1d24; border: 1px solid #262a33; border-radius: 14px; padding: 12px; display: flex; gap: 12px; cursor: pointer; align-items: center; }
+  .card img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; background: #0f1115; flex: 0 0 auto; }
+  .card .t { font-size: 14px; font-weight: 600; }
+  .card .s { font-size: 12px; color: #9aa0a6; margin-top: 3px; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #262a33; color: #cbd5e1; margin-top: 4px; }
+  .badge.ok { background: #123b2a; color: #34d399; }
+  .detail { overflow-y: auto; padding: 12px; display: none; flex-direction: column; gap: 12px; }
+  .detail img.big { width: 100%; max-width: 380px; border-radius: 14px; align-self: center; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile { background: #1a1d24; border: 1px solid #262a33; border-radius: 12px; padding: 10px 12px; }
+  .tile .l { font-size: 11px; color: #9aa0a6; }
+  .tile .v { font-size: 16px; font-weight: 700; margin-top: 2px; }
+  .btnrow { display: flex; flex-direction: column; gap: 8px; }
+  .abtn { display: block; text-align: center; background: #2563eb; color: #fff; text-decoration: none; border: 0; border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .abtn.sec { background: #2a2f3a; }
+  .abtn.dis { background: #1c1f27; color: #6b7280; pointer-events: none; }
+
+  /* ---------- 3D ---------- */
+  .viewwrap { display: flex; height: 100%; }
+  .viewwrap iframe { flex: 1 1 60%; border: 0; background: #0f1115; }
+  .sidechat { flex: 1 1 40%; min-width: 280px; max-width: 420px; border-left: 1px solid #23262e; display: flex; flex-direction: column; }
+  @media (max-width: 700px) { .viewwrap { flex-direction: column; } .viewwrap iframe { flex: 1 1 52%; } .sidechat { max-width: none; min-width: 0; border-left: 0; border-top: 1px solid #23262e; flex: 1 1 48%; } }
+  .empty3d { flex: 1; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 14px; padding: 20px; text-align: center; }
+
+  /* ---------- AIDE ---------- */
+  .aide { overflow-y: auto; padding: 16px; line-height: 1.6; font-size: 14.5px; }
+  .aide h2 { font-size: 16px; margin: 14px 0 6px; }
+  .aide p { color: #cbd5e1; }
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="logo">A</div>
-    <div>
-      <h1>Atelier Figurines 3D</h1>
-      <div class="sub">Suivi de tes figurines, de l'idée à l'impression</div>
+<header><span style="font-size:22px">🧸</span><h1>Atelier Figurines 3D</h1><span class="dot" title="connecté"></span></header>
+<main>
+  <!-- CHAT -->
+  <section class="page on" id="p-chat"><div class="chatwrap">
+    <div class="msgs" id="msgs"></div>
+    <div class="typing" id="typing">⌛ l'atelier travaille…</div>
+    <div class="inbar"><input id="inp" placeholder="Décris ta figurine…" autocomplete="off"><button id="send">➤</button></div>
+  </div></section>
+
+  <!-- FIGURINES -->
+  <section class="page" id="p-figs">
+    <div class="list" id="figlist"></div>
+    <div class="detail" id="figdetail"></div>
+  </section>
+
+  <!-- 3D -->
+  <section class="page" id="p-3d">
+    <div class="viewwrap" id="viewwrap">
+      <div class="empty3d" id="empty3d">Choisis une figurine (onglet Figurines → « Voir en 3D »)<br>et discute des défauts ici, en la regardant.</div>
     </div>
-    <div class="refresh" onclick="rafraichir()">↻</div>
-  </header>
-  <main id="main"></main>
-  <nav><div class="navin">
-    <button data-tab="suivi" class="on" onclick="go('suivi')"><span class="ico">🧾</span>Suivi</button>
-    <button data-tab="galerie" onclick="go('galerie')"><span class="ico">🖼️</span>Galerie</button>
-    <button data-tab="troisd" onclick="go('troisd')"><span class="ico">🗿</span>3D</button>
-    <button data-tab="calculs" onclick="go('calculs')"><span class="ico">🧮</span>Calculs</button>
-    <button data-tab="aide" onclick="go('aide')"><span class="ico">💡</span>Aide</button>
-  </div></nav>
-</div>
+  </section>
+
+  <!-- AIDE -->
+  <section class="page" id="p-aide"><div class="aide">
+    <h2>💬 Chat</h2><p>Décris ta figurine (ou colle une idée). L'atelier te propose une image : critique-la ou valide. Ensuite choisis perso/vente, la taille, et la sculpture 3D se lance toute seule.</p>
+    <h2>🧊 Voir la 3D</h2><p>Onglet Figurines → ta figurine → « Voir en 3D ». Tu peux tourner le modèle ET écrire tes remarques dans le chat juste à côté.</p>
+    <h2>🖨️ Imprimer</h2><p>Quand Franck a préparé le fichier, le bouton « Télécharger le fichier d'impression (.3mf) » apparaît sur la figurine. Ouvre-le avec Bambu Studio / Bambu Handy et lance l'impression.</p>
+    <h2>🔑 Porte-clés</h2><p>La boucle d'accroche est intégrée à la pièce. L'anneau métallique n'est pas fourni.</p>
+  </div></section>
+</main>
+<nav>
+  <button class="on" data-p="chat"><span class="ic">💬</span>Chat</button>
+  <button data-p="figs"><span class="ic">📋</span>Figurines</button>
+  <button data-p="3d"><span class="ic">🧊</span>3D</button>
+  <button data-p="aide"><span class="ic">❓</span>Aide</button>
+</nav>
 
 <script>
-const SB_URL = 'https://bmvytqfddrfgcgokoxfn.supabase.co';
-const SB_KEY = 'sb_publishable_tGwuRROW7-AjWdE8K8ZbFA_R8_V2LUU';
-const main = document.getElementById('main');
-let TAB = 'suivi';
+const SUPA = "https://bmvytqfddrfgcgokoxfn.supabase.co";
+const KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtdnl0cWZkZHJmZ2Nnb2tveGZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3Njk3NDgsImV4cCI6MjA5MjM0NTc0OH0.Bcy6o77bQHaM8e8yDjMgRuLP5Tr2dxAmnliUITMGGas";
+const H = { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json" };
+const VIEWER = "viewer.html?src=";
 
-async function sb(path){
-  const r = await fetch(SB_URL + '/rest/v1/' + path, { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
-  if (!r.ok) throw new Error('Supabase ' + r.status);
-  return r.json();
+// session stable par appareil
+let SESSION = localStorage.getItem("atelier_session");
+if (!SESSION) { SESSION = Math.random().toString(36).slice(2, 10); localStorage.setItem("atelier_session", SESSION); }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const linkify = s => esc(s).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+
+/* ================= NAVIGATION ================= */
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.remove("on"));
+  document.querySelectorAll(".page").forEach(x => x.classList.remove("on"));
+  b.classList.add("on"); $("p-" + b.dataset.p).classList.add("on");
+  if (b.dataset.p === "figs") chargerFigs();
+  if (b.dataset.p === "3d") montreSideChat();
+});
+
+/* ================= CHAT ================= */
+let lastId = 0, attente = false;
+
+function bulleHTML(m) {
+  if (m.role === "user") {
+    const t = String(m.texte || "");
+    return `<div class="b user">${t.startsWith("cb:") ? "👆 " + esc(t.slice(3).split(":")[0]) : linkify(t)}</div>`;
+  }
+  let h = `<div class="b bot">`;
+  if (m.image_url) h += `<img src="${esc(m.image_url)}" loading="lazy">`;
+  if (m.texte) h += linkify(m.texte);
+  h += `</div>`;
+  if (m.boutons) {
+    h += `<div class="kb">` + m.boutons.map(row =>
+      `<div class="row">` + row.map(b =>
+        `<button onclick="clicBtn('${esc(b.callback_data)}','${esc(b.text).replace(/'/g, "\\'")}')">${esc(b.text)}</button>`
+      ).join("") + `</div>`).join("") + `</div>`;
+  }
+  return h;
 }
-const STATUTS = {
-  idee:'💭 Idée', image_en_cours:'🎨 Image en cours', image_validee:'✅ Image validée',
-  '3d_en_cours':'🔧 Sculpture 3D…', '3d_valide':'✅ 3D validée', fichier_pret:'📦 Fichier prêt',
-  imprimee:'🖨️ Imprimée', abandonnee:'🗑️ Abandonnée'
+
+async function pollChat() {
+  try {
+    const r = await fetch(`${SUPA}/rest/v1/app_messages?session=eq.${SESSION}&id=gt.${lastId}&order=id.asc&limit=50`, { headers: H });
+    const rows = await r.json();
+    if (Array.isArray(rows) && rows.length) {
+      const boxes = document.querySelectorAll(".msgs");
+      rows.forEach(m => { lastId = Math.max(lastId, m.id); boxes.forEach(bx => bx.insertAdjacentHTML("beforeend", bulleHTML(m))); if (m.role === "bot") attente = false; });
+      boxes.forEach(bx => bx.scrollTop = bx.scrollHeight);
+      $("typing").style.display = attente ? "block" : "none";
+    }
+  } catch (e) {}
+}
+
+async function envoyer(texte) {
+  if (!texte) return;
+  attente = true; $("typing").style.display = "block";
+  await fetch(`${SUPA}/rest/v1/app_messages`, { method: "POST", headers: { ...H, Prefer: "return=minimal" }, body: JSON.stringify({ session: SESSION, role: "user", texte }) });
+  pollChat();
+}
+window.clicBtn = (data, label) => envoyer("cb:" + data);
+
+$("send").onclick = () => { const v = $("inp").value.trim(); if (v) { envoyer(v); $("inp").value = ""; } };
+$("inp").addEventListener("keydown", e => { if (e.key === "Enter") $("send").onclick(); });
+setInterval(pollChat, 2500);
+pollChat();
+// message d'accueil si conversation vide
+setTimeout(async () => {
+  const r = await fetch(`${SUPA}/rest/v1/app_messages?session=eq.${SESSION}&limit=1`, { headers: H });
+  const rows = await r.json();
+  if (!rows.length) $("msgs").insertAdjacentHTML("beforeend", `<div class="b bot">👋 Salut ! Décris-moi la figurine de tes rêves (ex. « un dragon qui lit un livre ») et je te la fabrique : image → tes corrections → 3D → impression.</div>`);
+}, 800);
+
+/* ================= FIGURINES ================= */
+const STATUTS = { idee: "💭 Idée", image_en_cours: "🎨 Image en cours", image_validee: "✅ Image validée", attente_taille: "📏 Choix de la taille", "3d_en_cours": "🔧 Sculpture 3D…", "3d_valide": "🎉 3D validée", abandonnee: "🗑️ Abandonnée", collecte_photos: "📸 Photos en cours" };
+const fmtMn = mn => !mn ? "—" : (mn < 60 ? `${Math.round(mn)} min` : `${Math.floor(mn / 60)} h ${String(Math.round(mn % 60)).padStart(2, "0")}`);
+const eur = n => n == null ? "—" : Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2 }) + " €";
+
+async function chargerFigs() {
+  $("figdetail").style.display = "none"; $("figlist").style.display = "flex";
+  const r = await fetch(`${SUPA}/rest/v1/atelier_figurines?order=id.desc&limit=60&statut=neq.abandonnee`, { headers: H });
+  const figs = await r.json();
+  $("figlist").innerHTML = figs.length ? figs.map(f => `
+    <div class="card" onclick='detailFig(${JSON.stringify(JSON.stringify(f))})'>
+      ${f.image_url ? `<img src="${esc(f.image_url)}" loading="lazy">` : `<img alt="">`}
+      <div><div class="t">#${f.id} — ${esc((f.demande || "").slice(0, 60))}</div>
+      <div class="s">${esc(f.taille || "")} ${f.usage === "vente" ? "· 🏷️ vente" : ""}</div>
+      <span class="badge ${f.statut === "3d_valide" ? "ok" : ""}">${STATUTS[f.statut] || esc(f.statut)}</span></div>
+    </div>`).join("") : `<div style="color:#6b7280;text-align:center;padding:30px">Aucune figurine — passe par l'onglet 💬 Chat !</div>`;
+}
+
+window.detailFig = (js) => {
+  const f = JSON.parse(js);
+  $("figlist").style.display = "none";
+  const d = $("figdetail"); d.style.display = "flex";
+  d.innerHTML = `
+    <button class="abtn sec" onclick="chargerFigs()">← Retour</button>
+    ${f.image_url ? `<img class="big" src="${esc(f.image_url)}">` : ""}
+    <div><div style="font-weight:800;font-size:16px">#${f.id} — ${esc(f.demande || "")}</div>
+    <span class="badge ${f.statut === "3d_valide" ? "ok" : ""}">${STATUTS[f.statut] || esc(f.statut)}</span></div>
+    <div class="grid2">
+      <div class="tile"><div class="l">Taille</div><div class="v">${esc(f.taille || "—")}</div></div>
+      <div class="tile"><div class="l">Usage</div><div class="v">${f.usage === "vente" ? "🏷️ Vente" : "🎮 Perso"}</div></div>
+      <div class="tile"><div class="l">Matière (PLA)</div><div class="v">${f.poids_g ? "~" + f.poids_g + " g" : "—"}</div></div>
+      <div class="tile"><div class="l">Impression</div><div class="v">${fmtMn(f.temps_impression_min)}</div></div>
+      <div class="tile"><div class="l">Coût de revient</div><div class="v">${eur(f.cout_total_eur)}</div></div>
+      <div class="tile"><div class="l">Prix conseillé</div><div class="v">${f.prix_conseille_eur ? f.prix_conseille_eur + " €" : "—"}</div></div>
+    </div>
+    <div class="btnrow">
+      ${f.model_url ? `<button class="abtn" onclick="voir3D('${esc(f.model_url)}')">🧊 Voir en 3D (et critiquer à côté)</button>` : `<span class="abtn dis">🧊 3D pas encore prête</span>`}
+      ${f.fichier_3mf_url ? `<a class="abtn" href="${esc(f.fichier_3mf_url)}" download>🖨️ Télécharger le fichier d'impression (.3mf)</a>` : `<span class="abtn dis">🖨️ Fichier d'impression en préparation chez Franck</span>`}
+    </div>`;
 };
-const esc = s => String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const dateFr = s => new Date(s).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
 
-function go(t){ TAB=t; document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t)); render(); }
-function rafraichir(){ render(true); }
-
-async function render(){
-  if (TAB==='suivi') return vueSuivi();
-  if (TAB==='galerie') return vueGalerie();
-  if (TAB==='troisd') return vue3D();
-  if (TAB==='calculs') return vueCalculs();
-  return vueAide();
+/* ================= 3D + CHAT CÔTE À CÔTE ================= */
+let modelCourant = null;
+window.voir3D = (url) => {
+  modelCourant = url;
+  document.querySelector('nav button[data-p="3d"]').click();
+};
+function montreSideChat() {
+  const w = $("viewwrap");
+  if (!modelCourant) return;
+  w.innerHTML = `<iframe src="${VIEWER}${encodeURIComponent(modelCourant)}"></iframe>
+    <div class="sidechat"><div class="msgs" id="msgs3d"></div>
+    <div class="inbar"><input id="inp3d" placeholder="Un défaut ? Dis-le ici…" autocomplete="off"><button id="send3d">➤</button></div></div>`;
+  // recharge l'historique dans le panneau
+  lastId = 0; $("msgs").innerHTML = ""; pollChat();
+  $("send3d").onclick = () => { const v = $("inp3d").value.trim(); if (v) { envoyer(v); $("inp3d").value = ""; } };
+  $("inp3d").addEventListener("keydown", e => { if (e.key === "Enter") $("send3d").onclick(); });
 }
 
-async function vueSuivi(){
-  main.innerHTML = '<h2>Mes figurines</h2><div class="empty">Chargement…</div>';
-  try{
-    const figs = await sb('atelier_figurines?order=maj_le.desc&limit=50');
-    if(!figs.length){ main.innerHTML = '<h2>Mes figurines</h2><div class="empty">Aucune figurine pour l\'instant.<br>Envoie ton idée au bot Telegram pour démarrer ! 🚀</div>'; return; }
-    main.innerHTML = '<h2>Mes figurines</h2>' + figs.map(f => `
-      <div class="card"><div class="fig">
-        ${f.image_url ? `<img src="${esc(f.image_url)}" loading="lazy">` : '<div class="noimg">🧸</div>'}
-        <div style="flex:1">
-          <div class="t">${esc(f.demande)}</div>
-          <div class="d">#${f.id} · ${dateFr(f.cree_le)}${f.cout_total_eur ? ' · coût réel ' + Number(f.cout_total_eur).toFixed(2) + ' €' : ''}</div>
-          <span class="badge b-${esc(f.statut)}">${STATUTS[f.statut]||esc(f.statut)}</span>
-          ${f.licence ? '<span class="badge lic">⚠️ licence — vente interdite</span>' : ''}
-          ${f.usage==='vente' ? '<span class="badge">🏷️ vente</span>' : ''}
-        </div>
-      </div>
-      ${f.model_url ? `<button class="btn" onclick="location.href='viewer.html?src='+encodeURIComponent('${esc(f.model_url)}')">🗿 Voir la 3D</button>` : ''}
-      </div>`).join('');
-  }catch(e){ main.innerHTML = '<h2>Mes figurines</h2><div class="empty">Impossible de charger 😕<br>' + esc(e.message) + '</div>'; }
-}
-
-async function vueGalerie(){
-  main.innerHTML = '<h2>Galerie des images</h2><div class="empty">Chargement…</div>';
-  try{
-    const it = await sb('atelier_iterations?etape=eq.image&resultat_url=not.is.null&order=id.desc&limit=60');
-    if(!it.length){ main.innerHTML = '<h2>Galerie des images</h2><div class="empty">Encore rien à montrer — les images créées avec le bot apparaîtront ici.</div>'; return; }
-    main.innerHTML = '<h2>Galerie des images</h2><div class="grid">' + it.map(i => `
-      <div><a href="${esc(i.resultat_url)}" target="_blank" rel="noopener"><img src="${esc(i.resultat_url)}" loading="lazy"></a>
-      <div class="gcap">Figurine #${i.figurine_id} · v${i.version}${i.valide?' · ✅ validée':''}</div></div>`).join('') + '</div>';
-  }catch(e){ main.innerHTML = '<h2>Galerie</h2><div class="empty">Impossible de charger 😕<br>' + esc(e.message) + '</div>'; }
-}
-
-async function vue3D(){
-  main.innerHTML = '<h2>Figurines en 3D</h2><div class="empty">Chargement…</div>';
-  try{
-    const figs = await sb('atelier_figurines?model_url=not.is.null&order=maj_le.desc&limit=30');
-    if(!figs.length){ main.innerHTML = '<h2>Figurines en 3D</h2><div class="empty">Pas encore de 3D — dès qu\'une image est validée, la sculpture apparaît ici.</div>'; return; }
-    main.innerHTML = '<h2>Figurines en 3D</h2>' + figs.map(f => `
-      <div class="card">
-        <div class="fig">${f.image_url?`<img src="${esc(f.image_url)}" loading="lazy">`:'<div class="noimg">🗿</div>'}
-        <div style="flex:1"><div class="t">${esc(f.demande)}</div>
-        <span class="badge b-${esc(f.statut)}">${STATUTS[f.statut]||esc(f.statut)}</span></div></div>
-        <button class="btn primary" onclick="location.href='viewer.html?src='+encodeURIComponent('${esc(f.model_url)}')">🗿 Ouvrir la visionneuse 3D</button>
-      </div>`).join('');
-  }catch(e){ main.innerHTML = '<h2>3D</h2><div class="empty">Impossible de charger 😕<br>' + esc(e.message) + '</div>'; }
-}
-
-function vueCalculs(){
-  main.innerHTML = `
-  <h2>Remplissage du plateau (P2S · 256×256)</h2>
-  <div class="card">
-    <div class="row2">
-      <div><label>Largeur figurine (mm)</label><input type="number" id="px" value="80"></div>
-      <div><label>Profondeur (mm)</label><input type="number" id="py" value="80"></div>
-    </div>
-    <label>Espace entre pièces (mm)</label><input type="number" id="pm" value="10">
-    <button class="btn primary" onclick="calcPlateau()">Calculer</button>
-    <div class="res" id="resPlateau" style="display:none"></div>
-    <div class="note">Rappel : on n'attend JAMAIS un plateau plein pour lancer — c'est juste pour savoir s'il reste de la place.</div>
-  </div>
-  <h2>Coût d'une impression</h2>
-  <div class="card">
-    <div class="row2">
-      <div><label>Poids (g)</label><input type="number" id="cg" value="85"></div>
-      <div><label>Prix bobine (€/kg)</label><input type="number" id="ck" value="20"></div>
-    </div>
-    <div class="row2">
-      <div><label>Temps (heures)</label><input type="number" id="ch" value="6.5" step="0.5"></div>
-      <div><label>Puissance moy. (W)</label><input type="number" id="cw" value="100"></div>
-    </div>
-    <label>Prix du kWh (€)</label><input type="number" id="ce" value="0.2016" step="0.001">
-    <button class="btn primary" onclick="calcCout()">Calculer</button>
-    <div class="res" id="resCout" style="display:none"></div>
-    <div class="note">Pour la VENTE : jamais à perte — prix conseillé = coût total × 3 minimum (matière + énergie + usure + ton temps).</div>
-  </div>`;
-}
-function calcPlateau(){
-  const x=+px.value, y=+py.value, m=+pm.value, BED=256;
-  const nx=Math.floor((BED+m)/(x+m)), ny=Math.floor((BED+m)/(y+m));
-  const n=Math.max(0,nx*ny);
-  const el=document.getElementById('resPlateau'); el.style.display='block';
-  el.innerHTML = n===0 ? 'Trop grand pour le plateau 😅 (max 256×256 mm)' :
-    `<div class="kv"><span>Figurines par plateau</span><b>${n}</b></div>
-     <div class="kv"><span>Disposition</span><b>${nx} × ${ny}</b></div>
-     <div class="kv"><span>Place perdue</span><b>${Math.round(100-(n*x*y)/(BED*BED)*100)} %</b></div>`;
-}
-function calcCout(){
-  const g=+cg.value, k=+ck.value, h=+ch.value, w=+cw.value, e=+ce.value;
-  const mat=g/1000*k, ener=h*w/1000*e, usure=(mat+ener)*0.10, tot=mat+ener+usure;
-  const el=document.getElementById('resCout'); el.style.display='block';
-  el.innerHTML = `
-    <div class="kv"><span>Matière (PLA)</span><b>${mat.toFixed(2)} €</b></div>
-    <div class="kv"><span>Électricité</span><b>${ener.toFixed(2)} €</b></div>
-    <div class="kv"><span>Usure machine (~10 %)</span><b>${usure.toFixed(2)} €</b></div>
-    <div class="kv"><span>Coût total</span><b>${tot.toFixed(2)} €</b></div>
-    <div class="kv"><span>Prix de vente conseillé (×3)</span><b>${(tot*3).toFixed(2)} € min.</b></div>`;
-}
-
-function vueAide(){
-  main.innerHTML = `
-  <h2>Comment ça marche</h2>
-  <div class="card aide">
-    <div class="etape"><div class="n">1</div><p>Tu envoies ton idée de figurine au <b>bot Telegram</b> (une phrase suffit).</p></div>
-    <div class="etape"><div class="n">2</div><p>L'IA te propose une <b>image</b>. Tu critiques, elle corrige — autant de fois qu'il faut. On ne passe à la suite que quand TU valides.</p></div>
-    <div class="etape"><div class="n">3</div><p>L'image validée est <b>sculptée en 3D</b> (Meshy). Même principe : tu regardes, tu critiques, tu valides.</p></div>
-    <div class="etape"><div class="n">4</div><p>Franck prépare le <b>fichier d'impression .3mf</b> (réglages P2S inclus) et te l'envoie. Tu n'as plus qu'à imprimer ! 🖨️</p></div>
-  </div>
-  <div class="card aide">
-    <p><b>⚠️ Personnages sous licence</b> (Marvel, Pokémon, Disney…) : autorisés pour TOI (usage perso), mais <b>interdits à la vente</b>. Le bot te le rappelle automatiquement.</p>
-    <p><b>🧪 Comparer les générateurs d'images</b> : <a href="comparatif.html">ouvrir le banc d'essai</a>.</p>
-  </div>`;
-}
-
-render();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
 </html>
