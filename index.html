@@ -106,6 +106,7 @@
     <h2>📋 Figurines</h2><p>La liste de tes figurines. Clique sur une figurine : sa fiche montre les coûts, le prix conseillé, l'annonce de vente, et le bouton « Voir en 3D » — la 3D s'affiche en haut, le chat en bas pour dire les défauts en direct.</p>
     <h2>🖨️ Imprimer</h2><p>Quand Franck a préparé le fichier, le bouton « Télécharger le fichier d'impression (.3mf) » apparaît sur la fiche. Ouvre-le avec Bambu Studio / Bambu Handy.</p>
     <h2>🔑 Porte-clés</h2><p>La boucle d'accroche est intégrée à la pièce. L'anneau métallique n'est pas fourni.</p>
+    <h2>🛡️ Nos garanties</h2><p>Tu valides l'image, puis tu valides la sculpture 3D — <b>rien ne part en impression sans ton accord</b>. Tu peux demander autant de corrections que tu veux, et un contrôleur qualité automatique inspecte chaque sculpture avant toi.</p>
   </div></section>
 </main>
 <nav>
@@ -250,6 +251,12 @@ const fmtMn = mn => !mn ? "—" : (mn < 60 ? `${Math.round(mn)} min` : `${Math.f
 const eur = n => n == null ? "—" : Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2 }) + " €";
 let FIGS = [], figIdx = -1;
 
+function reglagesImpression(f) {
+  const manip = /porte|aimant|clé|cle/i.test(f.taille || "");
+  const remplissage = manip ? "Gyroïde 35 % (pièce manipulée = solide)" : "Lightning 8 % (déco = économe en matière)";
+  return "Matériau : PLA — buse 210 °C, plateau 60 °C\nRemplissage : " + remplissage + "\nHauteur de couche : 0,08 mm (profil figurine)\nSupports : arbre (tree), visage vers le haut";
+}
+
 async function chargerFigs() {
   try {
     const r = await fetch(`${SUPA}/rest/v1/atelier_figurines?order=id.desc&limit=60&statut=neq.abandonnee`, { headers: H });
@@ -289,7 +296,9 @@ window.ouvrirFig = (i) => {
       <div class="tile"><div class="l">Coût de revient</div><div class="v">${eur(f.cout_total_eur)}</div></div>
       <div class="tile"><div class="l">Prix conseillé</div><div class="v">${f.prix_conseille_eur ? f.prix_conseille_eur + " €" : "—"}</div></div>
     </div>
+    <div class="tile"><div class="l">🖨️ Réglages d'impression conseillés</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${reglagesImpression(f)}</div></div>
     ${f.annonce_titre || f.annonce_texte ? `<div class="tile"><div class="l">📝 Annonce de vente (brouillon)</div><div class="v" style="font-size:14.5px">${esc(f.annonce_titre || "")}</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${esc(f.annonce_texte || "")}</div></div>` : ""}
+    <div style="font-size:12.5px;color:#9aa0a6;text-align:center">🛡️ Rien ne part en impression sans TA validation de l'image ET de la 3D.</div>
     <div class="btnrow">
       ${f.fichier_3mf_url ? `<a class="abtn" href="${esc(f.fichier_3mf_url)}" download>🖨️ Télécharger le fichier d'impression (.3mf)</a>` : `<span class="abtn dis">🖨️ Fichier d'impression en préparation chez Franck</span>`}
     </div>
