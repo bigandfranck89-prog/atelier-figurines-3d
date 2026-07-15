@@ -593,6 +593,32 @@ function stlBinaire(mesh){
   return new Uint8Array(buf);
 }
 
+/* ---------- Contrôle d'imprimabilité : mesure le VRAI fichier 3D ---------- */
+function imprimabilite(mesh, dims){
+  const V=mesh.vertices, T=mesh.triangles;
+  // recolle les sommets par position arrondie (0,01 mm) pour analyser la surface
+  const map=new Map();
+  const idOf=p=>{ const k=Math.round(p[0]*100)+"_"+Math.round(p[1]*100)+"_"+Math.round(p[2]*100); let id=map.get(k); if(id===undefined){ id=map.size; map.set(k,id); } return id; };
+  const edges=new Map(); let degen=0;
+  for(const t of T){
+    const ia=idOf(V[t[0]]), ib=idOf(V[t[1]]), ic=idOf(V[t[2]]);
+    if(ia===ib||ib===ic||ia===ic){ degen++; continue; }
+    for(const pr of [[ia,ib],[ib,ic],[ic,ia]]){ const e=pr[0]<pr[1]?pr[0]+"_"+pr[1]:pr[1]+"_"+pr[0]; edges.set(e,(edges.get(e)||0)+1); }
+  }
+  let bord=0, nonmani=0;
+  for(const c of edges.values()){ if(c===1) bord++; else if(c>2) nonmani++; }
+  const minDim=Math.min(dims.x,dims.y,dims.z);
+  const solide = bord===0 && nonmani===0;
+  const alertes=[];
+  if(solide) alertes.push({n:"okk", t:"La sculpture est fermée (étanche) ✅ — prête à imprimer."});
+  if(bord>0) alertes.push({n:"warn", t:"La surface a "+bord+" bord(s) ouvert(s) (petits trous). La plupart des logiciels d'impression les rebouchent seuls ; si une impression rate à un endroit, c'est souvent de là que ça vient."});
+  if(nonmani>0) alertes.push({n:"warn", t:nonmani+" arête(s) où plusieurs faces se croisent. À surveiller — le logiciel d'impression corrige en général tout seul."});
+  if(degen>0) alertes.push({n:"info", t:degen+" mini-facette(s) plate(s) ignorée(s) (sans conséquence)."});
+  if(minDim<8) alertes.push({n:"bad", t:"La partie la plus fine fait ≈ "+minDim.toFixed(1)+" mm : c'est très fragile, ça risque de casser. Agrandis un peu si tu peux."});
+  else if(minDim<15) alertes.push({n:"info", t:"Plus petite dimension ≈ "+minDim.toFixed(1)+" mm : imprimable, mais les petits détails ressortent mieux à partir de ~2-3 cm."});
+  return { solide, bord, nonmani, degen, minDim, alertes };
+}
+
 /* ---------- Bouton principal : crée le(s) fichier(s) .3mf ---------- */
 window.creerImpression = async function(i){
   const f = FIGS[i]; const log = $("impr-log"); const btn = $("impr-go");
@@ -605,6 +631,12 @@ window.creerImpression = async function(i){
   log.textContent = "Je récupère ta figurine en 3D…";
   try {
     const { mesh, THREE, dims } = await chargerMeshMM(f.model_url, hauteur);
+    log.textContent = "Je vérifie que la sculpture est bien imprimable…";
+    const diag = imprimabilite(mesh, dims);
+    let diagHtml = `<div class="impr" style="margin-top:8px"><div class="l">🔍 Contrôle d'imprimabilité (fait sur le vrai fichier 3D)</div>`;
+    for(const a of diag.alertes) diagHtml += `<div class="al ${a.n}">${esc(a.t)}</div>`;
+    diagHtml += `</div>`;
+    $("impr-dl").innerHTML = diagHtml;
     const rec = recette(usageKey, dims, matKey, tempOpt);
     let sorties = [];
     if(!rec.decoupe.requise){
@@ -635,7 +667,7 @@ window.creerImpression = async function(i){
       const lab = est3mf ? ("📥 "+esc(s.nom)+" — prêt à imprimer (réglages inclus)") : ("📄 "+esc(s.nom)+" — format universel, autres logiciels");
       html += `<a class="abtn ${est3mf?'vert':'sec'}" href="${url}" download="${s.nom}" style="margin-top:8px">${lab}</a>`;
     }
-    $("impr-dl").innerHTML = html;
+    $("impr-dl").innerHTML = diagHtml + html;
     btn.textContent = "🔄 Refaire le fichier"; btn.style.pointerEvents="auto";
   } catch(e){
     log.textContent = "Souci pendant la préparation : "+(e.message||e)+"\nDis-le à Franck, il a une version de secours qui marche à coup sûr.";
