@@ -123,13 +123,47 @@
     <h2>📎 Photos</h2><p>Avec le trombone, envoie jusqu'à 4 photos (plusieurs angles = meilleure sculpture).</p>
     <h2>📋 Figurines</h2><p>La liste de tes figurines. Clique sur une figurine : sa fiche montre les coûts, le prix conseillé, l'annonce de vente, et le bouton « Voir en 3D » — la 3D s'affiche en haut, le chat en bas pour dire les défauts en direct.</p>
     <h2>🖨️ Imprimer</h2><p>Sur la fiche, appuie sur « Créer le fichier à imprimer ». L'appli règle tout toute seule et te donne le fichier .3mf à ouvrir dans Bambu Handy / Bambu Studio. Si la figurine est trop grande pour l'imprimante, l'appli la coupe en morceaux qui s'emboîtent (tu imprimes, tu emboîtes, tu colles).</p>
+    <h2>📚 Catalogue</h2><p>Toutes les sortes d'objets qu'on sait faire, rangées par catégorie avec une recherche. Clique « Demander cette création » et ça remplit le chat tout seul.</p>
+    <h2>🖼️ Tableau photo</h2><p>Transforme une photo en plaque à imprimer : devant une lumière, l'image apparaît. Choisis la photo, la taille, et récupère le fichier. À imprimer en blanc, à plat.</p>
     <h2>🔑 Porte-clés</h2><p>La boucle d'accroche est intégrée à la pièce. L'anneau métallique n'est pas fourni.</p>
     <h2>🛡️ Nos garanties</h2><p>Tu valides l'image, puis tu valides la sculpture 3D — <b>rien ne part en impression sans ton accord</b>. Tu peux demander autant de corrections que tu veux, et un contrôleur qualité automatique inspecte chaque sculpture avant toi.</p>
+  </div></section>
+
+  <!-- TABLEAU PHOTO (LITHOPHANE) -->
+  <section class="page" id="p-litho"><div class="aide">
+    <h2>🖼️ Tableau photo (lithophane)</h2>
+    <p>Transforme une photo en petite plaque à imprimer : posée devant une lumière (fenêtre, LED), l'image apparaît en dégradés. Choisis ta photo, règle la taille, récupère le fichier.</p>
+    <div class="tile"><div class="l">1. Ta photo</div>
+      <input type="file" id="litho-file" accept="image/*" style="margin-top:8px;color:#cbd5e1;font-size:13px">
+      <canvas id="litho-prev" style="display:none;max-width:100%;border-radius:10px;margin-top:10px;background:#0f1115"></canvas>
+    </div>
+    <table class="techtab">
+      <tr><td>Largeur du tableau (mm)</td><td><input id="litho-larg" type="number" value="100" min="20" max="250"></td></tr>
+      <tr><td>Épaisseur mini — zones claires (mm)</td><td><input id="litho-min" type="number" value="0.8" step="0.1" min="0.4"></td></tr>
+      <tr><td>Épaisseur maxi — zones sombres (mm)</td><td><input id="litho-max" type="number" value="3" step="0.1" min="1"></td></tr>
+      <tr><td>Cadre autour</td><td><select id="litho-cadre"><option value="0">Non</option><option value="3" selected>Oui (3 mm)</option></select></td></tr>
+    </table>
+    <button class="abtn" id="litho-go" onclick="genererLithophane()" style="margin-top:10px">🖼️ Générer le fichier à imprimer</button>
+    <div class="imprlog" id="litho-log"></div>
+    <div id="litho-dl"></div>
+    <p style="font-size:12.5px;color:#9aa0a6">Astuce : les photos bien contrastées (visage éclairé sur fond simple) donnent les plus beaux tableaux. Imprime en <b>blanc</b>, à plat, couche fine, sans support.</p>
+  </div></section>
+
+  <!-- CATALOGUE DES CRÉATIONS -->
+  <section class="page" id="p-cat"><div class="aide" style="padding-top:12px">
+    <h2 style="margin-top:0">📚 Catalogue des créations</h2>
+    <p style="margin-bottom:10px">Toutes les sortes d'objets que l'atelier sait faire. Cherche une idée, puis demande-la dans le chat.</p>
+    <input id="cat-search" placeholder="🔎 Rechercher (porte-clés, photo, déco…)" autocomplete="off"
+      style="width:100%;background:#0f1115;border:1px solid #2f3542;color:#fff;border-radius:22px;padding:11px 14px;font-size:15px;outline:none;margin-bottom:10px">
+    <div id="cat-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+    <div id="cat-list"></div>
   </div></section>
 </main>
 <nav>
   <button class="on" data-p="chat"><span class="ic">💬</span>Chat</button>
   <button data-p="figs"><span class="ic">📋</span>Figurines</button>
+  <button data-p="cat"><span class="ic">📚</span>Catalogue</button>
+  <button data-p="litho"><span class="ic">🖼️</span>Tableau</button>
   <button data-p="aide"><span class="ic">❓</span>Aide</button>
 </nav>
 
@@ -312,7 +346,7 @@ window.ouvrirFig = (i) => {
     <!-- PANNEAU IMPRESSION (rempli par renderImpr) -->
     <div id="impr-panel"></div>
 
-    ${f.annonce_titre || f.annonce_texte ? `<div class="tile"><div class="l">📝 Annonce de vente (brouillon)</div><div class="v" style="font-size:14.5px">${esc(f.annonce_titre || "")}</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${esc(f.annonce_texte || "")}</div></div>` : ""}
+    ${f.annonce_titre || f.annonce_texte ? `<div class="tile"><div class="l">📝 Annonce de vente (brouillon)</div><div class="v" style="font-size:14.5px">${esc(f.annonce_titre || "")}</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${esc(f.annonce_texte || "")}</div><div style="font-size:12.5px;color:#5be3a5;margin-top:8px;border-top:1px solid #23303a;padding-top:8px">🛡️ Nos garanties (à mettre dans l'annonce) : tu valides l'image <b>puis</b> la sculpture 3D avant toute impression, corrections illimitées, et un contrôle qualité + un contrôle d'imprimabilité passent sur chaque pièce.</div></div>` : ""}
     <div style="font-size:12.5px;color:#9aa0a6;text-align:center">🛡️ Rien ne part en impression sans TA validation de l'image ET de la 3D.</div>
   </div>`;
   try { renderImpr(i); } catch (e) { $("impr-panel").innerHTML = `<div class="impr"><div class="al bad">Le module d'impression a eu un souci : ${esc(e.message||e)}</div></div>`; }
@@ -732,6 +766,163 @@ function renderImpr(i){
     </details>
   </div>`;
 }
+
+/* ============================================================= */
+/*  TABLEAU PHOTO (LITHOPHANE) : photo -> plaque à imprimer      */
+/* ============================================================= */
+let LITHO = null; // { data:Float32Array(0..1), w, h }
+(function(){
+  const fileI = $("litho-file"); if(!fileI) return;
+  fileI.addEventListener("change", e => {
+    const f = e.target.files[0]; if(!f) return;
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 200;                       // résolution du relief
+      const scale = Math.min(1, maxW/img.width);
+      const w = Math.max(2, Math.round(img.width*scale));
+      const h = Math.max(2, Math.round(img.height*scale));
+      const cv = $("litho-prev"); cv.width = w; cv.height = h;
+      const ctx = cv.getContext("2d"); ctx.drawImage(img, 0, 0, w, h);
+      const d = ctx.getImageData(0,0,w,h).data;
+      const data = new Float32Array(w*h);
+      for(let i=0;i<w*h;i++){ data[i] = (0.299*d[i*4] + 0.587*d[i*4+1] + 0.114*d[i*4+2]) / 255; }
+      LITHO = { data, w, h };
+      cv.style.display = "block";
+      $("litho-log").textContent = "Photo prête ("+w+"×"+h+" points). Clique sur « Générer ».";
+      $("litho-dl").innerHTML = "";
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => { $("litho-log").textContent = "Cette image n'a pas pu être lue, réessaie avec une autre."; };
+    img.src = URL.createObjectURL(f);
+  });
+})();
+
+window.genererLithophane = async function(){
+  const log = $("litho-log"), btn = $("litho-go");
+  if(!LITHO){ log.textContent = "Choisis d'abord une photo (bouton au-dessus)."; return; }
+  btn.textContent = "⏳ Génération…"; btn.style.pointerEvents = "none";
+  log.textContent = "Je fabrique le relief de ta photo…";
+  try {
+    const larg = Math.max(20, parseFloat($("litho-larg").value)||100);
+    let eMin = Math.max(0.4, parseFloat($("litho-min").value)||0.8);
+    let eMax = Math.max(eMin+0.2, parseFloat($("litho-max").value)||3);
+    const cadre = parseFloat($("litho-cadre").value)||0;
+    const { data, w:W, h:H } = LITHO;
+    const px = larg / W;                 // mm par point
+    const hAt = (x,y) => eMin + (1 - data[y*W + x]) * (eMax - eMin);   // sombre = épais
+    const vertices = [], triangles = [];
+    const topIdx = new Int32Array(W*H), botIdx = new Int32Array(W*H);
+    // sommets face avant (relief) — X inversé pour que l'image se lise du bon côté
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){ topIdx[y*W+x]=vertices.length; vertices.push([(W-1-x)*px,(H-1-y)*px,hAt(x,y)]); }
+    // sommets face arrière (plate, z=0)
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){ botIdx[y*W+x]=vertices.length; vertices.push([(W-1-x)*px,(H-1-y)*px,0]); }
+    // faces avant
+    for(let y=0;y<H-1;y++) for(let x=0;x<W-1;x++){
+      const a=topIdx[y*W+x], b=topIdx[y*W+x+1], c=topIdx[(y+1)*W+x+1], d=topIdx[(y+1)*W+x];
+      triangles.push([a,b,c]); triangles.push([a,c,d]);
+    }
+    // faces arrière (sens inversé)
+    for(let y=0;y<H-1;y++) for(let x=0;x<W-1;x++){
+      const a=botIdx[y*W+x], b=botIdx[y*W+x+1], c=botIdx[(y+1)*W+x+1], d=botIdx[(y+1)*W+x];
+      triangles.push([a,c,b]); triangles.push([a,d,c]);
+    }
+    // murs sur les 4 bords (relie l'avant et l'arrière -> plaque fermée)
+    const mur = seq => { for(let i=0;i<seq.length-1;i++){
+      const p=seq[i], q=seq[i+1];
+      const t0=topIdx[p[1]*W+p[0]], t1=topIdx[q[1]*W+q[0]], b0=botIdx[p[1]*W+p[0]], b1=botIdx[q[1]*W+q[0]];
+      triangles.push([t0,t1,b1]); triangles.push([t0,b1,b0]);
+    } };
+    const hb=[], bb=[], lb=[], rb=[];
+    for(let x=0;x<W;x++){ hb.push([x,0]); bb.push([x,H-1]); }
+    for(let y=0;y<H;y++){ lb.push([0,y]); rb.push([W-1,y]); }
+    mur(hb); mur(rb); mur(bb); mur(lb);
+    const mesh = { vertices, triangles };
+    // dimensions réelles
+    const dims = { x: larg, y: px*H, z: eMax + cadre*0 };
+    // réglages : PLA, couche fine, 100% de remplissage (bloque bien la lumière), à plat, sans support
+    const rec = recette('figurine_vente', {x:dims.x,y:dims.y,z:dims.z}, 'PLA', {});
+    const bambu = Object.assign({}, rec.bambu, {
+      layer_height:"0.08", sparse_infill_density:"100%", sparse_infill_pattern:"rectilinear",
+      enable_support:"0", brim_type:(cadre>0?"no_brim":"outer_only"), brim_width:(cadre>0?"0":"3"),
+      top_shell_layers:"5", bottom_shell_layers:"3", from:"Atelier Figurines 3D - Tableau photo"
+    });
+    log.textContent = "Je prépare les fichiers…";
+    const nom = "tableau_photo";
+    const zip = await faire3mf(mesh, bambu, nom);
+    const sorties = [ {nom:nom+"_a_imprimer.3mf", data:zip}, {nom:nom+".stl", data:stlBinaire(mesh)} ];
+    let html = `<div class="impr" style="margin-top:8px"><div class="l">✅ Ton tableau est prêt — ${W}×${H} points, ${larg.toFixed(0)}×${(px*H).toFixed(0)} mm, ${eMin}→${eMax} mm d'épaisseur</div></div>`;
+    for(const s of sorties){
+      const url = URL.createObjectURL(new Blob([s.data], {type:"application/octet-stream"}));
+      const est3mf = s.nom.endsWith(".3mf");
+      const lab = est3mf ? ("📥 "+s.nom+" — prêt à imprimer (réglages inclus)") : ("📄 "+s.nom+" — format universel");
+      html += `<a class="abtn ${est3mf?'vert':'sec'}" href="${url}" download="${s.nom}" style="margin-top:8px">${lab}</a>`;
+    }
+    $("litho-dl").innerHTML = html;
+    log.textContent = "Terminé ! Imprime à plat, en blanc, couche 0,08 mm, 100% de remplissage. 🖼️";
+    btn.textContent = "🔄 Refaire le fichier"; btn.style.pointerEvents = "auto";
+  } catch(e){
+    log.textContent = "Souci pendant la génération : "+(e.message||e);
+    btn.textContent = "🔁 Réessayer"; btn.style.pointerEvents = "auto";
+  }
+};
+
+/* ============================================================= */
+/*  CATALOGUE DES CRÉATIONS (catégories + moteur de recherche)  */
+/* ============================================================= */
+const CATALOGUE = [
+  // Déco
+  {nom:"Figurine / statuette déco", cat:"Déco", emoji:"🗿", desc:"Un personnage ou un objet à poser sur une étagère.", tag:"8 à 18 cm", prompt:"Je voudrais une statuette déco de "},
+  {nom:"Buste", cat:"Déco", emoji:"🗿", desc:"La tête et les épaules d'un personnage, effet sculpture.", tag:"déco", prompt:"Je voudrais un buste de "},
+  {nom:"Bas-relief mural", cat:"Déco", emoji:"🖼️", desc:"Une scène en relief peu épaisse à accrocher au mur.", tag:"mural", prompt:"Je voudrais un bas-relief mural représentant "},
+  {nom:"Vase / cache-pot déco", cat:"Déco", emoji:"🏺", desc:"Un vase décoratif (pour fleurs séchées ou déco).", tag:"déco", prompt:"Je voudrais un vase déco style "},
+  {nom:"Socle / présentoir", cat:"Déco", emoji:"🧱", desc:"Un support pour mettre en valeur un objet ou une figurine.", tag:"support", prompt:"Je voudrais un petit socle présentoir pour "},
+  // Cadeau / perso
+  {nom:"Figurine personnalisée (d'après photo)", cat:"Cadeau", emoji:"🧍", desc:"Une figurine à ton effigie ou celle d'un proche, à partir de photos.", tag:"perso", prompt:"Je voudrais une figurine d'après cette photo : "},
+  {nom:"Médaillon photo", cat:"Cadeau", emoji:"📿", desc:"Un petit médaillon rond avec un visage ou un motif en relief.", tag:"cadeau", prompt:"Je voudrais un médaillon avec "},
+  {nom:"Porte-clés", cat:"Cadeau", emoji:"🔑", desc:"Un petit objet avec la boucle d'accroche intégrée (anneau non fourni).", tag:"perso/vente", prompt:"Je voudrais un porte-clés en forme de "},
+  {nom:"Aimant déco", cat:"Cadeau", emoji:"🧲", desc:"Un objet plat à coller sur le frigo (on colle un aimant acheté derrière).", tag:"cadeau", prompt:"Je voudrais un aimant déco en forme de "},
+  {nom:"Marque-place / prénom", cat:"Cadeau", emoji:"🔤", desc:"Un prénom ou un mot en relief, pour la table ou la déco.", tag:"événement", prompt:"Je voudrais un marque-place avec le prénom "},
+  // Utile
+  {nom:"Support téléphone", cat:"Utile", emoji:"📱", desc:"Un socle pour poser le téléphone sur le bureau.", tag:"utile", prompt:"Je voudrais un support téléphone style "},
+  {nom:"Vide-poche / range-bijoux", cat:"Utile", emoji:"🪙", desc:"Une petite coupelle pour clés, pièces ou bijoux.", tag:"utile", prompt:"Je voudrais un vide-poche en forme de "},
+  {nom:"Dessous-de-verre", cat:"Utile", emoji:"🥃", desc:"Un sous-verre décoré, seul ou par lot.", tag:"utile", prompt:"Je voudrais un dessous-de-verre avec le motif "},
+  {nom:"Crochet / patère murale", cat:"Utile", emoji:"🪝", desc:"Un crochet décoratif à visser au mur.", tag:"utile", prompt:"Je voudrais un crochet mural en forme de "},
+  {nom:"Cache-câble / serre-câble", cat:"Utile", emoji:"🔌", desc:"Un petit clip pour ranger les câbles du bureau.", tag:"utile", prompt:"Je voudrais un range-câble en forme de "},
+  // Photo
+  {nom:"Tableau photo (lithophane)", cat:"Photo", emoji:"🖼️", desc:"Une plaque qui révèle une photo devant la lumière. Outil dédié dans l'app.", tag:"photo", litho:true},
+  {nom:"Veilleuse photo", cat:"Photo", emoji:"💡", desc:"Un tableau photo courbé posé sur une LED : la photo s'illumine.", tag:"photo", prompt:"Je voudrais une veilleuse photo à partir de "},
+  // Jeu
+  {nom:"Figurine / pion de jeu", cat:"Jeu", emoji:"♟️", desc:"Un pion ou une figurine pour jeu de plateau ou de rôle.", tag:"jeu", prompt:"Je voudrais une figurine de jeu représentant "},
+  {nom:"Dé personnalisé", cat:"Jeu", emoji:"🎲", desc:"Un dé avec des faces au choix.", tag:"jeu", prompt:"Je voudrais un dé personnalisé avec "},
+  {nom:"Jeton / marqueur", cat:"Jeu", emoji:"🪙", desc:"Des jetons ou marqueurs pour un jeu.", tag:"jeu", prompt:"Je voudrais des jetons de jeu style "}
+];
+const CAT_CATS = ["Tout","Déco","Cadeau","Utile","Photo","Jeu"];
+let catFiltre = "Tout";
+function renderCat(){
+  const box = $("cat-list"); if(!box) return;
+  const q = ($("cat-search").value||"").toLowerCase().trim();
+  const chip = (c,on) => `<button onclick="filtreCat('${c}')" style="background:${on?'#2563eb':'#2a2f3a'};color:${on?'#fff':'#dbe4ff'};border:1px solid #39404e;border-radius:16px;padding:6px 12px;font-size:13px;cursor:pointer">${c}</button>`;
+  $("cat-chips").innerHTML = CAT_CATS.map(c=>chip(c, c===catFiltre)).join("");
+  const items = CATALOGUE.filter(it => (catFiltre==="Tout"||it.cat===catFiltre) && (!q || (it.nom+" "+it.desc).toLowerCase().includes(q)));
+  box.innerHTML = items.length ? items.map(it=>`
+    <div class="tile" style="margin-bottom:8px">
+      <div style="display:flex;gap:11px;align-items:flex-start">
+        <div style="font-size:26px;line-height:1">${it.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:15px">${esc(it.nom)}</div>
+          <div style="font-size:13px;color:#cbd5e1;margin-top:3px">${esc(it.desc)}</div>
+          ${it.tag?`<span class="badge" style="margin-top:6px">${esc(it.tag)}</span>`:''}
+          ${it.litho
+            ? `<button class="abtn sec" style="margin-top:8px" onclick="allerLitho()">🖼️ Ouvrir l'outil tableau photo</button>`
+            : `<button class="abtn sec" style="margin-top:8px" onclick="utiliserIdee(this.dataset.p)" data-p="${esc(it.prompt||('Je voudrais '+it.nom))}">💬 Demander cette création</button>`}
+        </div>
+      </div>
+    </div>`).join("") : `<div style="color:#6b7280;text-align:center;padding:24px">Rien trouvé — essaie un autre mot.</div>`;
+}
+window.filtreCat = c => { catFiltre = c; renderCat(); };
+window.utiliserIdee = txt => { const nb=document.querySelector('nav button[data-p="chat"]'); if(nb) nb.click(); const inp=$("inp"); if(inp){ inp.value=txt; inp.focus(); } };
+window.allerLitho = () => { const nb=document.querySelector('nav button[data-p="litho"]'); if(nb) nb.click(); };
+if($("cat-search")){ $("cat-search").addEventListener("input", renderCat); renderCat(); }
 </script>
 </body>
 </html>
