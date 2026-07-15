@@ -156,7 +156,7 @@ document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
 });
 
 /* ================= CHAT ================= */
-let lastId = 0, attente = false;
+let lastId = 0, attente = false, polling = false;
 
 function bulleHTML(m) {
   if (m.role === "user") {
@@ -180,16 +180,19 @@ function bulleHTML(m) {
 }
 
 async function pollChat() {
+  if (polling) return;            // évite deux relevés en même temps = messages en double
+  polling = true;
   try {
     const r = await fetch(`${SUPA}/rest/v1/app_messages?session=eq.${SESSION}&id=gt.${lastId}&order=id.asc&limit=50`, { headers: H });
     const rows = await r.json();
     if (Array.isArray(rows) && rows.length) {
       const boxes = document.querySelectorAll(".msgs");
-      rows.forEach(m => { lastId = Math.max(lastId, m.id); boxes.forEach(bx => bx.insertAdjacentHTML("beforeend", bulleHTML(m))); if (m.role === "bot") attente = false; });
+      rows.forEach(m => { if (m.id <= lastId) return; lastId = m.id; boxes.forEach(bx => bx.insertAdjacentHTML("beforeend", bulleHTML(m))); if (m.role === "bot") attente = false; });
       boxes.forEach(bx => bx.scrollTop = bx.scrollHeight);
       $("typing").style.display = attente ? "block" : "none";
     }
   } catch (e) {}
+  finally { polling = false; }
 }
 
 async function envoyer(texte) {
@@ -232,14 +235,11 @@ function demarrerMicro(btn, inp) {
   rec.lang = "fr-FR"; rec.interimResults = true; rec.continuous = true;
   recActive = rec;
   btn.classList.add("rec");
-  let final = "";
   rec.onresult = e => {
-    let interim = "";
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) final += e.results[i][0].transcript;
-      else interim += e.results[i][0].transcript;
-    }
-    inp.value = (final + " " + interim).trim();
+    // reconstruit toute la phrase à chaque fois (évite le dédoublement "je je je voudrais")
+    let txt = "";
+    for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
+    inp.value = txt.replace(/\s+/g, " ").trim();
   };
   rec.onerror = () => {};
   rec.onend = () => {
