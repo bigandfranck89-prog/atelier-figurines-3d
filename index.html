@@ -372,6 +372,15 @@ const IMPRIMANTES = {
   autre:    {label:"Autre / je ne sais pas",   x:180, y:180, z:180, enceinte:false}
 };
 function imprimanteActuelle(){ return IMPRIMANTES[localStorage.getItem('atelier_imprimante')] || IMPRIMANTES.p2s; }
+// Marques de filament : les températures varient selon le fournisseur / la qualité.
+const FILAMENTS = {
+  PLA:  { generique:{buse:215,plateau:60}, bambu_basic:{buse:220,plateau:60}, prusament:{buse:215,plateau:60}, esun_plus:{buse:215,plateau:60}, sunlu:{buse:205,plateau:60}, polyterra:{buse:210,plateau:55} },
+  PETG: { generique:{buse:240,plateau:80}, bambu:{buse:255,plateau:70}, prusament:{buse:240,plateau:85}, esun:{buse:240,plateau:80} },
+  ABS:  { generique:{buse:250,plateau:95}, bambu:{buse:260,plateau:90} },
+  ASA:  { generique:{buse:250,plateau:95}, bambu:{buse:260,plateau:90} },
+  TPU:  { generique:{buse:225,plateau:45}, bambu:{buse:230,plateau:45} }
+};
+const FILAMENT_LABELS = { generique:"Générique / je ne sais pas", bambu_basic:"Bambu PLA Basic", bambu:"Bambu", prusament:"Prusament", esun_plus:"eSun PLA+", esun:"eSun", sunlu:"Sunlu", polyterra:"PolyTerra" };
 
 /* ---------- Devine l'usage et la hauteur voulue depuis la fiche ---------- */
 function usageFig(f){
@@ -391,9 +400,12 @@ function hauteurFig(f){
 }
 
 /* ---------- La recette : réglages à partir de usage + taille + matière ---------- */
-function recette(usageKey, dims, matKey){
+function recette(usageKey, dims, matKey, opt){
+  opt = opt || {};
   const u = USAGES[usageKey] || USAGES.figurine_vente;
   const mat = MATIERES[matKey] || MATIERES.PLA;
+  const buseT = (opt.buse != null && opt.buse !== "") ? parseInt(opt.buse) : mat.buse;
+  const plateauT = (opt.plateau != null && opt.plateau !== "") ? parseInt(opt.plateau) : mat.plateau;
   const alertes = [];
   const imp = imprimanteActuelle();
   const plate = [imp.x, imp.y, imp.z];
@@ -410,8 +422,8 @@ function recette(usageKey, dims, matKey){
     layer_height:String(u.couche), initial_layer_print_height:"0.2",
     sparse_infill_density:u.dens+"%", sparse_infill_pattern:u.motif,
     wall_loops:String(u.murs), top_shell_layers:"4", bottom_shell_layers:"4",
-    nozzle_temperature:[String(mat.buse)], nozzle_temperature_initial_layer:[String(mat.buse)],
-    hot_plate_temp:[String(mat.plateau)], hot_plate_temp_initial_layer:[String(mat.plateau)],
+    nozzle_temperature:[String(buseT)], nozzle_temperature_initial_layer:[String(buseT)],
+    hot_plate_temp:[String(plateauT)], hot_plate_temp_initial_layer:[String(plateauT)],
     fan_max_speed:[String(mat.ventilo)], fan_min_speed:[String(Math.round(mat.ventilo*0.6))],
     enable_support: supports?"1":"0", support_type:"tree(auto)", support_threshold_angle:"30",
     brim_type: bordure?"outer_only":"no_brim", brim_width: bordure?"5":"0",
@@ -423,11 +435,11 @@ function recette(usageKey, dims, matKey){
   };
   const reglages = {
     usage:u.label, matiere:mat.label, couche:u.couche, dens:u.dens, motif:u.motifFr,
-    buse:mat.buse, plateau:mat.plateau, supports, bordure, ventilo:mat.ventilo,
+    buse:buseT, plateau:plateauT, supports, bordure, ventilo:mat.ventilo,
     murs:u.murs, vpar:mat.vpar, retr:mat.retr
   };
   let resume = u.label+" en "+mat.label+" : couche "+u.couche+" mm, remplissage "+u.dens+" % "+u.motifFr
-    +", buse "+mat.buse+"°C / plateau "+mat.plateau+"°C"+(supports?", supports auto":"")+(bordure?", bordure d'accroche":"")+".";
+    +", buse "+buseT+"°C / plateau "+plateauT+"°C"+(supports?", supports auto":"")+(bordure?", bordure d'accroche":"")+".";
   if(trop.length) resume += " L'objet dépasse le plateau : il sera coupé en morceaux.";
   return { reglages, bambu, alertes, decoupe:{requise:trop.length>0, axes:trop}, resume, ok:!alertes.some(a=>a.n==="bad") };
 }
@@ -565,14 +577,15 @@ async function decouper(THREE, mesh, dims){
 window.creerImpression = async function(i){
   const f = FIGS[i]; const log = $("impr-log"); const btn = $("impr-go");
   if(!f || !f.model_url){ log.textContent = "La 3D n'est pas encore prête pour cette figurine."; return; }
-  const matKey = ($("impr-mat")||{}).value || "PLA";
+  const matKey = ($("impr-mat")||{}).value || localStorage.getItem('atelier_matiere') || "PLA";
   const hauteur = parseFloat(($("impr-haut")||{}).value) || hauteurFig(f);
   const usageKey = ($("impr-usage")||{}).value || usageFig(f);
+  const tempOpt = { buse: parseInt(($("impr-buse")||{}).value)||undefined, plateau: parseInt(($("impr-plateau")||{}).value)||undefined };
   btn.textContent = "⏳ Préparation…"; btn.style.pointerEvents="none";
   log.textContent = "Je récupère ta figurine en 3D…";
   try {
     const { mesh, THREE, dims } = await chargerMeshMM(f.model_url, hauteur);
-    const rec = recette(usageKey, dims, matKey);
+    const rec = recette(usageKey, dims, matKey, tempOpt);
     let sorties = [];
     if(!rec.decoupe.requise){
       log.textContent = "Je prépare le fichier avec les bons réglages…";
@@ -586,7 +599,7 @@ window.creerImpression = async function(i){
         let mx=[-1e9,-1e9,-1e9], mn=[1e9,1e9,1e9];
         for(const v of pieces[p].vertices) for(let k=0;k<3;k++){ mx[k]=Math.max(mx[k],v[k]); mn[k]=Math.min(mn[k],v[k]); }
         const dp={x:mx[0]-mn[0],y:mx[1]-mn[1],z:mx[2]-mn[2]};
-        const rp = recette(usageKey, dp, matKey);
+        const rp = recette(usageKey, dp, matKey, tempOpt);
         const zip = await faire3mf(pieces[p], rp.bambu, "figurine_"+f.id+"_piece"+(p+1));
         sorties.push({nom:"figurine_"+f.id+"_piece"+(p+1)+".3mf", data:zip});
       }
@@ -608,6 +621,11 @@ window.creerImpression = async function(i){
 
 /* ---------- Changement d'imprimante (recalcule tout selon la machine) ---------- */
 window.majImprimante = function(k, i){ localStorage.setItem('atelier_imprimante', k); renderImpr(i); };
+window.majMatiere = function(v, i){ localStorage.setItem('atelier_matiere', v); renderImpr(i); };
+window.majUsage = function(v, i){ const f=FIGS[i]; if(f) localStorage.setItem('atelier_usage_'+f.id, v); renderImpr(i); };
+window.majHauteur = function(v, i){ const f=FIGS[i]; if(f) localStorage.setItem('atelier_haut_'+f.id, v); renderImpr(i); };
+window.majMarque = function(v, i){ const m=localStorage.getItem('atelier_matiere')||'PLA'; localStorage.setItem('atelier_marque_'+m, v); localStorage.removeItem('atelier_buse_'+m+'_'+v); localStorage.removeItem('atelier_plateau_'+m+'_'+v); renderImpr(i); };
+window.majTemp = function(which, v, i){ const m=localStorage.getItem('atelier_matiere')||'PLA'; const mq=localStorage.getItem('atelier_marque_'+m)||'generique'; localStorage.setItem('atelier_'+which+'_'+m+'_'+mq, v); renderImpr(i); };
 
 /* ---------- Affiche le panneau impression dans la fiche ---------- */
 function renderImpr(i){
@@ -616,12 +634,19 @@ function renderImpr(i){
     el.innerHTML = `<div class="impr"><div class="l">🖨️ Fichier d'impression</div><div class="rz">La 3D n'est pas encore prête. Valide d'abord la sculpture, puis reviens ici.</div></div>`;
     return;
   }
-  const usageKey = usageFig(f), haut = hauteurFig(f);
-  const rec = recette(usageKey, {x:60,y:60,z:haut}, "PLA"); // aperçu (dims réelles calculées à la génération)
-  const optMat = Object.keys(MATIERES).map(k=>`<option value="${k}">${MATIERES[k].label}</option>`).join("");
+  const matKey = localStorage.getItem('atelier_matiere') || 'PLA';
+  const usageKey = localStorage.getItem('atelier_usage_'+f.id) || usageFig(f);
+  const haut = parseFloat(localStorage.getItem('atelier_haut_'+f.id)) || hauteurFig(f);
+  const marque = localStorage.getItem('atelier_marque_'+matKey) || 'generique';
+  const fdef = (FILAMENTS[matKey] && FILAMENTS[matKey][marque]) || {buse:(MATIERES[matKey]||MATIERES.PLA).buse, plateau:(MATIERES[matKey]||MATIERES.PLA).plateau};
+  const buseT = parseInt(localStorage.getItem('atelier_buse_'+matKey+'_'+marque)) || fdef.buse;
+  const plateauT = parseInt(localStorage.getItem('atelier_plateau_'+matKey+'_'+marque)) || fdef.plateau;
+  const rec = recette(usageKey, {x:60,y:60,z:haut}, matKey, {buse:buseT, plateau:plateauT}); // aperçu (dims réelles à la génération)
+  const optMat = Object.keys(MATIERES).map(k=>`<option value="${k}" ${k===matKey?"selected":""}>${MATIERES[k].label}</option>`).join("");
   const optUsage = Object.keys(USAGES).map(k=>`<option value="${k}" ${k===usageKey?"selected":""}>${USAGES[k].label}</option>`).join("");
   const curImp = localStorage.getItem('atelier_imprimante') || 'p2s';
   const optImp = Object.keys(IMPRIMANTES).map(k=>`<option value="${k}" ${k===curImp?"selected":""}>${IMPRIMANTES[k].label}</option>`).join("");
+  const optMarque = Object.keys(FILAMENTS[matKey]||{generique:1}).map(k=>`<option value="${k}" ${k===marque?"selected":""}>${FILAMENT_LABELS[k]||k}</option>`).join("");
   let al = "";
   for(const a of rec.alertes) al += `<div class="al ${a.n}">${esc(a.t)}</div>`;
   el.innerHTML = `<div class="impr">
@@ -636,9 +661,12 @@ function renderImpr(i){
       <div style="font-size:12.5px;color:#9aa0a6;margin-top:6px">Tout est automatique. Ici tu peux changer le plastique, la taille et l'usage. Si tu t'éloignes du conseil, tu restes maître.</div>
       <table class="techtab">
         <tr><td>Ton imprimante</td><td><select id="impr-machine" onchange="majImprimante(this.value, ${i})">${optImp}</select></td></tr>
-        <tr><td>Quel plastique as-tu ?</td><td><select id="impr-mat">${optMat}</select></td></tr>
-        <tr><td>Usage</td><td><select id="impr-usage">${optUsage}</select></td></tr>
-        <tr><td>Hauteur voulue (mm)</td><td><input id="impr-haut" type="number" value="${haut}" min="10"></td></tr>
+        <tr><td>Quel plastique as-tu ?</td><td><select id="impr-mat" onchange="majMatiere(this.value, ${i})">${optMat}</select></td></tr>
+        <tr><td>Marque du filament</td><td><select id="impr-marque" onchange="majMarque(this.value, ${i})">${optMarque}</select></td></tr>
+        <tr><td>Usage</td><td><select id="impr-usage" onchange="majUsage(this.value, ${i})">${optUsage}</select></td></tr>
+        <tr><td>Hauteur voulue (mm)</td><td><input id="impr-haut" type="number" value="${haut}" min="10" onchange="majHauteur(this.value, ${i})"></td></tr>
+        <tr><td>Température buse (°C)</td><td><input id="impr-buse" type="number" value="${buseT}" onchange="majTemp('buse', this.value, ${i})"></td></tr>
+        <tr><td>Température plateau (°C)</td><td><input id="impr-plateau" type="number" value="${plateauT}" onchange="majTemp('plateau', this.value, ${i})"></td></tr>
         <tr><td>Couche (finesse)</td><td>${rec.reglages.couche} mm</td></tr>
         <tr><td>Remplissage</td><td>${rec.reglages.dens} % — ${rec.reglages.motif}</td></tr>
         <tr><td>Supports</td><td>${rec.reglages.supports?"oui (auto)":"non"}</td></tr>
