@@ -573,6 +573,26 @@ async function decouper(THREE, mesh, dims){
   return { pieces: geoms.map(toMesh), joints };
 }
 
+/* ---------- Export STL (format universel, sans réglages, pour autres logiciels) ---------- */
+function stlBinaire(mesh){
+  const V=mesh.vertices, T=mesh.triangles;
+  const buf=new ArrayBuffer(84 + T.length*50);
+  const dv=new DataView(buf);
+  dv.setUint32(80, T.length, true);
+  let o=84;
+  for(const t of T){
+    const a=V[t[0]], b=V[t[1]], c=V[t[2]];
+    const ux=b[0]-a[0], uy=b[1]-a[1], uz=b[2]-a[2];
+    const vx=c[0]-a[0], vy=c[1]-a[1], vz=c[2]-a[2];
+    let nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
+    const len=Math.hypot(nx,ny,nz)||1; nx/=len; ny/=len; nz/=len;
+    dv.setFloat32(o,nx,true);dv.setFloat32(o+4,ny,true);dv.setFloat32(o+8,nz,true);o+=12;
+    for(const p of [a,b,c]){ dv.setFloat32(o,+p[0],true);dv.setFloat32(o+4,+p[1],true);dv.setFloat32(o+8,+p[2],true);o+=12; }
+    dv.setUint16(o,0,true);o+=2;
+  }
+  return new Uint8Array(buf);
+}
+
 /* ---------- Bouton principal : crée le(s) fichier(s) .3mf ---------- */
 window.creerImpression = async function(i){
   const f = FIGS[i]; const log = $("impr-log"); const btn = $("impr-go");
@@ -591,6 +611,7 @@ window.creerImpression = async function(i){
       log.textContent = "Je prépare le fichier avec les bons réglages…";
       const zip = await faire3mf(mesh, rec.bambu, "figurine_"+f.id);
       sorties.push({nom:"figurine_"+f.id+"_a_imprimer.3mf", data:zip});
+      sorties.push({nom:"figurine_"+f.id+".stl", data:stlBinaire(mesh)});
     } else {
       log.textContent = "Objet trop grand : je le coupe en morceaux qui s'emboîtent… (ça peut prendre 10-30 s)";
       const { pieces, joints } = await decouper(THREE, mesh, dims);
@@ -602,6 +623,7 @@ window.creerImpression = async function(i){
         const rp = recette(usageKey, dp, matKey, tempOpt);
         const zip = await faire3mf(pieces[p], rp.bambu, "figurine_"+f.id+"_piece"+(p+1));
         sorties.push({nom:"figurine_"+f.id+"_piece"+(p+1)+".3mf", data:zip});
+        sorties.push({nom:"figurine_"+f.id+"_piece"+(p+1)+".stl", data:stlBinaire(pieces[p])});
       }
       log.textContent = "Coupé en "+pieces.length+" morceaux. Imprime-les, emboîte les ergots, colle. ✅";
     }
@@ -609,7 +631,9 @@ window.creerImpression = async function(i){
     let html = "";
     for(const s of sorties){
       const url = URL.createObjectURL(new Blob([s.data], {type:"application/octet-stream"}));
-      html += `<a class="abtn vert" href="${url}" download="${s.nom}" style="margin-top:8px">📥 ${esc(s.nom)}</a>`;
+      const est3mf = s.nom.endsWith(".3mf");
+      const lab = est3mf ? ("📥 "+esc(s.nom)+" — prêt à imprimer (réglages inclus)") : ("📄 "+esc(s.nom)+" — format universel, autres logiciels");
+      html += `<a class="abtn ${est3mf?'vert':'sec'}" href="${url}" download="${s.nom}" style="margin-top:8px">${lab}</a>`;
     }
     $("impr-dl").innerHTML = html;
     btn.textContent = "🔄 Refaire le fichier"; btn.style.pointerEvents="auto";
