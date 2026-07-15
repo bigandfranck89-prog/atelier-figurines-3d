@@ -360,7 +360,18 @@ const USAGES = {
   manipule:{label:"Objet manipulé (porte-clés, jeu)",dens:40,motif:"gyroid",motifFr:"gyroïde",couche:0.16,murs:3},
   mecanique:{label:"Pièce costaud",dens:55,motif:"honeycomb",motifFr:"nid d'abeille",couche:0.20,murs:4}
 };
-const PLATEAU = 256, MARGE = 6;
+const MARGE = 6;
+// Catalogue d'imprimantes (plateau en mm + caisson fermé oui/non). Défaut = P2S de l'ami.
+const IMPRIMANTES = {
+  p2s:      {label:"Bambu Lab P2S",            x:256, y:256, z:256, enceinte:true},
+  x1p1:     {label:"Bambu Lab X1 / P1S",       x:256, y:256, z:256, enceinte:true},
+  a1:       {label:"Bambu Lab A1",             x:256, y:256, z:256, enceinte:false},
+  a1mini:   {label:"Bambu Lab A1 mini",        x:180, y:180, z:180, enceinte:false},
+  ender3:   {label:"Creality Ender 3 (V2/V3)", x:220, y:220, z:250, enceinte:false},
+  prusa:    {label:"Prusa MK4 / MK3",          x:250, y:210, z:220, enceinte:false},
+  autre:    {label:"Autre / je ne sais pas",   x:180, y:180, z:180, enceinte:false}
+};
+function imprimanteActuelle(){ return IMPRIMANTES[localStorage.getItem('atelier_imprimante')] || IMPRIMANTES.p2s; }
 
 /* ---------- Devine l'usage et la hauteur voulue depuis la fiche ---------- */
 function usageFig(f){
@@ -384,8 +395,10 @@ function recette(usageKey, dims, matKey){
   const u = USAGES[usageKey] || USAGES.figurine_vente;
   const mat = MATIERES[matKey] || MATIERES.PLA;
   const alertes = [];
-  const trop = ["x","y","z"].filter((a,i)=>[dims.x,dims.y,dims.z][i] > PLATEAU-2);
-  if(mat.enceinte) alertes.push({n:"bad",t:mat.label+" a besoin d'une imprimante à caisson fermé, sinon ça décolle. La P2S en a un — OK. Sur une imprimante ouverte, prends plutôt du PLA."});
+  const imp = imprimanteActuelle();
+  const plate = [imp.x, imp.y, imp.z];
+  const trop = ["x","y","z"].filter((a,i)=>[dims.x,dims.y,dims.z][i] > plate[i]-2);
+  if(mat.enceinte && !imp.enceinte) alertes.push({n:"bad",t:mat.label+" a besoin d'une imprimante à caisson fermé, or "+imp.label+" n'en a pas : ça risque de décoller/gondoler. Prends plutôt du PLA ou du PETG."});
   const plusPetit = Math.min(dims.x,dims.y,dims.z);
   if(plusPetit < 30) alertes.push({n:"info",t:"Objet petit ("+Math.round(plusPetit)+" mm) : les petits détails passent mieux à partir de ~8 cm."});
   // élancé -> bordure ; porte-clés à plat -> pas de supports
@@ -497,7 +510,9 @@ async function decouper(THREE, mesh, dims){
   const bvh = await import("https://esm.sh/three-mesh-bvh@0.7.0?deps=three@0.160.0");
   const csg = await import("https://esm.sh/three-bvh-csg@0.0.16?deps=three@0.160.0");
   const { Brush, Evaluator, ADDITION, SUBTRACTION } = csg;
-  const utile = PLATEAU - MARGE;
+  const imp = imprimanteActuelle();
+  const plate = [imp.x, imp.y, imp.z];
+  const utileAxe = a => plate[a] - MARGE;
 
   function toGeom(m){
     const g = new THREE.BufferGeometry();
@@ -518,12 +533,12 @@ async function decouper(THREE, mesh, dims){
   const joints = []; let garde=0;
   while(garde++ < 20){
     let gi=-1, axe=-1;
-    for(let i=0;i<geoms.length;i++){ const s=bbox(geoms[i]).sz; const c=[s.x,s.y,s.z]; for(let a=0;a<3;a++) if(c[a]>utile){ gi=i;axe=a;break;} if(gi>=0)break; }
+    for(let i=0;i<geoms.length;i++){ const s=bbox(geoms[i]).sz; const c=[s.x,s.y,s.z]; for(let a=0;a<3;a++) if(c[a]>utileAxe(a)){ gi=i;axe=a;break;} if(gi>=0)break; }
     if(gi<0) break;
     const g = geoms.splice(gi,1)[0]; const bb=bbox(g);
     // coupe au milieu de la zone imprimable (assez robuste)
     const lo=[bb.min.x,bb.min.y,bb.min.z][axe], hi=[bb.max.x,bb.max.y,bb.max.z][axe];
-    let cut = lo + Math.min(utile-1, (hi-lo)/2);
+    let cut = lo + Math.min(utileAxe(axe)-1, (hi-lo)/2);
     const centre = new THREE.Vector3((bb.min.x+bb.max.x)/2,(bb.min.y+bb.max.y)/2,(bb.min.z+bb.max.z)/2);
     // deux gros pavés pour couper de part et d'autre
     const grand = Math.max(bb.sz.x,bb.sz.y,bb.sz.z)*2 + 50;
@@ -591,6 +606,9 @@ window.creerImpression = async function(i){
   }
 };
 
+/* ---------- Changement d'imprimante (recalcule tout selon la machine) ---------- */
+window.majImprimante = function(k, i){ localStorage.setItem('atelier_imprimante', k); renderImpr(i); };
+
 /* ---------- Affiche le panneau impression dans la fiche ---------- */
 function renderImpr(i){
   const f = FIGS[i]; const el = $("impr-panel"); if(!el) return;
@@ -602,6 +620,8 @@ function renderImpr(i){
   const rec = recette(usageKey, {x:60,y:60,z:haut}, "PLA"); // aperçu (dims réelles calculées à la génération)
   const optMat = Object.keys(MATIERES).map(k=>`<option value="${k}">${MATIERES[k].label}</option>`).join("");
   const optUsage = Object.keys(USAGES).map(k=>`<option value="${k}" ${k===usageKey?"selected":""}>${USAGES[k].label}</option>`).join("");
+  const curImp = localStorage.getItem('atelier_imprimante') || 'p2s';
+  const optImp = Object.keys(IMPRIMANTES).map(k=>`<option value="${k}" ${k===curImp?"selected":""}>${IMPRIMANTES[k].label}</option>`).join("");
   let al = "";
   for(const a of rec.alertes) al += `<div class="al ${a.n}">${esc(a.t)}</div>`;
   el.innerHTML = `<div class="impr">
@@ -615,6 +635,7 @@ function renderImpr(i){
       <summary>🔧 Réglages détaillés (si tu veux voir ou changer)</summary>
       <div style="font-size:12.5px;color:#9aa0a6;margin-top:6px">Tout est automatique. Ici tu peux changer le plastique, la taille et l'usage. Si tu t'éloignes du conseil, tu restes maître.</div>
       <table class="techtab">
+        <tr><td>Ton imprimante</td><td><select id="impr-machine" onchange="majImprimante(this.value, ${i})">${optImp}</select></td></tr>
         <tr><td>Quel plastique as-tu ?</td><td><select id="impr-mat">${optMat}</select></td></tr>
         <tr><td>Usage</td><td><select id="impr-usage">${optUsage}</select></td></tr>
         <tr><td>Hauteur voulue (mm)</td><td><input id="impr-haut" type="number" value="${haut}" min="10"></td></tr>
