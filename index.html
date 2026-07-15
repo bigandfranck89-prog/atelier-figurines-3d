@@ -61,6 +61,24 @@
   .abtn { display: block; text-align: center; background: #2563eb; color: #fff; text-decoration: none; border: 0; border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
   .abtn.sec { background: #2a2f3a; }
   .abtn.dis { background: #1c1f27; color: #6b7280; pointer-events: none; }
+  .abtn.vert { background: #16a34a; }
+
+  /* ---------- Panneau impression ---------- */
+  .impr { background:#141a17; border:1px solid #234034; border-radius:12px; padding:12px; }
+  .impr .l { font-size:11px; color:#9aa0a6; }
+  .impr .rz { font-size:14px; color:#dbe4ff; margin-top:6px; line-height:1.5; }
+  .impr .al { font-size:13px; border-radius:9px; padding:8px 10px; margin-top:8px; }
+  .al.warn { background:rgba(255,176,32,.12); border:1px solid rgba(255,176,32,.35); color:#ffcf7a; }
+  .al.bad { background:rgba(255,92,108,.12); border:1px solid rgba(255,92,108,.4); color:#ff9aa4; }
+  .al.info { background:rgba(96,165,250,.10); border:1px solid rgba(96,165,250,.3); color:#a9c9ff; }
+  .al.okk { background:rgba(52,211,153,.12); border:1px solid rgba(52,211,153,.35); color:#5be3a5; }
+  details.tech { margin-top:10px; }
+  details.tech summary { cursor:pointer; color:#60a5fa; font-weight:600; font-size:14px; }
+  .techtab { width:100%; border-collapse:collapse; margin-top:8px; font-size:13.5px; }
+  .techtab td { padding:6px 4px; border-bottom:1px solid #23303a; }
+  .techtab td:first-child { color:#9aa0a6; width:54%; }
+  .techtab input, .techtab select { width:100%; background:#0f1115; color:#fff; border:1px solid #2f3542; border-radius:8px; padding:6px 8px; font-size:13.5px; }
+  .imprlog { font-size:13px; color:#cbd5e1; margin-top:8px; white-space:pre-wrap; }
 
   /* ---------- VUE 3D (dans la fiche) ---------- */
   .v3wrap { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
@@ -104,7 +122,7 @@
     <h2>🎤 Parler</h2><p>Appuie sur le micro, parle, et ton message part tout seul quand tu as fini. Appuie encore pour arrêter.</p>
     <h2>📎 Photos</h2><p>Avec le trombone, envoie jusqu'à 4 photos (plusieurs angles = meilleure sculpture).</p>
     <h2>📋 Figurines</h2><p>La liste de tes figurines. Clique sur une figurine : sa fiche montre les coûts, le prix conseillé, l'annonce de vente, et le bouton « Voir en 3D » — la 3D s'affiche en haut, le chat en bas pour dire les défauts en direct.</p>
-    <h2>🖨️ Imprimer</h2><p>Quand Franck a préparé le fichier, le bouton « Télécharger le fichier d'impression (.3mf) » apparaît sur la fiche. Ouvre-le avec Bambu Studio / Bambu Handy.</p>
+    <h2>🖨️ Imprimer</h2><p>Sur la fiche, appuie sur « Créer le fichier à imprimer ». L'appli règle tout toute seule et te donne le fichier .3mf à ouvrir dans Bambu Handy / Bambu Studio. Si la figurine est trop grande pour l'imprimante, l'appli la coupe en morceaux qui s'emboîtent (tu imprimes, tu emboîtes, tu colles).</p>
     <h2>🔑 Porte-clés</h2><p>La boucle d'accroche est intégrée à la pièce. L'anneau métallique n'est pas fourni.</p>
     <h2>🛡️ Nos garanties</h2><p>Tu valides l'image, puis tu valides la sculpture 3D — <b>rien ne part en impression sans ton accord</b>. Tu peux demander autant de corrections que tu veux, et un contrôleur qualité automatique inspecte chaque sculpture avant toi.</p>
   </div></section>
@@ -251,12 +269,6 @@ const fmtMn = mn => !mn ? "—" : (mn < 60 ? `${Math.round(mn)} min` : `${Math.f
 const eur = n => n == null ? "—" : Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2 }) + " €";
 let FIGS = [], figIdx = -1;
 
-function reglagesImpression(f) {
-  const manip = /porte|aimant|clé|cle/i.test(f.taille || "");
-  const remplissage = manip ? "Gyroïde 35 % (pièce manipulée = solide)" : "Lightning 8 % (déco = économe en matière)";
-  return "Matériau : PLA — buse 210 °C, plateau 60 °C\nRemplissage : " + remplissage + "\nHauteur de couche : 0,08 mm (profil figurine)\nSupports : arbre (tree), visage vers le haut";
-}
-
 async function chargerFigs() {
   try {
     const r = await fetch(`${SUPA}/rest/v1/atelier_figurines?order=id.desc&limit=60&statut=neq.abandonnee`, { headers: H });
@@ -296,13 +308,14 @@ window.ouvrirFig = (i) => {
       <div class="tile"><div class="l">Coût de revient</div><div class="v">${eur(f.cout_total_eur)}</div></div>
       <div class="tile"><div class="l">Prix conseillé</div><div class="v">${f.prix_conseille_eur ? f.prix_conseille_eur + " €" : "—"}</div></div>
     </div>
-    <div class="tile"><div class="l">🖨️ Réglages d'impression conseillés</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${reglagesImpression(f)}</div></div>
+
+    <!-- PANNEAU IMPRESSION (rempli par renderImpr) -->
+    <div id="impr-panel"></div>
+
     ${f.annonce_titre || f.annonce_texte ? `<div class="tile"><div class="l">📝 Annonce de vente (brouillon)</div><div class="v" style="font-size:14.5px">${esc(f.annonce_titre || "")}</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${esc(f.annonce_texte || "")}</div></div>` : ""}
     <div style="font-size:12.5px;color:#9aa0a6;text-align:center">🛡️ Rien ne part en impression sans TA validation de l'image ET de la 3D.</div>
-    <div class="btnrow">
-      ${f.fichier_3mf_url ? `<a class="abtn" href="${esc(f.fichier_3mf_url)}" download>🖨️ Télécharger le fichier d'impression (.3mf)</a>` : `<span class="abtn dis">🖨️ Fichier d'impression en préparation chez Franck</span>`}
-    </div>
   </div>`;
+  try { renderImpr(i); } catch (e) { $("impr-panel").innerHTML = `<div class="impr"><div class="al bad">Le module d'impression a eu un souci : ${esc(e.message||e)}</div></div>`; }
   document.querySelector("#figzone .detail").scrollTop = 0;
 };
 
@@ -319,7 +332,6 @@ window.vue3D = () => {
       <button id="send3d">➤</button>
     </div></div>
   </div>`;
-  // recharge l'historique dans le panneau
   lastId = 0; document.querySelectorAll(".msgs").forEach(bx => bx.innerHTML = ""); pollChat();
   $("send3d").onclick = () => { const v = $("inp3d").value.trim(); if (v) { envoyer(v); $("inp3d").value = ""; } };
   $("inp3d").addEventListener("keydown", e => { if (e.key === "Enter") $("send3d").onclick(); });
@@ -327,6 +339,294 @@ window.vue3D = () => {
 };
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+
+<!-- ============================================================= -->
+<!--  MOTEUR D'IMPRESSION (recette + .3mf + découpe) — ajouté 15/07 -->
+<!--  Tout est isolé : si ça plante, le reste de l'appli marche.   -->
+<!-- ============================================================= -->
+<script>
+/* ---------- Réglages par matière ---------- */
+const MATIERES = {
+  PLA:{label:"PLA",buse:215,plateau:60,ventilo:100,enceinte:false,retr:0.8,vpar:200,note:"le plus simple, idéal figurine."},
+  PETG:{label:"PETG",buse:240,plateau:80,ventilo:40,enceinte:false,retr:1.5,vpar:150,note:"solide et souple, un peu plus de fils."},
+  ABS:{label:"ABS",buse:250,plateau:95,ventilo:0,enceinte:true,retr:1.0,vpar:150,note:"costaud mais imprimante à caisson fermé obligatoire."},
+  ASA:{label:"ASA",buse:250,plateau:95,ventilo:0,enceinte:true,retr:1.0,vpar:150,note:"pour l'extérieur, caisson fermé obligatoire."},
+  TPU:{label:"TPU (souple)",buse:225,plateau:45,ventilo:40,enceinte:false,retr:0.4,vpar:40,note:"flexible : imprime lentement."}
+};
+const USAGES = {
+  deco:{label:"Déco / vitrine",dens:12,motif:"lightning",motifFr:"éclair",couche:0.12,murs:2},
+  figurine_vente:{label:"Figurine à vendre",dens:15,motif:"gyroid",motifFr:"gyroïde",couche:0.08,murs:3},
+  manipule:{label:"Objet manipulé (porte-clés, jeu)",dens:40,motif:"gyroid",motifFr:"gyroïde",couche:0.16,murs:3},
+  mecanique:{label:"Pièce costaud",dens:55,motif:"honeycomb",motifFr:"nid d'abeille",couche:0.20,murs:4}
+};
+const PLATEAU = 256, MARGE = 6;
+
+/* ---------- Devine l'usage et la hauteur voulue depuis la fiche ---------- */
+function usageFig(f){
+  const t = (f.taille||"").toLowerCase();
+  if(/porte|clé|cle|aimant|jeu|pion/.test(t)) return "manipule";
+  if(f.usage === "vente") return "figurine_vente";
+  return "figurine_vente";
+}
+function hauteurFig(f){
+  const t = (f.taille||"");
+  let m = t.match(/(\d+[.,]?\d*)\s*cm/i);
+  if(m) return Math.round(parseFloat(m[1].replace(",","."))*10);
+  m = t.match(/(\d+[.,]?\d*)\s*mm/i);
+  if(m) return Math.round(parseFloat(m[1].replace(",",".")));
+  if(/porte|clé|cle|aimant/.test(t.toLowerCase())) return 55;
+  return 100; // défaut : 10 cm
+}
+
+/* ---------- La recette : réglages à partir de usage + taille + matière ---------- */
+function recette(usageKey, dims, matKey){
+  const u = USAGES[usageKey] || USAGES.figurine_vente;
+  const mat = MATIERES[matKey] || MATIERES.PLA;
+  const alertes = [];
+  const trop = ["x","y","z"].filter((a,i)=>[dims.x,dims.y,dims.z][i] > PLATEAU-2);
+  if(mat.enceinte) alertes.push({n:"bad",t:mat.label+" a besoin d'une imprimante à caisson fermé, sinon ça décolle. La P2S en a un — OK. Sur une imprimante ouverte, prends plutôt du PLA."});
+  const plusPetit = Math.min(dims.x,dims.y,dims.z);
+  if(plusPetit < 30) alertes.push({n:"info",t:"Objet petit ("+Math.round(plusPetit)+" mm) : les petits détails passent mieux à partir de ~8 cm."});
+  // élancé -> bordure ; porte-clés à plat -> pas de supports
+  const aPlat = usageKey==="manipule";
+  const elance = dims.z / Math.max(1, Math.min(dims.x,dims.y));
+  const supports = !aPlat;
+  const bordure = !aPlat && (elance>=3 || mat.enceinte);
+  const bambu = {
+    layer_height:String(u.couche), initial_layer_print_height:"0.2",
+    sparse_infill_density:u.dens+"%", sparse_infill_pattern:u.motif,
+    wall_loops:String(u.murs), top_shell_layers:"4", bottom_shell_layers:"4",
+    nozzle_temperature:[String(mat.buse)], nozzle_temperature_initial_layer:[String(mat.buse)],
+    hot_plate_temp:[String(mat.plateau)], hot_plate_temp_initial_layer:[String(mat.plateau)],
+    fan_max_speed:[String(mat.ventilo)], fan_min_speed:[String(Math.round(mat.ventilo*0.6))],
+    enable_support: supports?"1":"0", support_type:"tree(auto)", support_threshold_angle:"30",
+    brim_type: bordure?"outer_only":"no_brim", brim_width: bordure?"5":"0",
+    outer_wall_speed:String(mat.vpar), initial_layer_speed:"20",
+    retraction_length:[String(mat.retr)], filament_type:[mat.label.split(" ")[0]],
+    printer_model:"Bambu Lab P2S", printer_settings_id:"Bambu Lab P2S 0.4 nozzle",
+    nozzle_diameter:["0.4"], printable_area:["0x0","256x0","256x256","0x256"], printable_height:"256",
+    version:"01.09.00.00", from:"Atelier Figurines 3D"
+  };
+  const reglages = {
+    usage:u.label, matiere:mat.label, couche:u.couche, dens:u.dens, motif:u.motifFr,
+    buse:mat.buse, plateau:mat.plateau, supports, bordure, ventilo:mat.ventilo,
+    murs:u.murs, vpar:mat.vpar, retr:mat.retr
+  };
+  let resume = u.label+" en "+mat.label+" : couche "+u.couche+" mm, remplissage "+u.dens+" % "+u.motifFr
+    +", buse "+mat.buse+"°C / plateau "+mat.plateau+"°C"+(supports?", supports auto":"")+(bordure?", bordure d'accroche":"")+".";
+  if(trop.length) resume += " L'objet dépasse le plateau : il sera coupé en morceaux.";
+  return { reglages, bambu, alertes, decoupe:{requise:trop.length>0, axes:trop}, resume, ok:!alertes.some(a=>a.n==="bad") };
+}
+
+/* ---------- Fabrique le fichier .3mf (le fichier que Bambu ouvre) ---------- */
+async function faire3mf(mesh, bambu, nom){
+  const fflate = await import("https://esm.sh/fflate@0.8.2");
+  const enc = s => new TextEncoder().encode(s);
+  const V = mesh.vertices, T = mesh.triangles;
+  let vx = ""; for(let i=0;i<V.length;i++) vx += `    <vertex x="${(+V[i][0]).toFixed(4)}" y="${(+V[i][1]).toFixed(4)}" z="${(+V[i][2]).toFixed(4)}"/>\n`;
+  let tx = ""; for(let i=0;i<T.length;i++) tx += `    <triangle v1="${T[i][0]}" v2="${T[i][1]}" v3="${T[i][2]}"/>\n`;
+  const model = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">
+ <metadata name="Title">${esc(nom)}</metadata>
+ <resources><object id="1" type="model"><mesh>
+  <vertices>
+${vx}  </vertices>
+  <triangles>
+${tx}  </triangles>
+ </mesh></object></resources>
+ <build><item objectid="1" transform="1 0 0 0 1 0 0 0 1 0 0 0"/></build>
+</model>`;
+  const ct = `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+ <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+ <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+ <Default Extension="config" ContentType="application/vnd.ms-printing.printticket+xml"/>
+</Types>`;
+  const rels = `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+ <Relationship Target="/3D/3dmodel.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+</Relationships>`;
+  const files = {
+    "[Content_Types].xml": enc(ct),
+    "_rels/.rels": enc(rels),
+    "3D/3dmodel.model": enc(model),
+    "Metadata/project_settings.config": enc(JSON.stringify(bambu, null, 1))
+  };
+  return fflate.zipSync(files, { level: 6 });
+}
+
+/* ---------- Charge la 3D (.glb) et la sort en millimètres, debout ---------- */
+async function chargerMeshMM(url, hauteurMM){
+  const THREE = await import("https://esm.sh/three@0.160.0");
+  const { GLTFLoader } = await import("https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js");
+  const loader = new GLTFLoader();
+  const gltf = await new Promise((res, rej) => loader.load(url, res, undefined, rej));
+  // rassemble tous les morceaux en une seule liste de triangles
+  const tris = [];
+  gltf.scene.updateMatrixWorld(true);
+  gltf.scene.traverse(o => {
+    if(o.isMesh && o.geometry){
+      const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry;
+      const pos = g.attributes.position; const m = o.matrixWorld;
+      const v = new THREE.Vector3();
+      for(let i=0;i<pos.count;i+=3){
+        const p=[];
+        for(let k=0;k<3;k++){ v.fromBufferAttribute(pos, i+k).applyMatrix4(m); p.push([v.x,v.y,v.z]); }
+        tris.push(p);
+      }
+    }
+  });
+  if(!tris.length) throw new Error("modèle 3D vide");
+  // Y en haut (glb) -> Z en haut (impression) : (x,y,z) -> (x,-z,y)
+  for(const t of tris) for(const p of t){ const y=p[1],z=p[2]; p[1]=-z; p[2]=y; }
+  // taille : met la hauteur (Z) à hauteurMM
+  let mn=[1e9,1e9,1e9], mx=[-1e9,-1e9,-1e9];
+  for(const t of tris) for(const p of t) for(let k=0;k<3;k++){ mn[k]=Math.min(mn[k],p[k]); mx[k]=Math.max(mx[k],p[k]); }
+  const hz = mx[2]-mn[2] || 1; const s = hauteurMM/hz;
+  for(const t of tris) for(const p of t) for(let k=0;k<3;k++){ p[k]=(p[k]-mn[k])*s; }
+  // reconstruit dims + format {vertices, triangles}
+  const vertices=[], triangles=[]; let dmx=[-1e9,-1e9,-1e9];
+  for(const t of tris){ const idx=[]; for(const p of t){ idx.push(vertices.length); vertices.push(p); for(let k=0;k<3;k++) dmx[k]=Math.max(dmx[k],p[k]); } triangles.push(idx); }
+  return { mesh:{vertices,triangles}, THREE, dims:{x:dmx[0],y:dmx[1],z:dmx[2]} };
+}
+
+/* ---------- Découpe le grand objet en morceaux qui s'emboîtent ---------- */
+async function decouper(THREE, mesh, dims){
+  // charge les outils de découpe (opérations booléennes 3D)
+  const bvh = await import("https://esm.sh/three-mesh-bvh@0.7.0?deps=three@0.160.0");
+  const csg = await import("https://esm.sh/three-bvh-csg@0.0.16?deps=three@0.160.0");
+  const { Brush, Evaluator, ADDITION, SUBTRACTION } = csg;
+  const utile = PLATEAU - MARGE;
+
+  function toGeom(m){
+    const g = new THREE.BufferGeometry();
+    const arr = new Float32Array(m.triangles.length*9);
+    let o=0; for(const t of m.triangles) for(const idx of t){ const p=m.vertices[idx]; arr[o++]=p[0];arr[o++]=p[1];arr[o++]=p[2]; }
+    g.setAttribute("position", new THREE.BufferAttribute(arr,3)); g.computeVertexNormals(); return g;
+  }
+  function toMesh(geom){
+    geom = geom.index ? geom.toNonIndexed() : geom;
+    const pos=geom.attributes.position, vertices=[], triangles=[];
+    for(let i=0;i<pos.count;i+=3){ const idx=[]; for(let k=0;k<3;k++){ idx.push(vertices.length); vertices.push([pos.getX(i+k),pos.getY(i+k),pos.getZ(i+k)]); } triangles.push(idx); }
+    return {vertices,triangles};
+  }
+  function bbox(geom){ geom.computeBoundingBox(); const b=geom.boundingBox; return {min:b.min,max:b.max,sz:new THREE.Vector3().subVectors(b.max,b.min)}; }
+
+  const ev = new Evaluator();
+  let geoms = [toGeom(mesh)];
+  const joints = []; let garde=0;
+  while(garde++ < 20){
+    let gi=-1, axe=-1;
+    for(let i=0;i<geoms.length;i++){ const s=bbox(geoms[i]).sz; const c=[s.x,s.y,s.z]; for(let a=0;a<3;a++) if(c[a]>utile){ gi=i;axe=a;break;} if(gi>=0)break; }
+    if(gi<0) break;
+    const g = geoms.splice(gi,1)[0]; const bb=bbox(g);
+    // coupe au milieu de la zone imprimable (assez robuste)
+    const lo=[bb.min.x,bb.min.y,bb.min.z][axe], hi=[bb.max.x,bb.max.y,bb.max.z][axe];
+    let cut = lo + Math.min(utile-1, (hi-lo)/2);
+    const centre = new THREE.Vector3((bb.min.x+bb.max.x)/2,(bb.min.y+bb.max.y)/2,(bb.min.z+bb.max.z)/2);
+    // deux gros pavés pour couper de part et d'autre
+    const grand = Math.max(bb.sz.x,bb.sz.y,bb.sz.z)*2 + 50;
+    function pave(dep){ const b=new THREE.BoxGeometry(grand,grand,grand); const c=centre.clone(); const off=grand/2*dep; if(axe===0)c.x=cut+off; if(axe===1)c.y=cut+off; if(axe===2)c.z=cut+off; b.translate(c.x,c.y,c.z); return new Brush(b); }
+    const src = new Brush(g);
+    let bas = ev.evaluate(src, pave(-1), SUBTRACTION);   // garde côté "haut" du plan (enlève le pavé du bas)
+    let haut = ev.evaluate(src, pave(1), SUBTRACTION);   // garde côté "bas"
+    // ergots : un cylindre au centre, mâle sur "bas", femelle (trou) sur "haut"
+    try {
+      const R=2.5, sortie=5, ancr=4, jeu=0.2;
+      const cyl = (r,h,shift)=>{ const cg=new THREE.CylinderGeometry(r,r,h,24); if(axe===0)cg.rotateZ(Math.PI/2); if(axe===2)cg.rotateX(Math.PI/2); const c=centre.clone(); if(axe===0)c.x=cut+shift; if(axe===1)c.y=cut+shift; if(axe===2)c.z=cut+shift; cg.translate(c.x,c.y,c.z); return new Brush(cg); };
+      const male = cyl(R, ancr+sortie, (sortie-ancr)/2);
+      const fem  = cyl(R+jeu, sortie+jeu+1, (sortie+jeu+1)/2-0.5);
+      bas = ev.evaluate(bas, male, ADDITION);
+      haut = ev.evaluate(haut, fem, SUBTRACTION);
+      joints.push({axe:["X","Y","Z"][axe], goujons:1});
+    } catch(e){ joints.push({axe:["X","Y","Z"][axe], goujons:0, note:"coupe simple (ergot non posé)"}); }
+    geoms.push(bas, haut);
+  }
+  return { pieces: geoms.map(toMesh), joints };
+}
+
+/* ---------- Bouton principal : crée le(s) fichier(s) .3mf ---------- */
+window.creerImpression = async function(i){
+  const f = FIGS[i]; const log = $("impr-log"); const btn = $("impr-go");
+  if(!f || !f.model_url){ log.textContent = "La 3D n'est pas encore prête pour cette figurine."; return; }
+  const matKey = ($("impr-mat")||{}).value || "PLA";
+  const hauteur = parseFloat(($("impr-haut")||{}).value) || hauteurFig(f);
+  const usageKey = ($("impr-usage")||{}).value || usageFig(f);
+  btn.textContent = "⏳ Préparation…"; btn.style.pointerEvents="none";
+  log.textContent = "Je récupère ta figurine en 3D…";
+  try {
+    const { mesh, THREE, dims } = await chargerMeshMM(f.model_url, hauteur);
+    const rec = recette(usageKey, dims, matKey);
+    let sorties = [];
+    if(!rec.decoupe.requise){
+      log.textContent = "Je prépare le fichier avec les bons réglages…";
+      const zip = await faire3mf(mesh, rec.bambu, "figurine_"+f.id);
+      sorties.push({nom:"figurine_"+f.id+"_a_imprimer.3mf", data:zip});
+    } else {
+      log.textContent = "Objet trop grand : je le coupe en morceaux qui s'emboîtent… (ça peut prendre 10-30 s)";
+      const { pieces, joints } = await decouper(THREE, mesh, dims);
+      for(let p=0;p<pieces.length;p++){
+        // recalcule dims de la pièce
+        let mx=[-1e9,-1e9,-1e9], mn=[1e9,1e9,1e9];
+        for(const v of pieces[p].vertices) for(let k=0;k<3;k++){ mx[k]=Math.max(mx[k],v[k]); mn[k]=Math.min(mn[k],v[k]); }
+        const dp={x:mx[0]-mn[0],y:mx[1]-mn[1],z:mx[2]-mn[2]};
+        const rp = recette(usageKey, dp, matKey);
+        const zip = await faire3mf(pieces[p], rp.bambu, "figurine_"+f.id+"_piece"+(p+1));
+        sorties.push({nom:"figurine_"+f.id+"_piece"+(p+1)+".3mf", data:zip});
+      }
+      log.textContent = "Coupé en "+pieces.length+" morceaux. Imprime-les, emboîte les ergots, colle. ✅";
+    }
+    // liens de téléchargement
+    let html = "";
+    for(const s of sorties){
+      const url = URL.createObjectURL(new Blob([s.data], {type:"application/octet-stream"}));
+      html += `<a class="abtn vert" href="${url}" download="${s.nom}" style="margin-top:8px">📥 ${esc(s.nom)}</a>`;
+    }
+    $("impr-dl").innerHTML = html;
+    btn.textContent = "🔄 Refaire le fichier"; btn.style.pointerEvents="auto";
+  } catch(e){
+    log.textContent = "Souci pendant la préparation : "+(e.message||e)+"\nDis-le à Franck, il a une version de secours qui marche à coup sûr.";
+    btn.textContent = "🔁 Réessayer"; btn.style.pointerEvents="auto";
+  }
+};
+
+/* ---------- Affiche le panneau impression dans la fiche ---------- */
+function renderImpr(i){
+  const f = FIGS[i]; const el = $("impr-panel"); if(!el) return;
+  if(!f.model_url){
+    el.innerHTML = `<div class="impr"><div class="l">🖨️ Fichier d'impression</div><div class="rz">La 3D n'est pas encore prête. Valide d'abord la sculpture, puis reviens ici.</div></div>`;
+    return;
+  }
+  const usageKey = usageFig(f), haut = hauteurFig(f);
+  const rec = recette(usageKey, {x:60,y:60,z:haut}, "PLA"); // aperçu (dims réelles calculées à la génération)
+  const optMat = Object.keys(MATIERES).map(k=>`<option value="${k}">${MATIERES[k].label}</option>`).join("");
+  const optUsage = Object.keys(USAGES).map(k=>`<option value="${k}" ${k===usageKey?"selected":""}>${USAGES[k].label}</option>`).join("");
+  let al = "";
+  for(const a of rec.alertes) al += `<div class="al ${a.n}">${esc(a.t)}</div>`;
+  el.innerHTML = `<div class="impr">
+    <div class="l">🖨️ Fichier d'impression (l'appli règle tout toute seule)</div>
+    <div class="rz">${esc(rec.resume)}</div>
+    ${al}
+    <div id="impr-dl"></div>
+    <button class="abtn" id="impr-go" onclick="creerImpression(${i})" style="margin-top:10px">📥 Créer le fichier à imprimer (.3mf)</button>
+    <div class="imprlog" id="impr-log"></div>
+    <details class="tech">
+      <summary>🔧 Réglages détaillés (si tu veux voir ou changer)</summary>
+      <div style="font-size:12.5px;color:#9aa0a6;margin-top:6px">Tout est automatique. Ici tu peux changer le plastique, la taille et l'usage. Si tu t'éloignes du conseil, tu restes maître.</div>
+      <table class="techtab">
+        <tr><td>Quel plastique as-tu ?</td><td><select id="impr-mat">${optMat}</select></td></tr>
+        <tr><td>Usage</td><td><select id="impr-usage">${optUsage}</select></td></tr>
+        <tr><td>Hauteur voulue (mm)</td><td><input id="impr-haut" type="number" value="${haut}" min="10"></td></tr>
+        <tr><td>Couche (finesse)</td><td>${rec.reglages.couche} mm</td></tr>
+        <tr><td>Remplissage</td><td>${rec.reglages.dens} % — ${rec.reglages.motif}</td></tr>
+        <tr><td>Supports</td><td>${rec.reglages.supports?"oui (auto)":"non"}</td></tr>
+        <tr><td>Bordure d'accroche</td><td>${rec.reglages.bordure?"oui":"non"}</td></tr>
+      </table>
+      <div style="font-size:12px;color:#9aa0a6;margin-top:6px">Astuce : ouvre le fichier .3mf dans Bambu Handy, vérifie que l'imprimante « Bambu Lab P2S » est bien choisie, puis lance.</div>
+    </details>
+  </div>`;
+}
 </script>
 </body>
 </html>
