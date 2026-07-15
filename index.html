@@ -125,6 +125,7 @@
     <h2>🖨️ Imprimer</h2><p>Sur la fiche, appuie sur « Créer le fichier à imprimer ». L'appli règle tout toute seule et te donne le fichier .3mf à ouvrir dans Bambu Handy / Bambu Studio. Si la figurine est trop grande pour l'imprimante, l'appli la coupe en morceaux qui s'emboîtent (tu imprimes, tu emboîtes, tu colles).</p>
     <h2>📚 Catalogue</h2><p>Toutes les sortes d'objets qu'on sait faire, rangées par catégorie avec une recherche. Clique « Demander cette création » et ça remplit le chat tout seul.</p>
     <h2>🖼️ Tableau photo</h2><p>Transforme une photo en plaque à imprimer : devant une lumière, l'image apparaît. Choisis la photo, la taille, et récupère le fichier. À imprimer en blanc, à plat.</p>
+    <h2>💶 Prix</h2><p>Un mini-calculateur : entre le poids, le temps, le prix de la bobine… et il te donne le coût de revient et le prix de vente conseillé (jamais en dessous du coût).</p>
     <h2>🔑 Porte-clés</h2><p>La boucle d'accroche est intégrée à la pièce. L'anneau métallique n'est pas fourni.</p>
     <h2>🛡️ Nos garanties</h2><p>Tu valides l'image, puis tu valides la sculpture 3D — <b>rien ne part en impression sans ton accord</b>. Tu peux demander autant de corrections que tu veux, et un contrôleur qualité automatique inspecte chaque sculpture avant toi.</p>
   </div></section>
@@ -158,12 +159,30 @@
     <div id="cat-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
     <div id="cat-list"></div>
   </div></section>
+
+  <!-- CALCUL DU PRIX -->
+  <section class="page" id="p-prix"><div class="aide" style="padding-top:12px">
+    <h2 style="margin-top:0">💶 Calcul du prix</h2>
+    <p>Estime le coût de revient d'une pièce et le prix de vente conseillé. Change les chiffres, tout se recalcule.</p>
+    <table class="techtab">
+      <tr><td>Poids de la pièce (g)</td><td><input id="px-poids" type="number" value="30" min="0" step="1"></td></tr>
+      <tr><td>Temps d'impression (min)</td><td><input id="px-temps" type="number" value="120" min="0" step="1"></td></tr>
+      <tr><td>Prix de la bobine (€/kg)</td><td><input id="px-bobine" type="number" value="22" min="0" step="0.5"></td></tr>
+      <tr><td>Conso imprimante (W)</td><td><input id="px-watt" type="number" value="100" min="0" step="5"></td></tr>
+      <tr><td>Prix électricité (€/kWh)</td><td><input id="px-kwh" type="number" value="0.25" min="0" step="0.01"></td></tr>
+      <tr><td>Marge de vente (×)</td><td><input id="px-marge" type="number" value="3" min="1" step="0.5"></td></tr>
+      <tr><td>Prix plancher (€)</td><td><input id="px-plancher" type="number" value="15" min="0" step="1"></td></tr>
+    </table>
+    <div id="px-res" class="impr" style="margin-top:12px"></div>
+    <p style="font-size:12.5px;color:#9aa0a6">Rappel : pour la vente on ne descend jamais sous le coût. Prix conseillé = coût × marge, avec un plancher. (Usure machine + consommables estimés à ~5% + 0,10 €.)</p>
+  </div></section>
 </main>
 <nav>
   <button class="on" data-p="chat"><span class="ic">💬</span>Chat</button>
   <button data-p="figs"><span class="ic">📋</span>Figurines</button>
   <button data-p="cat"><span class="ic">📚</span>Catalogue</button>
   <button data-p="litho"><span class="ic">🖼️</span>Tableau</button>
+  <button data-p="prix"><span class="ic">💶</span>Prix</button>
   <button data-p="aide"><span class="ic">❓</span>Aide</button>
 </nav>
 
@@ -923,6 +942,33 @@ window.filtreCat = c => { catFiltre = c; renderCat(); };
 window.utiliserIdee = txt => { const nb=document.querySelector('nav button[data-p="chat"]'); if(nb) nb.click(); const inp=$("inp"); if(inp){ inp.value=txt; inp.focus(); } };
 window.allerLitho = () => { const nb=document.querySelector('nav button[data-p="litho"]'); if(nb) nb.click(); };
 if($("cat-search")){ $("cat-search").addEventListener("input", renderCat); renderCat(); }
+
+/* ============================================================= */
+/*  CALCUL DU PRIX (coût de revient + prix de vente conseillé)  */
+/* ============================================================= */
+function calcPrix(){
+  const el = $("px-res"); if(!el) return;
+  const g = id => parseFloat(($(id)||{}).value)||0;
+  const poids=g("px-poids"), temps=g("px-temps"), bobine=g("px-bobine"), watt=g("px-watt"), kwh=g("px-kwh");
+  const marge=g("px-marge")||3, plancher=g("px-plancher");
+  const cMat = poids/1000*bobine;
+  const cElec = (watt/1000)*(temps/60)*kwh;
+  const usure = 0.05*(cMat+cElec) + 0.10;   // usure machine + petits consommables
+  const cout = cMat + cElec + usure;
+  const prix = Math.max(plancher, cout*marge);
+  const eur = n => n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+  el.innerHTML = `<div class="l">Résultat</div>
+    <table class="techtab">
+      <tr><td>Matière (${poids} g)</td><td>${eur(cMat)}</td></tr>
+      <tr><td>Électricité (${temps} min)</td><td>${eur(cElec)}</td></tr>
+      <tr><td>Usure machine + consommables</td><td>${eur(usure)}</td></tr>
+      <tr><td><b>Coût de revient</b></td><td><b>${eur(cout)}</b></td></tr>
+      <tr><td>Prix de vente conseillé (×${marge})</td><td style="color:#5be3a5"><b>${eur(prix)}</b></td></tr>
+      <tr><td>Bénéfice estimé</td><td>${eur(prix-cout)}</td></tr>
+    </table>`;
+}
+["px-poids","px-temps","px-bobine","px-watt","px-kwh","px-marge","px-plancher"].forEach(id=>{ const e=$(id); if(e) e.addEventListener("input", calcPrix); });
+if($("px-res")) calcPrix();
 </script>
 </body>
 </html>
