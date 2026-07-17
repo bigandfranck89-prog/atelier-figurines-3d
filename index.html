@@ -160,40 +160,12 @@
     <div id="cat-list"></div>
   </div></section>
 
-  <!-- CALCUL DU PRIX -->
-  <section class="page" id="p-prix"><div class="aide" style="padding-top:12px">
-    <h2 style="margin-top:0">💶 Calcul du prix</h2>
-    <p>Estime le coût de revient d'une pièce et le prix de vente conseillé. Change les chiffres, tout se recalcule.</p>
-    <table class="techtab">
-      <tr><td>Poids de la pièce (g)</td><td><input id="px-poids" type="number" value="30" min="0" step="1"></td></tr>
-      <tr><td>Temps d'impression (min)</td><td><input id="px-temps" type="number" value="120" min="0" step="1"></td></tr>
-      <tr><td>Prix de la bobine (€/kg)</td><td><input id="px-bobine" type="number" value="22" min="0" step="0.5"></td></tr>
-      <tr><td>Conso imprimante (W)</td><td><input id="px-watt" type="number" value="100" min="0" step="5"></td></tr>
-      <tr><td>Prix électricité (€/kWh)</td><td><input id="px-kwh" type="number" value="0.25" min="0" step="0.01"></td></tr>
-      <tr><td>Marge de vente (×)</td><td><input id="px-marge" type="number" value="3" min="1" step="0.5"></td></tr>
-      <tr><td>Prix plancher (€)</td><td><input id="px-plancher" type="number" value="15" min="0" step="1"></td></tr>
-    </table>
-    <div id="px-res" class="impr" style="margin-top:12px"></div>
-    <p style="font-size:12.5px;color:#9aa0a6">Rappel : pour la vente on ne descend jamais sous le coût. Prix conseillé = coût × marge, avec un plancher. (Usure machine + consommables estimés à ~5% + 0,10 €.)</p>
-
-    <h2 style="margin-top:22px;border-top:1px solid #23303a;padding-top:16px">📐 Remplissage du plateau</h2>
-    <p>Combien de pièces tiennent sur le plateau ? Entre la taille d'une pièce, je calcule.</p>
-    <table class="techtab">
-      <tr><td>Imprimante</td><td><select id="pl-imp"></select></td></tr>
-      <tr><td>Largeur d'une pièce (mm)</td><td><input id="pl-larg" type="number" value="40" min="1"></td></tr>
-      <tr><td>Profondeur d'une pièce (mm)</td><td><input id="pl-prof" type="number" value="40" min="1"></td></tr>
-      <tr><td>Espace entre les pièces (mm)</td><td><input id="pl-marge" type="number" value="5" min="0"></td></tr>
-    </table>
-    <div id="pl-res" class="impr" style="margin-top:12px"></div>
-    <p style="font-size:12.5px;color:#9aa0a6">Estimation simple (rangées × colonnes). Tu imprimes quand tu veux — pas besoin d'attendre que le plateau soit plein.</p>
-  </div></section>
 </main>
 <nav>
   <button class="on" data-p="chat"><span class="ic">💬</span>Chat</button>
   <button data-p="figs"><span class="ic">📋</span>Figurines</button>
   <button data-p="cat"><span class="ic">📚</span>Catalogue</button>
   <button data-p="litho"><span class="ic">🖼️</span>Tableau</button>
-  <button data-p="prix"><span class="ic">🧰</span>Outils</button>
   <button data-p="aide"><span class="ic">❓</span>Aide</button>
 </nav>
 
@@ -390,11 +362,33 @@ window.ouvrirFig = (i) => {
 
     <!-- PANNEAU IMPRESSION (rempli par renderImpr) -->
     <div id="impr-panel"></div>
+    <details class="tech" style="margin-top:4px">
+      <summary>🧰 Coût & remplissage du plateau</summary>
+      <div style="font-size:12.5px;color:#9aa0a6;margin-top:6px">Estime le prix de vente de CETTE pièce et combien tu peux en poser sur le plateau.</div>
+      <table class="techtab">
+        <tr><td>Poids (g)</td><td><input id="fpx-poids" type="number" value="${f.poids_g || 30}" min="0" step="1" oninput="calcOutilsFiche()"></td></tr>
+        <tr><td>Temps d'impression (min)</td><td><input id="fpx-temps" type="number" value="${f.temps_impression_min ? Math.round(f.temps_impression_min) : 120}" min="0" step="1" oninput="calcOutilsFiche()"></td></tr>
+        <tr><td>Prix bobine (€/kg)</td><td><input id="fpx-bobine" type="number" value="22" min="0" step="0.5" oninput="calcOutilsFiche()"></td></tr>
+        <tr><td>Conso (W)</td><td><input id="fpx-watt" type="number" value="100" min="0" step="5" oninput="calcOutilsFiche()"></td></tr>
+        <tr><td>Prix élec (€/kWh)</td><td><input id="fpx-kwh" type="number" value="0.25" min="0" step="0.01" oninput="calcOutilsFiche()"></td></tr>
+        <tr><td>Marge (×)</td><td><input id="fpx-marge" type="number" value="3" min="1" step="0.5" oninput="calcOutilsFiche()"></td></tr>
+        <tr><td>Prix plancher (€)</td><td><input id="fpx-plancher" type="number" value="15" min="0" step="1" oninput="calcOutilsFiche()"></td></tr>
+      </table>
+      <div id="fpx-res" class="impr" style="margin-top:10px"></div>
+      <table class="techtab" style="margin-top:12px">
+        <tr><td>Imprimante</td><td><select id="fpl-imp" onchange="calcOutilsFiche()"></select></td></tr>
+        <tr><td>Largeur pièce (mm)</td><td><input id="fpl-larg" type="number" value="40" min="1" oninput="calcOutilsFiche()"></td></tr>
+        <tr><td>Profondeur pièce (mm)</td><td><input id="fpl-prof" type="number" value="40" min="1" oninput="calcOutilsFiche()"></td></tr>
+        <tr><td>Espace entre pièces (mm)</td><td><input id="fpl-marge" type="number" value="5" min="0" oninput="calcOutilsFiche()"></td></tr>
+      </table>
+      <div id="fpl-res" class="impr" style="margin-top:10px"></div>
+    </details>
 
     ${f.annonce_titre || f.annonce_texte ? `<div class="tile"><div class="l">📝 Annonce de vente (brouillon)</div><div class="v" style="font-size:14.5px">${esc(f.annonce_titre || "")}</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${esc(f.annonce_texte || "")}</div><div style="font-size:12.5px;color:#5be3a5;margin-top:8px;border-top:1px solid #23303a;padding-top:8px">🛡️ Nos garanties (à mettre dans l'annonce) : tu valides l'image <b>puis</b> la sculpture 3D avant toute impression, corrections illimitées, et un contrôle qualité + un contrôle d'imprimabilité passent sur chaque pièce.</div></div>` : ""}
     <div style="font-size:12.5px;color:#9aa0a6;text-align:center">🛡️ Rien ne part en impression sans TA validation de l'image ET de la 3D.</div>
   </div>`;
   try { renderImpr(i); } catch (e) { $("impr-panel").innerHTML = `<div class="impr"><div class="al bad">Le module d'impression a eu un souci : ${esc(e.message||e)}</div></div>`; }
+  try { calcOutilsFiche(); } catch(e){}
   document.querySelector("#figzone .detail").scrollTop = 0;
 };
 
@@ -1021,6 +1015,39 @@ function calcPlateau(){
   sel.addEventListener("change", calcPlateau);
   calcPlateau();
 })();
+/* ---------- Outils dans la fiche : prix + plateau, par figurine ---------- */
+function calcOutilsFiche(){
+  const g = id => parseFloat(($(id)||{}).value)||0;
+  const sel = $("fpl-imp");
+  if(sel && !sel.options.length){
+    const cur = localStorage.getItem("atelier_imprimante") || "p2s";
+    sel.innerHTML = Object.keys(IMPRIMANTES).map(k=>`<option value="${k}" ${k===cur?"selected":""}>${esc(IMPRIMANTES[k].label)}</option>`).join("");
+  }
+  const pel = $("fpx-res");
+  if(pel){
+    const poids=g("fpx-poids"), temps=g("fpx-temps"), bobine=g("fpx-bobine"), watt=g("fpx-watt"), kwh=g("fpx-kwh");
+    const marge=g("fpx-marge")||3, plancher=g("fpx-plancher");
+    const cMat=poids/1000*bobine, cElec=(watt/1000)*(temps/60)*kwh, usure=0.05*(cMat+cElec)+0.10;
+    const cout=cMat+cElec+usure, prix=Math.max(plancher, cout*marge);
+    const e=n=>n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+    pel.innerHTML = `<div class="l">💶 Prix conseillé</div><table class="techtab"><tr><td>Coût de revient</td><td><b>${e(cout)}</b></td></tr><tr><td>Prix de vente (×${marge})</td><td style="color:#5be3a5"><b>${e(prix)}</b></td></tr><tr><td>Bénéfice</td><td>${e(prix-cout)}</td></tr></table>`;
+  }
+  const lel = $("fpl-res");
+  if(lel){
+    const imp = (IMPRIMANTES[sel && sel.value]) || imprimanteActuelle();
+    const w=g("fpl-larg"), dpt=g("fpl-prof"), m=g("fpl-marge");
+    if(w<=0||dpt<=0){ lel.innerHTML = `<div class="l">📐 Plateau</div><div class="al info">Entre la taille d'une pièce.</div>`; }
+    else {
+      const cols=Math.max(0,Math.floor((imp.x+m)/(w+m))), rows=Math.max(0,Math.floor((imp.y+m)/(dpt+m))), total=cols*rows;
+      const occ=total>0?Math.min(100,Math.round((total*w*dpt)/(imp.x*imp.y)*100)):0;
+      const msg = total<=0
+        ? `<div class="al bad">Pièce ${w}×${dpt} mm trop grande pour ${esc(imp.label)} (${imp.x}×${imp.y} mm) : à découper.</div>`
+        : `<div class="al okk">Sur ${esc(imp.label)} (${imp.x}×${imp.y} mm) : jusqu'à <b>${total}</b> pièces (${cols}×${rows}), occupation ≈ ${occ} %.${total>1?" Il reste de la place.":""}</div>`;
+      lel.innerHTML = `<div class="l">📐 Remplissage du plateau</div>${msg}`;
+    }
+  }
+}
+
 </script>
 </body>
 </html>
