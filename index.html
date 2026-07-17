@@ -267,30 +267,29 @@ function demarrerMicro(btn, inp) {
     return;
   }
   if (recActive) { recActive._stop = true; recActive.stop(); return; }
-  const rec = new SR();
-  rec.lang = "fr-FR"; rec.interimResults = true; rec.continuous = true;
-  rec._stop = false;
-  recActive = rec;
-  btn.classList.add("rec");
-  let committed = inp.value ? inp.value.trim() + " " : "";
-  rec.onresult = e => {
-    // n'ajoute QUE les segments nouvellement figés (évite la répétition "je je voudrais…")
-    let interim = "";
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      const seg = e.results[i][0].transcript;
-      if (e.results[i].isFinal) committed += seg + " "; else interim += seg;
-    }
-    inp.value = (committed + interim).replace(/\s+/g, " ").trim();
+  let base = inp.value ? inp.value.trim() : "";
+  const lance = () => {
+    const rec = new SR();
+    rec.lang = "fr-FR"; rec.interimResults = true; rec.continuous = false;
+    rec._stop = false;
+    recActive = rec;
+    btn.classList.add("rec");
+    rec.onresult = e => {
+      let t = "";
+      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript + " ";
+      inp.value = (base + " " + t).replace(/\s+/g, " ").trim();
+    };
+    rec.onerror = ev => { if (ev && (ev.error === "not-allowed" || ev.error === "service-not-allowed" || ev.error === "audio-capture")) rec._stop = true; };
+    rec.onend = () => {
+      base = inp.value.trim();
+      if (!rec._stop) { try { lance(); return; } catch (e) {} }
+      btn.classList.remove("rec");
+      recActive = null;
+      if (base) { envoyer(base); inp.value = ""; }
+    };
+    try { rec.start(); } catch (e) {}
   };
-  rec.onerror = ev => { if (ev && (ev.error === "not-allowed" || ev.error === "service-not-allowed" || ev.error === "audio-capture")) rec._stop = true; };
-  rec.onend = () => {
-    if (!rec._stop) { try { rec.start(); return; } catch (e) {} }
-    btn.classList.remove("rec");
-    recActive = null;
-    const v = inp.value.trim();
-    if (v) { envoyer(v); inp.value = ""; }
-  };
-  rec.start();
+  lance();
 }
 $("mic").onclick = () => demarrerMicro($("mic"), $("inp"));
 
