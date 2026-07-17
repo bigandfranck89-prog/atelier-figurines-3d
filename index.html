@@ -271,11 +271,15 @@ function demarrerMicro(btn, inp) {
   rec.lang = "fr-FR"; rec.interimResults = true; rec.continuous = true;
   recActive = rec;
   btn.classList.add("rec");
+  let finalT = "";
   rec.onresult = e => {
-    // reconstruit toute la phrase à chaque fois (évite le dédoublement "je je je voudrais")
-    let txt = "";
-    for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
-    inp.value = txt.replace(/\s+/g, " ").trim();
+    // n'ajoute QUE les segments nouvellement figés (évite la répétition "je je voudrais…")
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const seg = e.results[i][0].transcript;
+      if (e.results[i].isFinal) finalT += seg + " "; else interim += seg;
+    }
+    inp.value = (finalT + interim).replace(/\s+/g, " ").trim();
   };
   rec.onerror = () => {};
   rec.onend = () => {
