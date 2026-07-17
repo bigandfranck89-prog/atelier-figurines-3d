@@ -268,23 +268,28 @@ function demarrerMicro(btn, inp) {
   }
   if (recActive) { recActive._stop = true; recActive.stop(); return; }
   let base = inp.value ? inp.value.trim() : "";
+  const phold = inp.placeholder;
   const lance = () => {
     const rec = new SR();
-    rec.lang = "fr-FR"; rec.interimResults = true; rec.continuous = false;
-    rec._stop = false;
+    rec.lang = "fr-FR"; rec.interimResults = false; rec.continuous = false;
+    rec._stop = false; rec._pris = false;
     recActive = rec;
     btn.classList.add("rec");
+    inp.placeholder = "🎙️ J'écoute… appuie encore sur le micro pour envoyer";
     rec.onresult = e => {
-      let t = "";
-      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript + " ";
-      inp.value = (base + " " + t).replace(/\s+/g, " ").trim();
+      if (rec._pris) return;
+      rec._pris = true;
+      const res = e.results[e.results.length - 1];
+      const t = (res && res[0] && res[0].transcript || "").trim();
+      if (t) base = (base + " " + t).replace(/\s+/g, " ").trim();
+      inp.value = base;
     };
     rec.onerror = ev => { if (ev && (ev.error === "not-allowed" || ev.error === "service-not-allowed" || ev.error === "audio-capture")) rec._stop = true; };
     rec.onend = () => {
-      base = inp.value.trim();
       if (!rec._stop) { try { lance(); return; } catch (e) {} }
       btn.classList.remove("rec");
       recActive = null;
+      inp.placeholder = phold;
       if (base) { envoyer(base); inp.value = ""; }
     };
     try { rec.start(); } catch (e) {}
