@@ -102,7 +102,7 @@
 <main>
   <!-- CHAT -->
   <section class="page on" id="p-chat"><div class="chatwrap">
-    <div class="msgs" id="msgs"></div>
+    <div style="display:flex;justify-content:flex-end;padding:6px 10px 0;flex:0 0 auto"><button onclick="resetChat()" style="background:#2a2f3a;color:#dbe4ff;border:1px solid #39404e;border-radius:14px;padding:5px 12px;font-size:12.5px;cursor:pointer">🆕 Nouvelle conversation</button></div><div class="msgs" id="msgs"></div>
     <div class="typing" id="typing">⌛ l'atelier travaille…</div>
     <div class="inbar">
       <button id="photo" class="gris" title="Envoyer une photo">📎</button>
@@ -318,17 +318,32 @@ $("mic").onclick = () => demarrerMicro($("mic"), $("inp"));
 
 $("send").onclick = () => { const v = $("inp").value.trim(); if (v) { envoyer(v); $("inp").value = ""; } };
 $("inp").addEventListener("keydown", e => { if (e.key === "Enter") $("send").onclick(); });
-setInterval(pollChat, 2500);
-pollChat();
-// message d'accueil si conversation vide
-setTimeout(async () => {
-  const r = await fetch(`${SUPA}/rest/v1/app_messages?session=eq.${SESSION}&limit=1`, { headers: H });
-  const rows = await r.json();
-  if (!rows.length) $("msgs").insertAdjacentHTML("beforeend", `<div class="b bot">👋 Salut ! Décris-moi la figurine de tes rêves (au micro 🎤 ou au clavier) et je te la fabrique : image → tes corrections → 3D → impression.</div>`);
-}, 800);
+async function chargerChatRecent(){
+  const box = $("msgs"); if(!box) return;
+  try {
+    const r = await fetch(`${SUPA}/rest/v1/app_messages?session=eq.${SESSION}&order=id.desc&limit=8`, { headers: H });
+    let rows = await r.json();
+    if (Array.isArray(rows) && rows.length){
+      rows = rows.reverse(); box.innerHTML = "";
+      rows.forEach(m => { if (m.id > lastId) lastId = m.id; box.insertAdjacentHTML("beforeend", bulleHTML(m)); });
+      box.scrollTop = box.scrollHeight;
+    } else {
+      box.insertAdjacentHTML("beforeend", `<div class="b bot">👋 Salut ! Décris-moi la figurine de tes rêves (au micro 🎤 ou au clavier) et je te la fabrique : image → tes corrections → 3D → impression.</div>`);
+    }
+  } catch(e){}
+}
+window.resetChat = () => {
+  SESSION = Math.random().toString(36).slice(2, 10);
+  localStorage.setItem("atelier_session", SESSION);
+  lastId = 0; attente = false;
+  document.querySelectorAll(".msgs").forEach(bx => bx.innerHTML = "");
+  $("typing").style.display = "none";
+  $("msgs").insertAdjacentHTML("beforeend", `<div class="b bot">🆕 On repart de zéro ! Décris-moi la figurine que tu veux.</div>`);
+};
+(async () => { await chargerChatRecent(); setInterval(pollChat, 2500); })();
 
 /* ================= FIGURINES : liste → fiche → 3D ================= */
-const STATUTS = { idee: "💭 Idée", image_en_cours: "🎨 Image en cours", image_validee: "✅ Image validée", attente_taille: "📏 Choix de la taille", "3d_en_cours": "🔧 Sculpture 3D…", "3d_valide": "🎉 3D validée", abandonnee: "🗑️ Abandonnée", collecte_photos: "📸 Photos en cours" };
+const STATUTS = { idee: "💭 Idée", image_en_cours: "🎨 Image en cours", attente_couleurs: "🎨 Choix des couleurs", image_validee: "✅ Image validée", attente_taille: "📏 Choix de la taille", collecte_photos: "📸 Photos en cours", "3d_en_cours": "🔧 Sculpture 3D…", "3d_valide": "🎉 3D validée", fichier_pret: "📦 Fichier prêt", imprimee: "🖨️ Imprimée", abandonnee: "🗑️ Abandonnée" };
 const fmtMn = mn => !mn ? "—" : (mn < 60 ? `${Math.round(mn)} min` : `${Math.floor(mn / 60)} h ${String(Math.round(mn % 60)).padStart(2, "0")}`);
 const eur = n => n == null ? "—" : Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2 }) + " €";
 let FIGS = [], figIdx = -1;
