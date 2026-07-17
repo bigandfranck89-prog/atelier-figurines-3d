@@ -298,7 +298,7 @@ function demarrerMicro(btn, inp) {
 }
 $("mic").onclick = () => demarrerMicro($("mic"), $("inp"));
 
-$("send").onclick = () => { const v = $("inp").value.trim(); if (v) { envoyer(v); $("inp").value = ""; } };
+$("send").onclick = () => { if (recActive) { recActive._stop = true; recActive.stop(); return; } const v = $("inp").value.trim(); if (v) { envoyer(v); $("inp").value = ""; } };
 $("inp").addEventListener("keydown", e => { if (e.key === "Enter") $("send").onclick(); });
 async function chargerChatRecent(){
   const box = $("msgs"); if(!box) return;
@@ -416,7 +416,7 @@ window.vue3D = () => {
     </div></div>
   </div>`;
   lastId = 0; document.querySelectorAll(".msgs").forEach(bx => bx.innerHTML = ""); pollChat();
-  $("send3d").onclick = () => { const v = $("inp3d").value.trim(); if (v) { envoyer(v); $("inp3d").value = ""; } };
+  $("send3d").onclick = () => { if (recActive) { recActive._stop = true; recActive.stop(); return; } const v = $("inp3d").value.trim(); if (v) { envoyer(v); $("inp3d").value = ""; } };
   $("inp3d").addEventListener("keydown", e => { if (e.key === "Enter") $("send3d").onclick(); });
   $("mic3d").onclick = () => demarrerMicro($("mic3d"), $("inp3d"));
 };
