@@ -119,7 +119,7 @@
   <!-- AIDE -->
   <section class="page" id="p-aide"><div class="aide">
     <h2>💬 Chat</h2><p>Décris ta figurine en parlant (🎤) ou en écrivant. L'atelier te propose une image : critique-la ou valide. Ensuite choisis perso/vente, la taille, et la sculpture 3D se lance toute seule.</p>
-    <h2>🎤 Parler</h2><p>Appuie sur le micro, parle, et ton message part tout seul quand tu as fini. Appuie encore pour arrêter.</p>
+    <h2>🎤 Parler</h2><p>Appuie sur le micro et parle — tu peux faire des pauses, il continue d'écouter. Quand tu as fini, appuie encore sur le micro pour envoyer.</p>
     <h2>📎 Photos</h2><p>Avec le trombone, envoie jusqu'à 4 photos (plusieurs angles = meilleure sculpture).</p>
     <h2>📋 Figurines</h2><p>La liste de tes figurines. Clique sur une figurine : sa fiche montre les coûts, le prix conseillé, l'annonce de vente, et le bouton « Voir en 3D » — la 3D s'affiche en haut, le chat en bas pour dire les défauts en direct.</p>
     <h2>🖨️ Imprimer</h2><p>Sur la fiche, appuie sur « Créer le fichier à imprimer ». L'appli règle tout toute seule et te donne le fichier .3mf à ouvrir dans Bambu Handy / Bambu Studio. Si la figurine est trop grande pour l'imprimante, l'appli la coupe en morceaux qui s'emboîtent (tu imprimes, tu emboîtes, tu colles).</p>
@@ -266,23 +266,25 @@ function demarrerMicro(btn, inp) {
     document.querySelectorAll(".msgs").forEach(bx => bx.insertAdjacentHTML("beforeend", `<div class="b bot">😕 La dictée vocale n'est pas disponible dans ce navigateur. Essaie avec Chrome.</div>`));
     return;
   }
-  if (recActive) { recActive.stop(); return; }
+  if (recActive) { recActive._stop = true; recActive.stop(); return; }
   const rec = new SR();
   rec.lang = "fr-FR"; rec.interimResults = true; rec.continuous = true;
+  rec._stop = false;
   recActive = rec;
   btn.classList.add("rec");
-  let finalT = "";
+  let committed = inp.value ? inp.value.trim() + " " : "";
   rec.onresult = e => {
     // n'ajoute QUE les segments nouvellement figés (évite la répétition "je je voudrais…")
     let interim = "";
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const seg = e.results[i][0].transcript;
-      if (e.results[i].isFinal) finalT += seg + " "; else interim += seg;
+      if (e.results[i].isFinal) committed += seg + " "; else interim += seg;
     }
-    inp.value = (finalT + interim).replace(/\s+/g, " ").trim();
+    inp.value = (committed + interim).replace(/\s+/g, " ").trim();
   };
-  rec.onerror = () => {};
+  rec.onerror = ev => { if (ev && (ev.error === "not-allowed" || ev.error === "service-not-allowed" || ev.error === "audio-capture")) rec._stop = true; };
   rec.onend = () => {
+    if (!rec._stop) { try { rec.start(); return; } catch (e) {} }
     btn.classList.remove("rec");
     recActive = null;
     const v = inp.value.trim();
