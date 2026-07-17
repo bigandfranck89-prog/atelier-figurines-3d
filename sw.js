@@ -1,4 +1,4 @@
-const C="atelier-v11";
+const C="atelier-v12";
 self.addEventListener("install",e=>{self.skipWaiting();});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener("fetch",e=>{
