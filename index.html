@@ -29,7 +29,7 @@
   .b.user { align-self: flex-end; background: #2563eb; color: #fff; border-bottom-right-radius: 5px; }
   .b.bot { align-self: flex-start; background: #1e222b; border-bottom-left-radius: 5px; }
   .b.bot a { color: #7ab8ff; }
-  .b img { max-width: 100%; border-radius: 12px; display: block; margin-bottom: 6px; }
+  .b img { max-width: 100%; max-height: 45vh; width: auto; border-radius: 12px; display: block; margin-bottom: 6px; }
   .kb { align-self: flex-start; display: flex; flex-direction: column; gap: 6px; max-width: 86%; }
   .kb .row { display: flex; gap: 6px; }
   .kb button { flex: 1; background: #2a2f3a; color: #dbe4ff; border: 1px solid #39404e; border-radius: 12px; padding: 9px 10px; font-size: 13.5px; cursor: pointer; }
@@ -125,9 +125,10 @@
     <h2>🖨️ Imprimer</h2><p>Sur la fiche, appuie sur « Créer le fichier à imprimer ». L'appli règle tout toute seule et te donne le fichier .3mf à ouvrir dans Bambu Handy / Bambu Studio. Si la figurine est trop grande pour l'imprimante, l'appli la coupe en morceaux qui s'emboîtent (tu imprimes, tu emboîtes, tu colles).</p>
     <h2>📚 Catalogue</h2><p>Toutes les sortes d'objets qu'on sait faire, rangées par catégorie avec une recherche. Clique « Demander cette création » et ça remplit le chat tout seul.</p>
     <h2>🖼️ Tableau photo</h2><p>Transforme une photo en plaque à imprimer : devant une lumière, l'image apparaît. Choisis la photo, la taille, et récupère le fichier. À imprimer en blanc, à plat.</p>
-    <h2>💶 Prix</h2><p>Un mini-calculateur : entre le poids, le temps, le prix de la bobine… et il te donne le coût de revient et le prix de vente conseillé (jamais en dessous du coût).</p>
+    <h2>💶 Coûts & plateau</h2><p>Dans la fiche de chaque figurine, ouvre « 🧰 Coût & remplissage du plateau » : tu y vois le coût de revient et le prix conseillé de CETTE pièce, et tu remplis ton plateau pièce par pièce — l'appli affiche le remplissage et te dit quand ça ne rentre plus.</p>
     <h2>🔑 Porte-clés</h2><p>La boucle d'accroche est intégrée à la pièce. L'anneau métallique n'est pas fourni.</p>
     <h2>🛡️ Nos garanties</h2><p>Tu valides l'image, puis tu valides la sculpture 3D — <b>rien ne part en impression sans ton accord</b>. Tu peux demander autant de corrections que tu veux, et un contrôleur qualité automatique inspecte chaque sculpture avant toi.</p>
+    <h2>ℹ️ Conditions (l'essentiel)</h2><p>Chaque pièce est fabriquée sur mesure : tu valides l'image PUIS la 3D avant impression, donc pas de retour ni remboursement sur les pièces personnalisées (sauf défaut de fabrication : on la refait). Les personnages sous licence (Marvel, Pokémon…) restent réservés à un usage PERSONNEL — jamais à la vente. Les coûts, délais et prix affichés sont des estimations indicatives.</p>
   </div></section>
 
   <!-- TABLEAU PHOTO (LITHOPHANE) -->
@@ -344,7 +345,7 @@ function vueListe() {
   $("figzone").innerHTML = `<div class="list">` + (FIGS.length ? FIGS.map((f, i) => `
     <div class="card" onclick="ouvrirFig(${i})">
       ${f.image_url ? `<img src="${esc(f.image_url)}" loading="lazy">` : `<img alt="">`}
-      <div><div class="t">#${f.id} — ${esc((f.demande || "").slice(0, 60))}</div>
+      <div><div class="t">#${f.id} — ${esc((f.nom || f.annonce_titre || f.demande || "").slice(0, 60))}</div>
       <div class="s">${esc(f.taille || "")} ${f.usage === "vente" ? "· 🏷️ vente" : ""} ${f.model_url ? "· 🧊 3D prête" : ""}</div>
       <span class="badge ${f.statut === "3d_valide" ? "ok" : ""}">${STATUTS[f.statut] || esc(f.statut)}</span></div>
     </div>`).join("") : `<div style="color:#6b7280;text-align:center;padding:30px">Aucune figurine — passe par l'onglet 💬 Chat !</div>`) + `</div>`;
@@ -356,7 +357,8 @@ window.ouvrirFig = (i) => {
   $("figzone").innerHTML = `<div class="detail">
     <button class="abtn sec" onclick="vueListe()">← Retour à la liste</button>
     ${f.image_url ? `<img class="big" src="${esc(f.image_url)}">` : ""}
-    <div><div style="font-weight:800;font-size:16px">#${f.id} — ${esc(f.demande || "")}</div>
+    <div><div style="font-weight:800;font-size:16px">#${f.id} — ${esc(f.nom || f.annonce_titre || f.demande || "")}</div>
+    ${f.nom || f.annonce_titre ? `<div style="font-size:12.5px;color:#9aa0a6;margin-top:2px">${esc((f.demande || "").slice(0, 90))}</div>` : ""}
     <span class="badge ${f.statut === "3d_valide" ? "ok" : ""}">${STATUTS[f.statut] || esc(f.statut)}</span></div>
     <div class="btnrow">
       ${f.model_url ? `<button class="abtn" onclick="vue3D()">🧊 Voir en 3D et critiquer en direct</button>` : `<span class="abtn dis">🧊 3D pas encore prête</span>`}
