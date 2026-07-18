@@ -385,12 +385,16 @@ window.ouvrirFig = (i) => {
         <tr><td>Prix plancher (€)</td><td><input id="fpx-plancher" type="number" value="15" min="0" step="1" oninput="calcOutilsFiche()"></td></tr>
       </table>
       <div id="fpx-res" class="impr" style="margin-top:10px"></div>
-      <table class="techtab" style="margin-top:12px">
-        <tr><td>Imprimante</td><td><select id="fpl-imp" onchange="calcOutilsFiche()"></select></td></tr>
-        <tr><td>Largeur pièce (mm)</td><td><input id="fpl-larg" type="number" value="40" min="1" oninput="calcOutilsFiche()"></td></tr>
-        <tr><td>Profondeur pièce (mm)</td><td><input id="fpl-prof" type="number" value="40" min="1" oninput="calcOutilsFiche()"></td></tr>
-        <tr><td>Espace entre pièces (mm)</td><td><input id="fpl-marge" type="number" value="5" min="0" oninput="calcOutilsFiche()"></td></tr>
+      <div style="font-size:13px;color:#9aa0a6;margin-top:14px">📐 <b style="color:#dbe4ff">Mon plateau</b> — ajoute les pièces une à une, je te dis le remplissage au fur et à mesure.</div>
+      <table class="techtab">
+        <tr><td>Imprimante</td><td><select id="fpl-imp" onchange="plateauRender()"></select></td></tr>
+        <tr><td>Pièce à ajouter : L × P (mm)</td><td style="display:flex;gap:6px"><input id="fpl-larg" type="number" value="40" min="1" style="width:50%"><input id="fpl-prof" type="number" value="40" min="1" style="width:50%"></td></tr>
       </table>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="abtn sec" style="flex:1;padding:9px" onclick="plateauAjoutFig(${i})">➕ Cette figurine</button>
+        <button class="abtn sec" style="flex:1;padding:9px" onclick="plateauAjout()">➕ Pièce L×P</button>
+        <button class="abtn sec" style="flex:0 0 auto;padding:9px 12px" onclick="plateauVider()">🗑️</button>
+      </div>
       <div id="fpl-res" class="impr" style="margin-top:10px"></div>
     </details>
 
@@ -1042,21 +1046,45 @@ function calcOutilsFiche(){
     const e=n=>n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
     pel.innerHTML = `<div class="l">💶 Prix conseillé</div><table class="techtab"><tr><td>Coût de revient</td><td><b>${e(cout)}</b></td></tr><tr><td>Prix de vente (×${marge})</td><td style="color:#5be3a5"><b>${e(prix)}</b></td></tr><tr><td>Bénéfice</td><td>${e(prix-cout)}</td></tr></table>`;
   }
-  const lel = $("fpl-res");
-  if(lel){
-    const imp = (IMPRIMANTES[sel && sel.value]) || imprimanteActuelle();
-    const w=g("fpl-larg"), dpt=g("fpl-prof"), m=g("fpl-marge");
-    if(w<=0||dpt<=0){ lel.innerHTML = `<div class="l">📐 Plateau</div><div class="al info">Entre la taille d'une pièce.</div>`; }
-    else {
-      const cols=Math.max(0,Math.floor((imp.x+m)/(w+m))), rows=Math.max(0,Math.floor((imp.y+m)/(dpt+m))), total=cols*rows;
-      const occ=total>0?Math.min(100,Math.round((total*w*dpt)/(imp.x*imp.y)*100)):0;
-      const msg = total<=0
-        ? `<div class="al bad">Pièce ${w}×${dpt} mm trop grande pour ${esc(imp.label)} (${imp.x}×${imp.y} mm) : à découper.</div>`
-        : `<div class="al okk">Sur ${esc(imp.label)} (${imp.x}×${imp.y} mm) : jusqu'à <b>${total}</b> pièces (${cols}×${rows}), occupation ≈ ${occ} %.${total>1?" Il reste de la place.":""}</div>`;
-      lel.innerHTML = `<div class="l">📐 Remplissage du plateau</div>${msg}`;
-    }
-  }
+  plateauRender();
 }
+/* ---------- Mon plateau : cumulatif, pièce par pièce ---------- */
+let PLATEAU = [];
+function plateauImp(){ const sel=$("fpl-imp"); return (typeof IMPRIMANTES!=="undefined" && IMPRIMANTES[sel && sel.value]) || imprimanteActuelle(); }
+window.plateauAjout = function(w, d, nom){
+  const g = id => parseFloat(($(id)||{}).value)||0;
+  w = w || g("fpl-larg"); d = d || g("fpl-prof");
+  if(w>0 && d>0) PLATEAU.push({ w, d, nom: nom || (Math.round(w)+"×"+Math.round(d)+" mm") });
+  plateauRender();
+};
+window.plateauAjoutFig = function(i){
+  const f = FIGS[i]; if(!f) return;
+  const hmm = hauteurFig(f);
+  const base = Math.max(25, Math.min(120, Math.round(hmm*0.45)));
+  plateauAjout(base, base, "#"+f.id+" (~"+base+"×"+base+" mm)");
+};
+window.plateauVider = function(){ PLATEAU = []; plateauRender(); };
+window.plateauRender = function(){
+  const lel = $("fpl-res"); if(!lel) return;
+  const imp = plateauImp(); const M = 5;
+  const X = imp.x - 4, Y = imp.y - 4;
+  let x=0, y=0, rowH=0, places=0, aire=0; const hors=[];
+  PLATEAU.forEach(p=>{
+    if(p.w>X || p.d>Y){ hors.push(p.nom); return; }
+    if(x + p.w > X){ x = 0; y += rowH + M; rowH = 0; }
+    if(y + p.d > Y){ hors.push(p.nom); return; }
+    x += p.w + M; rowH = Math.max(rowH, p.d); places++; aire += p.w*p.d;
+  });
+  const occ = Math.min(100, Math.round(aire/(X*Y)*100));
+  let h = `<div class="l">📐 Mon plateau — ${esc(imp.label)} (${imp.x}×${imp.y} mm)</div>`;
+  if(!PLATEAU.length){
+    h += `<div class="al info">Plateau vide. Ajoute des pièces avec les boutons ➕ : le remplissage se met à jour à chaque ajout.</div>`;
+  } else {
+    h += `<div class="al ${hors.length ? 'warn' : 'okk'}">${places} pièce(s) posée(s) — plateau rempli à ≈ <b>${occ} %</b>.${hors.length ? " ⚠️ Ne rentre(nt) plus : "+esc(hors.join(", "))+"." : " Il reste de la place — tu peux en ajouter, mais tu lances quand tu veux."}</div>`;
+    h += `<div style="font-size:12.5px;color:#9aa0a6;margin-top:6px">${PLATEAU.map(p=>"• "+esc(p.nom)).join("<br>")}</div>`;
+  }
+  lel.innerHTML = h;
+};
 
 </script>
 </body>
