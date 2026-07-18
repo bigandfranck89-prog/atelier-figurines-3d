@@ -118,6 +118,15 @@
 
   <!-- AIDE -->
   <section class="page" id="p-aide"><div class="aide">
+    <div class="tile" style="margin-bottom:14px"><div class="l">💬 Ton avis nous intéresse</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="abtn sec" style="flex:1" id="avis-oui" onclick="choisirAvis(true)">😊 Content</button>
+        <button class="abtn sec" style="flex:1" id="avis-non" onclick="choisirAvis(false)">😞 Pas content</button>
+      </div>
+      <textarea id="avis-txt" placeholder="Dis-nous ce qui va ou ce qui ne va pas…" style="width:100%;margin-top:8px;background:#0f1115;border:1px solid #2f3542;color:#fff;border-radius:10px;padding:10px;font-size:14px;min-height:64px"></textarea>
+      <button class="abtn" style="margin-top:8px;width:100%" onclick="envoyerAvis()">Envoyer mon avis</button>
+      <div id="avis-ok" style="font-size:13px;color:#5be3a5;margin-top:6px"></div>
+    </div>
     <h2>💬 Chat</h2><p>Décris ta figurine en parlant (🎤) ou en écrivant. L'atelier te propose une image : critique-la ou valide. Ensuite choisis perso/vente, la taille, et la sculpture 3D se lance toute seule.</p>
     <h2>🎤 Parler</h2><p>Appuie sur le micro et parle — tu peux faire des pauses, il continue d'écouter. Quand tu as fini, appuie encore sur le micro pour envoyer.</p>
     <h2>📎 Photos</h2><p>Avec le trombone, envoie jusqu'à 4 photos (plusieurs angles = meilleure sculpture).</p>
@@ -324,6 +333,22 @@ window.resetChat = () => {
   $("msgs").insertAdjacentHTML("beforeend", `<div class="b bot">🆕 On repart de zéro ! Décris-moi la figurine que tu veux.</div>`);
 };
 (async () => { await chargerChatRecent(); setInterval(pollChat, 2500); })();
+let AVIS_CHOIX = null;
+window.choisirAvis = (v) => {
+  AVIS_CHOIX = v;
+  const o = $("avis-oui"), nn = $("avis-non");
+  if(o) o.style.background = v ? "#16a34a" : "#2a2f3a";
+  if(nn) nn.style.background = v === false ? "#dc2626" : "#2a2f3a";
+};
+window.envoyerAvis = async () => {
+  const txt = ($("avis-txt")||{}).value || "";
+  if(AVIS_CHOIX === null && !txt.trim()){ $("avis-ok").textContent = "Choisis 😊 ou 😞, ou écris un petit mot."; return; }
+  try {
+    await fetch(`${SUPA}/rest/v1/atelier_avis`, { method: "POST", headers: { ...H, Prefer: "return=minimal" }, body: JSON.stringify({ session: SESSION, satisfait: AVIS_CHOIX, message: txt.trim() }) });
+    $("avis-ok").textContent = "Merci ! Ton avis est bien envoyé à l'atelier. 💛";
+    $("avis-txt").value = ""; AVIS_CHOIX = null; choisirAvis(null);
+  } catch(e){ $("avis-ok").textContent = "Oups, réessaie dans un instant."; }
+};
 
 /* ================= FIGURINES : liste → fiche → 3D ================= */
 const STATUTS = { idee: "💭 Idée", image_en_cours: "🎨 Image en cours", attente_couleurs: "🎨 Choix des couleurs", image_validee: "✅ Image validée", attente_taille: "📏 Choix de la taille", collecte_photos: "📸 Photos en cours", "3d_en_cours": "🔧 Sculpture 3D…", "3d_valide": "🎉 3D validée", fichier_pret: "📦 Fichier prêt", imprimee: "🖨️ Imprimée", abandonnee: "🗑️ Abandonnée" };
