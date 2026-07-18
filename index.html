@@ -170,6 +170,44 @@
     <div id="cat-list"></div>
   </div></section>
 
+
+  <!-- === AJOUT 18/07 : VITRINE DE VALIDATION (admin seulement) === -->
+  <section class="page" id="p-valid"><div class="figzone" style="overflow:auto">
+    <div style="padding:12px 12px 0">
+      <h2 style="font-size:16px;margin:0 0 4px">🗳️ Validation du catalogue</h2>
+      <p style="color:#9aa0a6;font-size:13px;margin:0">Les propositions du jour. « Garder » les ajoute au catalogue vendable, « Rejeter » les écarte. Solidité prouvée sur le vrai fichier 3D (≥ 3 mm partout), sans impression test.</p>
+    </div>
+    <div id="valid-zone" class="list"></div>
+  </div></section>
+
+  <!-- === AJOUT 18/07 : TARIFS (page prête ; ajouter le bouton nav au go-public) === -->
+  <section class="page" id="p-tarifs"><div class="aide">
+    <h2 style="margin-top:0">💶 Nos tarifs</h2>
+    <p>Chaque figurine est unique et fabriquée sur mesure. Tu valides l'image PUIS la sculpture 3D avant qu'on imprime — corrections illimitées.</p>
+    <div class="tile" style="margin-bottom:10px"><div class="l">Petite figurine (≤ 6 cm)</div><div class="v">à partir de 15 €</div>
+      <button class="abtn" style="margin-top:8px" onclick="payer('petite')">Commander</button></div>
+    <div class="tile" style="margin-bottom:10px"><div class="l">Figurine moyenne (6–12 cm)</div><div class="v">à partir de 25 €</div>
+      <button class="abtn" style="margin-top:8px" onclick="payer('moyenne')">Commander</button></div>
+    <div class="tile" style="margin-bottom:10px"><div class="l">Grande pièce (12–20 cm)</div><div class="v">à partir de 45 €</div>
+      <button class="abtn" style="margin-top:8px" onclick="payer('grande')">Commander</button></div>
+    <p style="font-size:12.5px;color:#9aa0a6">Paiement avant fabrication. Prix indicatifs, ajustés selon la taille réelle, la matière et le temps d'impression. Pas de retour sur les pièces personnalisées (voir CGV).</p>
+  </div></section>
+
+  <!-- === AJOUT 18/07 : CGV & MENTIONS LÉGALES === -->
+  <section class="page" id="p-cgv"><div class="aide">
+    <h2 style="margin-top:0">📜 CGV & mentions légales</h2>
+    <p style="font-size:12.5px;color:#9aa0a6">Version du 18/07/2026. Champs entre [crochets] à compléter par l'éditeur.</p>
+    <h2>Mentions légales</h2>
+    <p>Éditeur : [Nom Prénom], entrepreneur individuel — SIRET [à compléter], [adresse]. Contact : [e-mail]. Hébergement : GitHub Pages (GitHub Inc.) ; données : Supabase. TVA non applicable, art. 293 B du CGI.</p>
+    <h2>1. Objet</h2><p>Fabrication d'objets décoratifs personnalisés imprimés en 3D à partir des demandes du client.</p>
+    <h2>2. Validation & fabrication</h2><p>Le client valide l'image PUIS le modèle 3D avant fabrication. Cette double validation vaut « bon à fabriquer ». Le paiement s'effectue avant fabrication.</p>
+    <h2>3. Droit de rétractation</h2><p>Conformément à l'art. L221-28 3° du Code de la consommation, le droit de rétractation de 14 jours ne s'applique pas aux biens personnalisés selon les spécifications du consommateur.</p>
+    <h2>4. Garantie</h2><p>La garantie légale de conformité (2 ans) s'applique : pièce cassée à la réception ou défaut de fabrication → on refait ou on rembourse.</p>
+    <h2>5. Limites</h2><p>Objets décoratifs, pas des jouets (ne convient pas aux enfants de moins de 14 ans), pas d'usage alimentaire. Couleurs et détails peuvent légèrement varier (fabrication artisanale).</p>
+    <h2>6. Propriété intellectuelle</h2><p>Le client garantit disposer des droits sur les images/descriptions fournies. Les personnages sous licence ne sont jamais vendus.</p>
+    <h2>7. Données (RGPD)</h2><p>E-mail et créations conservés pour la commande ; droit d'accès et de suppression sur demande à [e-mail] ; pas de revente de données.</p>
+  </div></section>
+
 </main>
 <nav>
   <button class="on" data-p="chat"><span class="ic">💬</span>Chat</button>
@@ -1155,6 +1193,278 @@ window.plateauRender = function(){
   }
   lel.innerHTML = h;
 };
+
+
+/* === MODULE COMPTES/VITRINE/TARIFS (ajout 18/07, interrupteurs OFF) === */
+/* ============================================================================
+   ATELIER FIGURINES 3D — MODULE COMPTES CLIENTS + VITRINE + TARIFS
+   Préparé le 18/07/2026 (run autonome). À COLLER dans index.html, à la fin du
+   <script> existant (il réutilise SUPA, KEY, esc, chargerMeshMM, mesureEpaisseurMM).
+
+   IMPORTANT — INTERRUPTEURS DE SÉCURITÉ (rien ne change tant qu'ils sont false) :
+     COMPTES_ACTIFS = false  -> pas de mur de connexion : l'app marche comme avant
+                                (parfait pour le test de l'ami du 21/07).
+     STRIPE_ACTIF   = false  -> l'onglet Tarifs s'affiche mais le bouton Payer
+                                explique "bientôt" au lieu d'appeler Stripe.
+   Quand tout est prêt (app déployée + migration CUTOVER lancée + compte Stripe),
+   passer ces deux drapeaux à true et redéployer.
+
+   ÉTAPES D'INTÉGRATION HTML (voir GUIDE_INTEGRATION.md) :
+     1) Ajouter les 3 sections <section class="page" id="p-valid|p-tarifs|p-cgv">.
+     2) Ajouter les boutons de nav correspondants.
+     3) Remplacer, dans les fetch chat/figurines/avis, `headers: H` par
+        `headers: authH()` pour que la RLS filtre par client une fois activée.
+============================================================================ */
+(function () {
+  "use strict";
+
+  // ------- RÉGLAGES -------
+  const COMPTES_ACTIFS = false;              // <-- mettre true au cutover
+  const STRIPE_ACTIF   = false;              // <-- mettre true quand compte Stripe créé
+  const ADMIN_EMAILS   = ["bigandfranck89@gmail.com"];  // qui voit la Vitrine de validation
+  const LS = "atelier_auth";
+
+  // état d'authentification en mémoire
+  let AUTH = null; // { access_token, refresh_token, email, uid, exp }
+
+  // ------- utilitaires -------
+  const b64json = t => { try { return JSON.parse(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))); } catch (e) { return {}; } };
+
+  function chargerAuth() {
+    try {
+      const j = JSON.parse(localStorage.getItem(LS) || "null");
+      if (j && j.access_token && j.exp && j.exp * 1000 > Date.now() + 5000) { AUTH = j; return true; }
+    } catch (e) {}
+    return false;
+  }
+  function sauverAuth(tok) {
+    const p = b64json(tok.access_token);
+    AUTH = {
+      access_token: tok.access_token,
+      refresh_token: tok.refresh_token,
+      email: (p.email || "").toLowerCase(),
+      uid: p.sub,
+      exp: p.exp
+    };
+    localStorage.setItem(LS, JSON.stringify(AUTH));
+  }
+  function deconnexion() { AUTH = null; localStorage.removeItem(LS); location.reload(); }
+
+  // en-têtes à utiliser à la place de H : identité du client si connecté, sinon anon.
+  window.authH = function () {
+    const h = { apikey: KEY, "Content-Type": "application/json" };
+    h.Authorization = "Bearer " + ((AUTH && AUTH.access_token) ? AUTH.access_token : KEY);
+    return h;
+  };
+  window.atelierUser = () => AUTH;                                   // {email, uid} ou null
+  window.estAdmin = () => !!(AUTH && ADMIN_EMAILS.includes(AUTH.email));
+
+  // rafraîchit le jeton si presque expiré (appelé au démarrage)
+  async function rafraichirSiBesoin() {
+    if (!AUTH || !AUTH.refresh_token) return;
+    if (AUTH.exp * 1000 > Date.now() + 60000) return;
+    try {
+      const r = await fetch(`${SUPA}/auth/v1/token?grant_type=refresh_token`, {
+        method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: AUTH.refresh_token })
+      });
+      if (r.ok) sauverAuth(await r.json()); else deconnexion();
+    } catch (e) {}
+  }
+
+  // ------- GoTrue : code par e-mail (OTP) -------
+  async function envoyerCode(email) {
+    const r = await fetch(`${SUPA}/auth/v1/otp`, {
+      method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, create_user: true })
+    });
+    if (!r.ok) throw new Error("envoi (" + r.status + ")");
+  }
+  async function verifierCode(email, code) {
+    const r = await fetch(`${SUPA}/auth/v1/verify`, {
+      method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, token: code.trim(), type: "email" })
+    });
+    if (!r.ok) throw new Error("code invalide");
+    sauverAuth(await r.json());
+    // crée/actualise la fiche client (ignore les erreurs : le bot la crée aussi)
+    try {
+      await fetch(`${SUPA}/rest/v1/studio_clients?on_conflict=email`, {
+        method: "POST",
+        headers: { ...authH(), Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify({ id: AUTH.uid, email: AUTH.email, statut: "client" })
+      });
+    } catch (e) {}
+  }
+
+  // ------- écran de connexion (overlay) -------
+  function overlayHTML() {
+    return `
+    <div id="auth-ov" style="position:fixed;inset:0;z-index:9999;background:#0f1115;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px">
+      <div style="font-size:40px">🧸</div>
+      <h1 style="font-size:20px;margin:8px 0 4px">Atelier Figurines 3D</h1>
+      <p style="color:#9aa0a6;font-size:14px;text-align:center;max-width:320px;margin-bottom:18px">Connecte-toi avec ton e-mail pour retrouver <b>tes</b> figurines. On t'envoie un code à 6 chiffres, pas de mot de passe.</p>
+      <div style="width:100%;max-width:320px">
+        <div id="auth-step1">
+          <input id="auth-email" type="email" placeholder="ton@email.fr" autocomplete="email"
+            style="width:100%;background:#0f1115;border:1px solid #2f3542;color:#fff;border-radius:12px;padding:12px 14px;font-size:15px;margin-bottom:8px">
+          <button id="auth-send" style="width:100%;background:#2563eb;border:0;color:#fff;border-radius:12px;padding:12px;font-size:15px;font-weight:600;cursor:pointer">Recevoir mon code</button>
+        </div>
+        <div id="auth-step2" style="display:none">
+          <input id="auth-code" inputmode="numeric" placeholder="Code à 6 chiffres"
+            style="width:100%;background:#0f1115;border:1px solid #2f3542;color:#fff;border-radius:12px;padding:12px 14px;font-size:18px;letter-spacing:4px;text-align:center;margin-bottom:8px">
+          <button id="auth-verify" style="width:100%;background:#16a34a;border:0;color:#fff;border-radius:12px;padding:12px;font-size:15px;font-weight:600;cursor:pointer">Me connecter</button>
+          <button id="auth-back" style="width:100%;background:none;border:0;color:#9aa0a6;padding:10px;font-size:13px;cursor:pointer">← changer d'e-mail</button>
+        </div>
+        <div id="auth-msg" style="color:#ff9aa4;font-size:13px;margin-top:10px;text-align:center;min-height:18px"></div>
+      </div>
+    </div>`;
+  }
+  function montrerConnexion() {
+    if ($("auth-ov")) return;
+    document.body.insertAdjacentHTML("beforeend", overlayHTML());
+    let email = "";
+    const msg = t => { $("auth-msg").textContent = t || ""; };
+    $("auth-send").onclick = async () => {
+      email = ($("auth-email").value || "").trim().toLowerCase();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg("E-mail invalide."); return; }
+      msg("Envoi du code…"); $("auth-send").disabled = true;
+      try { await envoyerCode(email); $("auth-step1").style.display = "none"; $("auth-step2").style.display = "block"; msg("Code envoyé ! Regarde tes e-mails (et les spams)."); }
+      catch (e) { msg("Impossible d'envoyer le code, réessaie."); }
+      $("auth-send").disabled = false;
+    };
+    $("auth-verify").onclick = async () => {
+      const code = ($("auth-code").value || "").trim();
+      if (code.length < 6) { msg("Entre les 6 chiffres."); return; }
+      msg("Vérification…"); $("auth-verify").disabled = true;
+      try { await verifierCode(email, code); $("auth-ov").remove(); demarrerApp(); }
+      catch (e) { msg("Code incorrect ou expiré. Renvoie un code si besoin."); }
+      $("auth-verify").disabled = false;
+    };
+    $("auth-back").onclick = () => { $("auth-step2").style.display = "none"; $("auth-step1").style.display = "block"; msg(""); };
+  }
+
+  // ------- ce qui se lance une fois connecté (ou tout de suite si comptes off) -------
+  function demarrerApp() {
+    // bouton de déconnexion + Vitrine admin, injectés dans le header et la nav
+    if (COMPTES_ACTIFS && AUTH) {
+      const h = document.querySelector("header");
+      if (h && !$("btn-logout")) {
+        const b = document.createElement("button");
+        b.id = "btn-logout"; b.title = "Se déconnecter"; b.textContent = "⎋";
+        b.style.cssText = "background:#2a2f3a;color:#dbe4ff;border:0;border-radius:10px;padding:4px 10px;font-size:15px;cursor:pointer;margin-left:8px";
+        b.onclick = deconnexion; h.appendChild(b);
+      }
+    }
+    if (window.estAdmin && window.estAdmin()) activerVitrine();
+    document.dispatchEvent(new CustomEvent("atelier-pret"));
+  }
+
+  // ============================ VITRINE DE VALIDATION ============================
+  // Franck voit les propositions du jour (catalogue_propositions statut='propose')
+  // et clique Garder / Rejeter. Preuve de solidité SANS impression : mesure de
+  // l'épaisseur sur le vrai fichier 3D (>= 3 mm partout).
+  function activerVitrine() {
+    if ($("nav-valid")) return;
+    const nav = document.querySelector("nav");
+    if (nav) {
+      const b = document.createElement("button");
+      b.id = "nav-valid"; b.dataset.p = "valid";
+      b.innerHTML = '<span class="ic">🗳️</span>Validation';
+      b.onclick = () => {
+        document.querySelectorAll("nav button").forEach(x => x.classList.remove("on"));
+        document.querySelectorAll(".page").forEach(x => x.classList.remove("on"));
+        b.classList.add("on"); $("p-valid").classList.add("on"); chargerValidation();
+      };
+      nav.appendChild(b);
+    }
+  }
+
+  window.chargerValidation = async function () {
+    const zone = $("valid-zone"); if (!zone) return;
+    zone.innerHTML = `<p style="color:#9aa0a6;padding:14px">Chargement des propositions…</p>`;
+    let rows = [];
+    try {
+      const r = await fetch(`${SUPA}/rest/v1/catalogue_propositions?statut=eq.propose&order=cree_le.desc&limit=50`, { headers: authH() });
+      rows = await r.json(); if (!Array.isArray(rows)) rows = [];
+    } catch (e) { rows = []; }
+    if (!rows.length) { zone.innerHTML = `<p style="color:#9aa0a6;padding:14px">Aucune proposition en attente. Le générateur du catalogue en déposera ici (statut « proposé »).</p>`; return; }
+    zone.innerHTML = rows.map(p => `
+      <div class="card" style="flex-direction:column;align-items:stretch" id="prop-${p.id}">
+        ${p.image_url ? `<img src="${esc(p.image_url)}" style="width:100%;height:auto;max-height:260px;object-fit:contain;background:#0f1115">` : ""}
+        <div style="padding:4px 2px">
+          <div class="t">${esc(p.nom || "Sans nom")} ${p.categorie ? `· <span style="color:#9aa0a6">${esc(p.categorie)}</span>` : ""}</div>
+          <div class="s">${esc(p.description || "")}</div>
+          ${p.regles_solidite ? `<div class="al info" style="margin-top:6px">🛡️ Règles solidité : ${esc(p.regles_solidite)}</div>` : ""}
+          <div id="ep-${p.id}" style="font-size:13px;margin-top:6px;color:#9aa0a6">${p.epaisseur_min_mm != null ? verdictEp(p.epaisseur_min_mm) : ""}</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          ${p.model_url ? `<button class="abtn sec" style="flex:1;min-width:130px" onclick="mesurerSolidite(${p.id},'${esc(p.model_url)}')">📏 Vérifier la solidité</button>` : `<span class="abtn dis" style="flex:1;min-width:130px">📏 Pas encore de 3D</span>`}
+          <button class="abtn vert" style="flex:1;min-width:110px" onclick="deciderProp(${p.id},'garde')">✅ Garder</button>
+          <button class="abtn sec" style="flex:1;min-width:110px" onclick="deciderProp(${p.id},'rejete')">✖️ Rejeter</button>
+        </div>
+      </div>`).join("");
+  };
+
+  function verdictEp(mm) {
+    mm = Number(mm);
+    if (mm >= 3) return `<span style="color:#5be3a5">✅ Solide : parties fines ≈ ${mm.toFixed(1)} mm (≥ 3 mm partout).</span>`;
+    if (mm >= 1.5) return `<span style="color:#ffcf7a">🟠 Fragile : ≈ ${mm.toFixed(1)} mm. À épaissir avant catalogue.</span>`;
+    return `<span style="color:#ff9aa4">🔴 Trop fin : ≈ ${mm.toFixed(1)} mm — casserait. À corriger.</span>`;
+  }
+
+  window.mesurerSolidite = async function (id, url) {
+    const el = $("ep-" + id); if (el) el.textContent = "Mesure de l'épaisseur sur le vrai fichier 3D… (10-20 s)";
+    try {
+      const { mesh, THREE } = await chargerMeshMM(url, 60); // hauteur de référence 60 mm
+      const th = await mesureEpaisseurMM(THREE, mesh);
+      if (!th) { if (el) el.textContent = "Mesure impossible sur ce fichier."; return; }
+      const mm = th.p5;
+      if (el) el.innerHTML = verdictEp(mm);
+      // trace la mesure dans la proposition
+      await fetch(`${SUPA}/rest/v1/catalogue_propositions?id=eq.${id}`, {
+        method: "PATCH", headers: { ...authH(), Prefer: "return=minimal" },
+        body: JSON.stringify({ epaisseur_min_mm: Number(mm.toFixed(2)) })
+      });
+    } catch (e) { if (el) el.textContent = "Erreur pendant la mesure (fichier 3D introuvable ?)."; }
+  };
+
+  window.deciderProp = async function (id, decision) {
+    try {
+      await fetch(`${SUPA}/rest/v1/catalogue_propositions?id=eq.${id}`, {
+        method: "PATCH", headers: { ...authH(), Prefer: "return=minimal" },
+        body: JSON.stringify({ statut: decision, decide_le: new Date().toISOString() })
+      });
+      const c = $("prop-" + id); if (c) { c.style.opacity = ".4"; c.style.pointerEvents = "none"; }
+    } catch (e) {}
+  };
+
+  // ============================ TARIFS + PAIEMENT (Stripe) ============================
+  // Page tarifs prête ; le bouton Payer appelle l'Edge Function Stripe SEULEMENT si
+  // STRIPE_ACTIF est true (sinon message "bientôt"). Voir stripe/README.
+  window.payer = async function (offre) {
+    if (!STRIPE_ACTIF) { alert("Le paiement en ligne arrive bientôt. Pour l'instant, on organise le règlement directement avec toi."); return; }
+    if (COMPTES_ACTIFS && !AUTH) { montrerConnexion(); return; }
+    try {
+      const r = await fetch(`${SUPA}/functions/v1/stripe-checkout`, {
+        method: "POST", headers: authH(),
+        body: JSON.stringify({ offre: offre, email: AUTH ? AUTH.email : undefined })
+      });
+      const j = await r.json();
+      if (j && j.url) location.href = j.url; else alert("Paiement indisponible pour l'instant.");
+    } catch (e) { alert("Paiement indisponible pour l'instant."); }
+  };
+
+  // ------- démarrage -------
+  async function init() {
+    chargerAuth();
+    await rafraichirSiBesoin();
+    if (COMPTES_ACTIFS && !AUTH) { montrerConnexion(); return; }
+    demarrerApp();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
 
 </script>
 </body>
