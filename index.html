@@ -1467,5 +1467,46 @@ window.plateauRender = function(){
 })();
 
 </script>
+
+<!-- ECRAN D'ACCUEIL (banc d'essai client 26/07 - P1 #608) -->
+<style>
+#accueil-ov{position:fixed;inset:0;z-index:999;background:#0d1117;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:28px 18px 40px;text-align:center}
+#accueil-ov.off{display:none}
+#accueil-ov h2{font-size:24px;margin:10px 0 4px;color:#e6edf3}
+#accueil-ov .st{color:#8b98a5;font-size:14px;margin-bottom:18px}
+.acc-etapes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:6px 0 20px}
+.acc-etape{background:#161b26;border:1px solid #2a2f3a;border-radius:14px;padding:12px 14px;width:110px;font-size:12.5px;color:#dbe4ff}
+.acc-etape b{display:block;font-size:22px;margin-bottom:6px}
+.acc-offres{display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px;margin:0 auto 18px}
+.acc-offre{background:#161b26;border:1px solid #2a2f3a;border-radius:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;text-align:left}
+.acc-offre .n{font-weight:700;color:#e6edf3;font-size:14px}
+.acc-offre .d{color:#8b98a5;font-size:12px}
+.acc-offre .p{font-weight:800;color:#7ea6ff;font-size:16px;white-space:nowrap;margin-left:12px}
+.acc-offre.star{border-color:#7ea6ff;box-shadow:0 0 0 1px #7ea6ff33}
+.acc-cta{background:#3b82f6;color:#fff;border:none;border-radius:999px;padding:14px 34px;font-size:16px;font-weight:800;cursor:pointer;margin-top:4px}
+.acc-note{color:#8b98a5;font-size:11.5px;margin-top:14px;max-width:340px}
+.acc-note a{color:#7ea6ff}
+</style>
+<div id="accueil-ov">
+  <div style="font-size:44px;margin-top:8px">🧸</div>
+  <h2>Ta figurine unique, imprimée en 3D</h2>
+  <div class="st">Décris-la (ou envoie une photo) — on s'occupe du reste.</div>
+  <div class="acc-etapes">
+    <div class="acc-etape"><b>💬</b>1. Décris ton idée ou ta photo</div>
+    <div class="acc-etape"><b>👀</b>2. Valide le rendu 3D avant impression</div>
+    <div class="acc-etape"><b>📦</b>3. Reçois-la chez toi en moins de 7 jours</div>
+  </div>
+  <div class="acc-offres">
+    <div class="acc-offre"><span><span class="n">Fichier 3D seul</span><br><span class="d">tu imprimes toi-même (.3mf réglé pour TON imprimante)</span></span><span class="p">7-9 €</span></div>
+    <div class="acc-offre star"><span><span class="n">Figurine imprimée couleur</span><br><span class="d">PLA multicolore, socle inclus</span></span><span class="p">29-39 €</span></div>
+    <div class="acc-offre"><span><span class="n">Premium finition peinte</span><br><span class="d">grande taille ou peinture fine</span></span><span class="p">69-99 €</span></div>
+  </div>
+  <button class="acc-cta" onclick="fermerAccueil()">🚀 Créer ma figurine</button>
+  <div class="acc-note">Prix de lancement, confirmés avant tout paiement — rien n'est imprimé sans ta validation du rendu 3D. Une question ? Onglet <a href="#" onclick="fermerAccueil();document.querySelector('nav button[data-p=\u0022aide\u0022]').click();return false">Aide</a>.</div>
+</div>
+<script>
+function fermerAccueil(){document.getElementById('accueil-ov').classList.add('off');try{localStorage.setItem('accueil_vu','1')}catch(e){}}
+try{if(localStorage.getItem('accueil_vu')==='1'){document.getElementById('accueil-ov').classList.add('off')}}catch(e){}
+</script>
 </body>
 </html>
