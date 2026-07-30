@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#16120C">
+<title>Suivi séries Marvel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16120C;
+    --panel:#221C14;
+    --panel-2:#2C241A;
+    --amber:#F0A828;
+    --amber-dim:#8C6320;
+    --cream:#E9DFC9;
+    --cream-dim:#9C917C;
+    --olive:#7A8459;
+    --rust:#C2452D;
+    --line:#3A3025;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--ink);
+    background-image:
+      radial-gradient(circle at 18% 8%, rgba(240,168,40,.07), transparent 55%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px);
+    color:var(--cream);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    line-height:1.5;
+    padding:20px 14px 70px;
+  }
+  .wrap{max-width:820px;margin:0 auto}
+  header{
+    border:1px solid var(--line);
+    border-top:3px solid var(--amber);
+    background:var(--panel);
+    padding:20px 18px 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .eyebrow{
+    font-family:"Space Mono",monospace;
+    font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--amber-dim);
+  }
+  h1{
+    font-family:"Anton",Impact,sans-serif;
+    font-size:clamp(30px,8vw,48px);
+    letter-spacing:.02em;
+    line-height:.95;
+    text-transform:uppercase;
+    margin:6px 0 2px;
+    color:var(--cream);
+  }
+  h1 em{font-style:normal;color:var(--amber)}
+  .sub{font-size:13px;color:var(--cream-dim);max-width:46ch}
+  .gauge{margin-top:18px}
+  .gauge-top{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:"Space Mono",monospace;font-size:11px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--cream-dim);
+    margin-bottom:6px;
+  }
+  .gauge-top b{color:var(--amber);font-size:15px}
+  .bar{
+    height:12px;background:var(--ink);border:1px solid var(--line);
+    display:flex;gap:2px;padding:2px;
+  }
+  .tick{flex:1;background:#2A2318;transition:background .25s ease}
+  .tick.on{background:var(--amber)}
+  .tick.half{background:var(--olive)}
+  @media (prefers-reduced-motion:reduce){.tick{transition:none}}
+  .filters{
+    display:flex;flex-wrap:wrap;gap:7px;
+    margin:16px 0 0;
+  }
+  .chip{
+    font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.06em;
+    text-transform:uppercase;
+    background:transparent;color:var(--cream-dim);
+    border:1px solid var(--line);border-radius:0;
+    padding:6px 11px;cursor:pointer;
+  }
+  .chip:hover{border-color:var(--amber-dim);color:var(--cream)}
+  .chip[aria-pressed="true"]{background:var(--amber);color:var(--ink);border-color:var(--amber);font-weight:700}
+  .chip:focus-visible,.status:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+  section{margin-top:34px}
+  .sec-head{
+    display:flex;align-items:baseline;gap:12px;
+    border-bottom:1px solid var(--line);padding-bottom:7px;margin-bottom:2px;
+  }
+  .sec-head h2{
+    font-family:"Anton",Impact,sans-serif;font-size:18px;
+    text-transform:uppercase;letter-spacing:.06em;font-weight:400;
+  }
+  .sec-head span{
+    font-family:"Space Mono",monospace;font-size:10px;color:var(--cream-dim);
+    letter-spacing:.1em;margin-left:auto;white-space:nowrap;
+  }
+  .sec-note{font-size:12px;color:var(--cream-dim);margin:8px 0 10px}
+  .row{
+    display:grid;
+    grid-template-columns:52px 1fr auto;
+    gap:12px;align-items:center;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:3px solid var(--line);
+    padding:11px 12px;margin-top:6px;
+    position:relative;
+  }
+  .row.vu{border-left-color:var(--amber);background:var(--panel-2)}
+  .row.vu .title{color:var(--cream-dim);text-decoration:line-through;text-decoration-color:var(--amber-dim)}
+  .row.cours{border-left-color:var(--olive)}
+  .row.prio::after{
+    content:"À VOIR EN PRIORITÉ";
+    position:absolute;top:-1px;right:-1px;
+    font-family:"Space Mono",monospace;font-size:8px;letter-spacing:.14em;
+    background:var(--rust);color:#fff;padding:2px 6px;
+  }
+  .row.prio.vu::after{display:none}
+  .year{
+    font-family:"Space Mono",monospace;font-size:12px;color:var(--amber-dim);
+    letter-spacing:.02em;
+  }
+  .title{font-weight:600;font-size:15px;line-height:1.25}
+  .meta{
+    font-family:"Space Mono",monospace;font-size:10.5px;color:var(--cream-dim);
+    letter-spacing:.04em;margin-top:3px;
+  }
+  .tag{
+    display:inline-block;border:1px solid var(--line);padding:0 4px;margin-left:6px;
+    color:var(--olive);
+  }
+  .tag.anim{color:var(--amber-dim);border-color:var(--amber-dim)}
+  .note{font-size:12px;color:var(--cream-dim);margin-top:5px;max-width:52ch}
+  .status{
+    font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;font-weight:700;
+    width:74px;min-height:44px;
+    background:transparent;border:1px dashed var(--line);color:var(--cream-dim);
+    cursor:pointer;padding:4px;
+  }
+  .status:hover{border-color:var(--amber-dim);color:var(--cream)}
+  .status[data-s="vu"]{
+    border:2px solid var(--amber);border-style:solid;color:var(--amber);
+    transform:rotate(-6deg);
+  }
+  .status[data-s="cours"]{border-style:solid;border-color:var(--olive);color:var(--olive)}
+  @media (prefers-reduced-motion:reduce){.status[data-s="vu"]{transform:none}}
+  footer{
+    margin-top:40px;border-top:1px solid var(--line);padding-top:14px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+    font-family:"Space Mono",monospace;font-size:10.5px;color:var(--cream-dim);
+    letter-spacing:.06em;
+  }
+  .reset{
+    background:transparent;border:1px solid var(--line);color:var(--cream-dim);
+    font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;padding:7px 12px;cursor:pointer;
+  }
+  .reset:hover{border-color:var(--rust);color:var(--rust)}
+  .saving{color:var(--amber);opacity:0}
+  .saving.on{opacity:1}
+  @media(max-width:520px){
+    .row{grid-template-columns:44px 1fr;grid-template-areas:"y t" ". s"}
+    .year{grid-area:y}.cell{grid-area:t}.status{grid-area:s;justify-self:start;margin-top:4px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Dossier de visionnage · Disney+ France</div>
+  <h1>Séries <em>Marvel</em></h1>
+  <p class="sub">Tout ce qui existe, dans l'ordre de sortie. Touchez la case de droite pour faire tourner le statut : à voir → en cours → vu.</p>
+
+  <div class="gauge">
+    <div class="gauge-top">
+      <span>Avancement</span>
+      <span><b id="count">0</b> / <span id="total">0</span> vues</span>
+    </div>
+    <div class="bar" id="bar"></div>
+  </div>
+
+  <div class="filters">
+    <button class="chip" data-f="all" aria-pressed="true">Tout</button>
+    <button class="chip" data-f="todo" aria-pressed="false">À voir</button>
+    <button class="chip" data-f="done" aria-pressed="false">Déjà vues</button>
+    <button class="chip" data-f="noanim" aria-pressed="false">Sans animation</button>
+  </div>
+</header>
+
+<div id="app"></div>
+
+<footer>
+  <span>Catalogue Disney+ France · juillet 2026 <span class="saving" id="saving">● enregistré</span></span>
+  <button class="reset" id="reset">Tout remettre à zéro</button>
+</footer>
+
+</div>
+
+<script>
+const DATA = [
+  {
+    sec:"Marvel Studios — prises de vues réelles",
+    note:"Le cœur du MCU, celles qui comptent vraiment pour la continuité des films.",
+    items:[
+      {y:"2021",t:"WandaVision",m:"9 ép. · 30-50 min",n:"La série qui lance tout. Vision + deuil de Wanda."},
+      {y:"2021",t:"Falcon et le Soldat de l'Hiver",m:"6 ép. · 50 min",n:"Sam Wilson devient Captain America. Enchaîne sur Brave New World."},
+      {y:"2021",t:"Loki — saison 1",m:"6 ép. · 50 min",n:"La TVA, le multivers, Kang. La plus importante des séries.",p:1},
+      {y:"2021",t:"Hawkeye",m:"6 ép. · 45 min",n:"Noël à New York, Kate Bishop, retour de Kingpin et Yelena."},
+      {y:"2022",t:"Moon Knight",m:"6 ép. · 50 min",n:"Le meilleur standalone. Oscar Isaac, mythologie égyptienne, aucun prérequis.",p:1},
+      {y:"2022",t:"Miss Marvel",m:"6 ép. · 45 min",n:"À voir avant le film The Marvels."},
+      {y:"2022",t:"She-Hulk : avocate",m:"9 ép. · 30 min",n:"Comédie juridique, ton très léger. Dispensable."},
+      {y:"2023",t:"Secret Invasion",m:"6 ép. · 50 min",n:"Nick Fury et les Skrulls. La plus mal reçue du lot."},
+      {y:"2023",t:"Loki — saison 2",m:"6 ép. · 50 min",n:"Conclusion de l'arc TVA. Indispensable avant la suite des Avengers.",p:1},
+      {y:"2024",t:"Echo",m:"5 ép. · 45 min",n:"Spin-off de Hawkeye, ton adulte. Sortie d'un bloc."},
+      {y:"2024",t:"Agatha All Along",m:"9 ép. · 40 min",n:"Suite directe de WandaVision. À enchaîner tant que vous l'avez en tête.",p:1},
+      {y:"2025",t:"Daredevil: Born Again — saison 1",m:"9 ép. · 50 min",n:"Retour de Charlie Cox et de Kingpin. Classée 18+."},
+      {y:"2025",t:"Ironheart",m:"6 ép. · 45 min",n:"Riri Williams après Wakanda Forever."},
+      {y:"2026",t:"Wonder Man",m:"8 ép. · 30 min · 27 janvier",n:"Yahya Abdul-Mateen II et Ben Kingsley. Satire d'Hollywood, très bien accueillie.",p:1},
+      {y:"2026",t:"Daredevil: Born Again — saison 2",m:"8 ép. · 50 min · 24 mars",n:"Fisk maire de New York. Saison 3 déjà confirmée pour mars 2027."},
+      {y:"2026",t:"Vision Quest",m:"À venir cette année",n:"Suite de WandaVision centrée sur Vision. Date non annoncée."}
+    ]
+  },
+  {
+    sec:"Formats courts et épisodes spéciaux",
+    note:"Une soirée chacun, tous en prises de vues réelles.",
+    items:[
+      {y:"2022",t:"Werewolf by Night",m:"1 ép. · 55 min",n:"En noir et blanc, hommage aux films d'horreur Universal. Petite pépite."},
+      {y:"2022",t:"Les Gardiens de la Galaxie : Joyeuses Fêtes",m:"1 ép. · 45 min",n:"Kevin Bacon dans son propre rôle. À voir avant le volume 3."},
+      {y:"2026",t:"The Punisher: One Last Kill",m:"Spécial · à venir",n:"Jon Bernthal, entre Born Again S2 et Spider-Man: Brand New Day."}
+    ]
+  },
+  {
+    sec:"Animation",
+    note:"Le filtre « Sans animation » masque tout ce bloc d'un coup.",
+    a:1,
+    items:[
+      {y:"2021",t:"What If…? — saison 1",m:"9 ép. · 30 min",n:"Uchronies du MCU, épisodes indépendants."},
+      {y:"2022",t:"Je s'appelle Groot — saison 1",m:"5 courts · 4 min",n:"Sans dialogue, purement décoratif."},
+      {y:"2023",t:"What If…? — saison 2",m:"9 ép. · 30 min",n:""},
+      {y:"2023",t:"Je s'appelle Groot — saison 2",m:"5 courts · 4 min",n:""},
+      {y:"2024",t:"X-Men '97 — saison 1",m:"10 ép. · 30 min",n:"Suite directe du dessin animé de 1992. La mieux notée de toutes les séries Marvel."},
+      {y:"2024",t:"What If…? — saison 3",m:"8 ép. · 30 min",n:"Dernière saison."},
+      {y:"2025",t:"Your Friendly Neighborhood Spider-Man",m:"10 ép. · 30 min",n:"Peter Parker à ses débuts, hors continuité des films."},
+      {y:"2025",t:"Eyes of Wakanda",m:"4 ép. · 30 min",n:"Anthologie historique dans l'univers de Black Panther."},
+      {y:"2025",t:"Marvel Zombies",m:"4 ép. · 30 min",n:"Dérivé de What If…?, classé adulte."},
+      {y:"2026",t:"X-Men '97 — saison 2",m:"Été 2026",n:"La suite après la mort du professeur Xavier."}
+    ]
+  },
+  {
+    sec:"L'ère Netflix et Marvel Television",
+    note:"Plus anciennes, désormais toutes sur Disney+. Continuité à part, mais Daredevil et Le Punisher alimentent directement Born Again.",
+    items:[
+      {y:"2015",t:"Daredevil",m:"3 saisons · 39 ép.",n:"Le socle avant Born Again. La saison 3 est un sommet.",p:1},
+      {y:"2015",t:"Jessica Jones",m:"3 saisons · 39 ép.",n:"Thriller psychologique. Le Kilgrave de David Tennant est mémorable."},
+      {y:"2016",t:"Luke Cage",m:"2 saisons · 26 ép.",n:"Harlem, funk et polar."},
+      {y:"2017",t:"Iron Fist",m:"2 saisons · 23 ép.",n:"La plus faible des séries Netflix."},
+      {y:"2017",t:"The Defenders",m:"1 saison · 8 ép.",n:"Le crossover des quatre. À voir après les autres."},
+      {y:"2017",t:"The Punisher",m:"2 saisons · 26 ép.",n:"Très violente, très bien écrite."},
+      {y:"2013",t:"Agents of S.H.I.E.L.D.",m:"7 saisons · 136 ép.",n:"Gros morceau. Démarre lentement, décolle après Le Soldat de l'Hiver."},
+      {y:"2015",t:"Agent Carter",m:"2 saisons · 18 ép.",n:"Peggy Carter dans les années 40. Charmante et courte."},
+      {y:"2017",t:"Inhumans",m:"1 saison · 8 ép.",n:"Ratée, à ne regarder que par curiosité."},
+      {y:"2017",t:"Runaways",m:"3 saisons · 33 ép.",n:"Adolescents contre leurs parents super-vilains."},
+      {y:"2018",t:"Cloak & Dagger",m:"2 saisons · 20 ép.",n:"Deux ados à La Nouvelle-Orléans, ton intimiste."},
+      {y:"2020",t:"Helstrom",m:"1 saison · 10 ép.",n:"Horreur, annulée au bout d'une saison. La dernière série Marvel Television."}
+    ]
+  },
+  {
+    sec:"Mutants et hors-MCU — prises de vues réelles",
+    note:"Produites par la Fox à l'époque où Marvel ne possédait pas les X-Men. Continuité séparée.",
+    items:[
+      {y:"2017",t:"Legion",m:"3 saisons · 27 ép.",n:"Par le créateur de Fargo. Psychédélique, exigeante, à mille lieues du MCU.",p:1},
+      {y:"2017",t:"The Gifted",m:"2 saisons · 29 ép.",n:"Une famille en fuite dans un monde qui traque les mutants. Correcte sans plus."}
+    ]
+  },
+  {
+    sec:"Animation — autres productions",
+    note:"Le reste du catalogue animé, du très adulte au très enfantin.",
+    a:1,
+    items:[
+      {y:"2021",t:"M.O.D.O.K.",m:"1 saison · 10 ép.",n:"Animation en pâte à modeler, humour noir, pour adultes."},
+      {y:"2021",t:"Hit-Monkey",m:"2 saisons · 20 ép.",n:"Un singe tueur à gages à Tokyo. Violent et drôle."},
+      {y:"2021",t:"Spidey et ses amis extraordinaires",m:"3 saisons",n:"Pour les tout-petits."},
+      {y:"2023",t:"Moon Girl et Dinosaure Diabolique",m:"2 saisons · 41 ép.",n:"Très bien notée, primée aux Emmy. Jeunesse mais soignée."}
+    ]
+  },
+  {
+    sec:"Les classiques d'animation",
+    note:"Les dessins animés d'origine. Le catalogue Disney+ bouge, certains vont et viennent.",
+    a:1,
+    items:[
+      {y:"1992",t:"X-Men : la série animée",m:"5 saisons · 76 ép.",n:"L'original dont X-Men '97 est la suite directe."},
+      {y:"1994",t:"Spider-Man, l'homme-araignée",m:"5 saisons · 65 ép.",n:"La série culte des années 90."},
+      {y:"2010",t:"Avengers : l'équipe des super-héros",m:"2 saisons · 52 ép.",n:"Souvent citée comme la meilleure adaptation animée des Avengers."},
+      {y:"2012",t:"Ultimate Spider-Man",m:"4 saisons · 104 ép.",n:""},
+      {y:"2013",t:"Hulk et les agents du S.M.A.S.H.",m:"2 saisons · 52 ép.",n:""},
+      {y:"2013",t:"Avengers Rassemblement",m:"5 saisons · 126 ép.",n:""},
+      {y:"2015",t:"Les Gardiens de la Galaxie",m:"3 saisons · 76 ép.",n:""},
+      {y:"2017",t:"Marvel's Spider-Man",m:"3 saisons · 58 ép.",n:""}
+    ]
+  },
+  {
+    sec:"Documentaires et coulisses",
+    note:"Legends est particulièrement pratique : des résumés de 10 minutes pour se remettre un personnage en tête avant un film.",
+    items:[
+      {y:"2021",t:"Marvel Studios : Assemblés",m:"Making-of, 1 par film/série",n:"Les coulisses de chaque production, épisode par épisode."},
+      {y:"2021",t:"Marvel Studios : Légendes",m:"Épisodes de 10 min",n:"Piqûre de rappel sur un personnage avant sa prochaine apparition. Très utile."},
+      {y:"2020",t:"Marvel's 616",m:"8 ép. · 45 min",n:"Documentaires sur la culture Marvel, réalisés par des cinéastes différents."},
+      {y:"2019",t:"Marvel's Hero Project",m:"20 ép. · 25 min",n:"Portraits de jeunes engagés. Format familial."},
+      {y:"2021",t:"Marvel : derrière le masque",m:"1 ép. · 60 min",n:"Sur l'histoire des identités secrètes dans les comics."}
+    ]
+  }
+];
+
+const KEY = "marvel-tracker-franck";
+let state = {};
+let filter = "all";
+
+const app = document.getElementById("app");
+const bar = document.getElementById("bar");
+const savingEl = document.getElementById("saving");
+
+function allItems(){ return DATA.flatMap(s => s.items.map(i => ({...i, anim: !!s.a}))); }
+const TOTAL = allItems().length;
+document.getElementById("total").textContent = TOTAL;
+
+function build(){
+  app.innerHTML = "";
+  DATA.forEach(sec => {
+    const el = document.createElement("section");
+    el.dataset.anim = sec.a ? "1" : "0";
+    const done = sec.items.filter(i => state[i.t] === "vu").length;
+    el.innerHTML =
+      '<div class="sec-head"><h2>' + sec.sec + '</h2><span>' + done + '/' + sec.items.length + '</span></div>' +
+      '<p class="sec-note">' + sec.note + '</p>';
+    sec.items.forEach(i => el.appendChild(makeRow(i, sec.a)));
+    app.appendChild(el);
+  });
+  applyFilter();
+}
+
+function makeRow(i, anim){
+  const s = state[i.t] || "todo";
+  const row = document.createElement("div");
+  row.className = "row" + (s === "vu" ? " vu" : s === "cours" ? " cours" : "") + (i.p && s !== "vu" ? " prio" : "");
+  row.dataset.state = s;
+  row.dataset.anim = anim ? "1" : "0";
+
+  const label = s === "vu" ? "Vu" : s === "cours" ? "En cours" : "À voir";
+  row.innerHTML =
+    '<div class="year">' + i.y + '</div>' +
+    '<div class="cell"><div class="title">' + i.t +
+      '<span class="tag' + (anim ? ' anim' : '') + '">' + (anim ? 'animé' : 'réel') + '</span></div>' +
+      '<div class="meta">' + i.m + '</div>' +
+      (i.n ? '<div class="note">' + i.n + '</div>' : '') +
+    '</div>' +
+    '<button class="status" data-s="' + s + '" aria-label="Statut de ' + i.t + ' : ' + label + '. Toucher pour changer.">' + label + '</button>';
+
+  row.querySelector(".status").addEventListener("click", () => {
+    const cur = state[i.t] || "todo";
+    state[i.t] = cur === "todo" ? "cours" : cur === "cours" ? "vu" : "todo";
+    save(); build();
+  });
+  return row;
+}
+
+function applyFilter(){
+  document.querySelectorAll(".row").forEach(r => {
+    const s = r.dataset.state;
+    let show = true;
+    if (filter === "todo") show = s !== "vu";
+    else if (filter === "done") show = s === "vu";
+    else if (filter === "noanim") show = r.dataset.anim === "0";
+    r.style.display = show ? "" : "none";
+  });
+  document.querySelectorAll("section").forEach(sec => {
+    const visible = [...sec.querySelectorAll(".row")].some(r => r.style.display !== "none");
+    sec.style.display = visible ? "" : "none";
+  });
+  updateGauge();
+}
+
+function updateGauge(){
+  const items = allItems();
+  const done = items.filter(i => state[i.t] === "vu").length;
+  const cours = items.filter(i => state[i.t] === "cours").length;
+  document.getElementById("count").textContent = done;
+  bar.innerHTML = "";
+  for (let k = 0; k < TOTAL; k++){
+    const t = document.createElement("div");
+    t.className = "tick" + (k < done ? " on" : k < done + cours ? " half" : "");
+    bar.appendChild(t);
+  }
+}
+
+document.querySelectorAll(".chip").forEach(c => {
+  c.addEventListener("click", () => {
+    filter = c.dataset.f;
+    document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c ? "true" : "false"));
+    applyFilter();
+  });
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  if (confirm("Effacer toute la progression ?")) { state = {}; save(); build(); }
+});
+
+let saveTimer;
+function save(){
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state));
+    savingEl.classList.add("on");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => savingEl.classList.remove("on"), 1400);
+  } catch(e){
+    savingEl.textContent = "● sauvegarde impossible";
+    savingEl.classList.add("on");
+  }
+}
+
+function load(){
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch(e){ state = {}; }
+  if (!Object.keys(state).length){
+    state = { "WandaVision":"vu", "Falcon et le Soldat de l'Hiver":"vu" };
+    save();
+  }
+  build();
+}
+
+load();
+</script>
+</body>
+</html>
