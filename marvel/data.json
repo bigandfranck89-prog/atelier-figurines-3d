@@ -1,107 +1,854 @@
 {
  "maj": "2026-07-30",
- "source": "manuel",
+ "source": "TMDB + manuel",
  "items": [
-  {"t":"Captain America: First Avenger","k":"film","d":"2011-08-17","c":1,"e":"1943","m":"124 min","n":"Le tout début de l'histoire, en pleine Seconde Guerre mondiale."},
-  {"t":"Captain Marvel","k":"film","d":"2019-03-06","c":2,"e":"1995","m":"124 min","n":"Le seul film situé dans les années 90."},
-  {"t":"Iron Man","k":"film","d":"2008-04-30","c":3,"e":"2010","m":"126 min","n":"Celui qui a tout lancé.","p":1},
-  {"t":"Iron Man 2","k":"film","d":"2010-05-12","c":4,"e":"2011","m":"124 min","n":""},
-  {"t":"L'Incroyable Hulk","k":"film","d":"2008-08-13","c":5,"e":"2011","m":"112 min","n":"Le plus oublié du lot, mais il compte pour Brave New World."},
-  {"t":"Thor","k":"film","d":"2011-04-27","c":6,"e":"2011","m":"115 min","n":""},
-  {"t":"Avengers","k":"film","d":"2012-04-25","c":7,"e":"2012","m":"143 min","n":"La bataille de New York, pivot de toute la suite.","p":1},
-  {"t":"Iron Man 3","k":"film","d":"2013-04-24","c":8,"e":"2012","m":"130 min","n":"Se passe à Noël, juste après New York."},
-  {"t":"Thor: Le Monde des ténèbres","k":"film","d":"2013-10-30","c":9,"e":"2013","m":"112 min","n":""},
-  {"t":"Captain America: Le Soldat de l'Hiver","k":"film","d":"2014-03-26","c":10,"e":"2014","m":"136 min","n":"Chute du S.H.I.E.L.D. Un des sommets du MCU.","p":1},
-  {"t":"Les Gardiens de la Galaxie","k":"film","d":"2014-08-13","c":11,"e":"2014","m":"121 min","n":""},
-  {"t":"Les Gardiens de la Galaxie Vol. 2","k":"film","d":"2017-04-26","c":12,"e":"2014","m":"136 min","n":"Se passe quelques mois après le premier."},
-  {"t":"Avengers: L'Ère d'Ultron","k":"film","d":"2015-04-22","c":13,"e":"2015","m":"141 min","n":""},
-  {"t":"Ant-Man","k":"film","d":"2015-07-14","c":14,"e":"2015","m":"117 min","n":""},
-  {"t":"Captain America: Civil War","k":"film","d":"2016-04-27","c":15,"e":"2016","m":"147 min","n":"La cassure entre les Avengers.","p":1},
-  {"t":"Black Widow","k":"film","d":"2021-07-07","c":16,"e":"2016","m":"134 min","n":"Se situe juste après Civil War, malgré sa sortie tardive."},
-  {"t":"Black Panther","k":"film","d":"2018-02-14","c":17,"e":"2016","m":"134 min","n":""},
-  {"t":"Spider-Man: Homecoming","k":"film","d":"2017-07-12","c":18,"e":"2016","m":"133 min","n":""},
-  {"t":"Doctor Strange","k":"film","d":"2016-10-26","c":19,"e":"2016","m":"115 min","n":""},
-  {"t":"Thor: Ragnarok","k":"film","d":"2017-10-25","c":20,"e":"2017","m":"130 min","n":"Changement de ton radical, très réussi."},
-  {"t":"Ant-Man et la Guêpe","k":"film","d":"2018-07-18","c":21,"e":"2018","m":"118 min","n":"Sa scène post-générique se cale pendant Infinity War."},
-  {"t":"Avengers: Infinity War","k":"film","d":"2018-04-25","c":22,"e":"2018","m":"149 min","n":"","p":1},
-  {"t":"Avengers: Endgame","k":"film","d":"2019-04-24","c":23,"e":"2018 → 2023","m":"181 min","n":"Cinq ans s'écoulent au milieu du film. Tout ce qui suit se passe après.","p":1},
-  {"t":"Spider-Man: Far From Home","k":"film","d":"2019-07-03","c":24,"e":"2024","m":"129 min","n":"Juste après Endgame."},
-  {"t":"WandaVision","k":"serie","d":"2021-01-15","c":24.5,"e":"2024","m":"9 ép. · 30-50 min","n":"La série qui lance tout. À voir avant Doctor Strange 2.","p":1},
-  {"t":"Falcon et le Soldat de l'Hiver","k":"serie","d":"2021-03-19","c":24.6,"e":"2024","m":"6 ép. · 50 min","n":"Sam Wilson devient Captain America. Enchaîne sur Brave New World."},
-  {"t":"Loki — saison 1","k":"serie","d":"2021-06-09","c":24.7,"e":"2024","m":"6 ép. · 50 min","n":"La TVA, le multivers, Kang. La plus importante des séries.","p":1},
-  {"t":"Shang-Chi et la Légende des Dix Anneaux","k":"film","d":"2021-09-01","c":25,"e":"2024","m":"132 min","n":""},
-  {"t":"Les Éternels","k":"film","d":"2021-11-03","c":26,"e":"2024","m":"156 min","n":"Le mal-aimé, mais il pose des bases pour la suite."},
-  {"t":"Hawkeye","k":"serie","d":"2021-11-24","c":26.5,"e":"2024","m":"6 ép. · 45 min","n":"Noël à New York. Retour de Kingpin et Yelena."},
-  {"t":"Spider-Man: No Way Home","k":"film","d":"2021-12-15","c":27,"e":"2024","m":"148 min","n":"Ouvre le multivers pour de bon.","p":1},
-  {"t":"Moon Knight","k":"serie","d":"2022-03-30","c":27.5,"e":"2024","m":"6 ép. · 50 min","n":"Le meilleur standalone. Aucun prérequis.","p":1},
-  {"t":"Miss Marvel","k":"serie","d":"2022-06-08","c":27.6,"e":"2024","m":"6 ép. · 45 min","n":"À voir avant le film The Marvels."},
-  {"t":"She-Hulk : avocate","k":"serie","d":"2022-08-18","c":27.7,"e":"2024","m":"9 ép. · 30 min","n":"Comédie juridique, ton très léger. Dispensable."},
-  {"t":"Werewolf by Night","k":"special","d":"2022-10-07","c":27.8,"e":"2024","m":"1 ép. · 55 min","n":"En noir et blanc, hommage aux films d'horreur Universal."},
-  {"t":"Doctor Strange in the Multiverse of Madness","k":"film","d":"2022-05-04","c":28,"e":"2025","m":"126 min","n":"À voir après WandaVision, sinon on perd le fil de Wanda.","p":1},
-  {"t":"Thor: Love and Thunder","k":"film","d":"2022-07-13","c":29,"e":"2025","m":"119 min","n":""},
-  {"t":"Black Panther: Wakanda Forever","k":"film","d":"2022-11-09","c":30,"e":"2025","m":"161 min","n":"Introduit Riri Williams, qu'on retrouve dans Ironheart."},
-  {"t":"Les Gardiens de la Galaxie : Joyeuses Fêtes","k":"special","d":"2022-11-25","c":30.5,"e":"2025","m":"1 ép. · 45 min","n":"À voir avant le volume 3."},
-  {"t":"Ant-Man et la Guêpe: Quantumania","k":"film","d":"2023-02-15","c":31,"e":"2026","m":"124 min","n":"Présente Kang. À voir avant Loki saison 2."},
-  {"t":"Loki — saison 2","k":"serie","d":"2023-10-06","c":31.5,"e":"2026","m":"6 ép. · 50 min","n":"Conclusion de l'arc TVA. Après Quantumania.","p":1},
-  {"t":"Les Gardiens de la Galaxie Vol. 3","k":"film","d":"2023-05-03","c":32,"e":"2026","m":"150 min","n":"Conclusion de la trilogie, la meilleure des trois."},
-  {"t":"Secret Invasion","k":"serie","d":"2023-06-21","c":32.5,"e":"2026","m":"6 ép. · 50 min","n":"Nick Fury et les Skrulls. La plus mal reçue du lot."},
-  {"t":"The Marvels","k":"film","d":"2023-11-08","c":33,"e":"2026","m":"105 min","n":"Suite directe de Captain Marvel et de Miss Marvel."},
-  {"t":"Echo","k":"serie","d":"2024-01-10","c":33.5,"e":"2026","m":"5 ép. · 45 min","n":"Spin-off de Hawkeye, ton adulte."},
-  {"t":"Agatha All Along","k":"serie","d":"2024-09-19","c":33.6,"e":"2026","m":"9 ép. · 40 min","n":"Suite directe de WandaVision.","p":1},
-  {"t":"Deadpool & Wolverine","k":"film","d":"2024-07-24","c":34,"e":"hors continuité","m":"128 min","n":"Se comprend mieux après Loki. Classé 16+."},
-  {"t":"Daredevil: Born Again — saison 1","k":"serie","d":"2025-03-05","c":34.5,"e":"2027","m":"9 ép. · 50 min","n":"Retour de Charlie Cox et de Kingpin. Classée 18+."},
-  {"t":"Ironheart","k":"serie","d":"2025-06-24","c":34.6,"e":"2027","m":"6 ép. · 45 min","n":"Riri Williams après Wakanda Forever."},
-  {"t":"Captain America: Brave New World","k":"film","d":"2025-02-12","c":35,"e":"2027","m":"118 min","n":"Sam Wilson en Captain America, suite de la série Falcon."},
-  {"t":"Thunderbolts*","k":"film","d":"2025-04-30","c":36,"e":"2027","m":"127 min","n":"Yelena, Bucky, Red Guardian. Très bon accueil."},
-  {"t":"Wonder Man","k":"serie","d":"2026-01-27","c":36.5,"e":"2027","m":"8 ép. · 30 min","n":"Satire d'Hollywood, très bien accueillie.","p":1},
-  {"t":"Les 4 Fantastiques: Premiers pas","k":"film","d":"2025-07-23","c":37,"e":"univers parallèle","m":"115 min","n":"Se déroule dans une réalité rétro-futuriste distincte."},
-  {"t":"The Punisher: One Last Kill","k":"special","d":"2026-05-12","c":37.5,"e":"2027","m":"Téléfilm","n":"Jon Bernthal. Précède Spider-Man: Brand New Day."},
-  {"t":"Daredevil: Born Again — saison 2","k":"serie","d":"2026-03-24","c":37.6,"e":"2027","m":"8 ép. · 50 min","n":"Fisk maire de New York. Saison 3 confirmée pour 2027."},
-  {"t":"Spider-Man: Brand New Day","k":"film","d":"2026-07-29","c":38,"e":"2027","m":"En salles","n":"Avec Le Punisher et Hulk. Prépare Secret Wars."},
-  {"t":"VisionQuest","k":"serie","d":"2026-10-14","c":38.5,"e":"2027","m":"Disney+","n":"Suite de WandaVision centrée sur Vision. Prépare Secret Wars.","p":1},
-  {"t":"Avengers: Doomsday","k":"film","d":"2026-12-16","c":39,"e":"2027","m":"En salles","n":"Robert Downey Jr. revient en Docteur Fatalis.","p":1},
-  {"t":"Avengers: Secret Wars","k":"film","d":"2027-12-15","c":40,"e":"à venir","m":"En salles","n":"Conclusion de la saga du multivers."},
-  {"t":"Black Panther 3","k":"film","d":"2028-12-15","c":41,"e":"à venir","m":"En salles","n":"Annoncé au Comic-Con 2026."},
-  {"t":"Agent Carter","k":"serie","d":"2015-01-06","c":1.5,"e":"1946","m":"2 saisons · 18 ép.","n":"Peggy Carter dans les années 40. Charmante et courte."},
-  {"t":"Agents of S.H.I.E.L.D.","k":"serie","d":"2013-09-24","m":"7 saisons · 136 ép.","n":"Gros morceau. Démarre lentement, décolle après Le Soldat de l'Hiver."},
-  {"t":"Daredevil","k":"netflix","d":"2015-04-10","m":"3 saisons · 39 ép.","n":"Le socle avant Born Again. La saison 3 est un sommet.","p":1},
-  {"t":"Jessica Jones","k":"netflix","d":"2015-11-20","m":"3 saisons · 39 ép.","n":"Thriller psychologique. Le Kilgrave de David Tennant est mémorable."},
-  {"t":"Luke Cage","k":"netflix","d":"2016-09-30","m":"2 saisons · 26 ép.","n":"Harlem, funk et polar."},
-  {"t":"Iron Fist","k":"netflix","d":"2017-03-17","m":"2 saisons · 23 ép.","n":"La plus faible des séries Netflix."},
-  {"t":"The Defenders","k":"netflix","d":"2017-08-18","m":"1 saison · 8 ép.","n":"Le crossover des quatre. À voir après les autres."},
-  {"t":"The Punisher","k":"netflix","d":"2017-11-17","m":"2 saisons · 26 ép.","n":"Très violente, très bien écrite."},
-  {"t":"Inhumans","k":"netflix","d":"2017-09-29","m":"1 saison · 8 ép.","n":"Ratée, à ne regarder que par curiosité."},
-  {"t":"Runaways","k":"netflix","d":"2017-11-21","m":"3 saisons · 33 ép.","n":"Adolescents contre leurs parents super-vilains."},
-  {"t":"Cloak & Dagger","k":"netflix","d":"2018-06-07","m":"2 saisons · 20 ép.","n":"Deux ados à La Nouvelle-Orléans, ton intimiste."},
-  {"t":"Helstrom","k":"netflix","d":"2020-10-16","m":"1 saison · 10 ép.","n":"Horreur, annulée au bout d'une saison."},
-  {"t":"Legion","k":"mutants","d":"2017-02-08","m":"3 saisons · 27 ép.","n":"Par le créateur de Fargo. Psychédélique, exigeante.","p":1},
-  {"t":"The Gifted","k":"mutants","d":"2017-10-02","m":"2 saisons · 29 ép.","n":"Une famille en fuite dans un monde qui traque les mutants."},
-  {"t":"What If…? — saison 1","k":"anim","d":"2021-08-11","m":"9 ép. · 30 min","n":"Uchronies du MCU, épisodes indépendants."},
-  {"t":"Je s'appelle Groot — saison 1","k":"anim","d":"2022-08-10","m":"5 courts · 4 min","n":"Sans dialogue, purement décoratif."},
-  {"t":"What If…? — saison 2","k":"anim","d":"2023-12-22","m":"9 ép. · 30 min","n":""},
-  {"t":"Je s'appelle Groot — saison 2","k":"anim","d":"2023-09-06","m":"5 courts · 4 min","n":""},
-  {"t":"X-Men '97 — saison 1","k":"anim","d":"2024-03-20","m":"10 ép. · 30 min","n":"Suite directe du dessin animé de 1992. La mieux notée."},
-  {"t":"What If…? — saison 3","k":"anim","d":"2024-12-22","m":"8 ép. · 30 min","n":"Dernière saison."},
-  {"t":"Your Friendly Neighborhood Spider-Man","k":"anim","d":"2025-01-29","m":"10 ép. · 30 min","n":"Peter Parker à ses débuts, hors continuité."},
-  {"t":"Eyes of Wakanda","k":"anim","d":"2025-08-01","m":"4 ép. · 30 min","n":"Anthologie historique dans l'univers de Black Panther."},
-  {"t":"Marvel Zombies","k":"anim","d":"2025-10-03","m":"4 ép. · 30 min","n":"Dérivé de What If…?, classé adulte."},
-  {"t":"X-Men '97 — saison 2","k":"anim","d":"2026-08-15","m":"10 ép.","n":"La suite après la mort du professeur Xavier."},
-  {"t":"M.O.D.O.K.","k":"anim","d":"2021-05-21","m":"1 saison · 10 ép.","n":"Pâte à modeler, humour noir, pour adultes."},
-  {"t":"Hit-Monkey","k":"anim","d":"2021-11-17","m":"2 saisons · 20 ép.","n":"Un singe tueur à gages à Tokyo."},
-  {"t":"Spidey et ses amis extraordinaires","k":"anim","d":"2021-08-06","m":"3 saisons","n":"Pour les tout-petits."},
-  {"t":"Moon Girl et Dinosaure Diabolique","k":"anim","d":"2023-02-10","m":"2 saisons · 41 ép.","n":"Primée aux Emmy. Jeunesse mais soignée."},
-  {"t":"X-Men : la série animée","k":"classique","d":"1992-10-31","m":"5 saisons · 76 ép.","n":"L'original dont X-Men '97 est la suite directe."},
-  {"t":"Spider-Man, l'homme-araignée","k":"classique","d":"1994-11-19","m":"5 saisons · 65 ép.","n":"La série culte des années 90."},
-  {"t":"Avengers : l'équipe des super-héros","k":"classique","d":"2010-09-22","m":"2 saisons · 52 ép.","n":"La meilleure adaptation animée des Avengers."},
-  {"t":"Ultimate Spider-Man","k":"classique","d":"2012-04-01","m":"4 saisons · 104 ép.","n":""},
-  {"t":"Hulk et les agents du S.M.A.S.H.","k":"classique","d":"2013-08-11","m":"2 saisons · 52 ép.","n":""},
-  {"t":"Avengers Rassemblement","k":"classique","d":"2013-05-26","m":"5 saisons · 126 ép.","n":""},
-  {"t":"Les Gardiens de la Galaxie (animé)","k":"classique","d":"2015-09-26","m":"3 saisons · 76 ép.","n":""},
-  {"t":"Marvel's Spider-Man","k":"classique","d":"2017-08-19","m":"3 saisons · 58 ép.","n":""},
-  {"t":"Marvel Studios : Assemblés","k":"doc","d":"2021-03-12","m":"Making-of","n":"Les coulisses de chaque production."},
-  {"t":"Marvel Studios : Légendes","k":"doc","d":"2021-01-08","m":"Épisodes de 10 min","n":"Résumés pour se remettre un personnage en tête avant un film.","p":1},
-  {"t":"Marvel's 616","k":"doc","d":"2020-11-20","m":"8 ép. · 45 min","n":"Documentaires sur la culture Marvel."},
-  {"t":"Marvel's Hero Project","k":"doc","d":"2019-11-12","m":"20 ép. · 25 min","n":"Portraits de jeunes engagés. Format familial."},
-  {"t":"Marvel : derrière le masque","k":"doc","d":"2021-02-12","m":"1 ép. · 60 min","n":"Sur l'histoire des identités secrètes dans les comics."}
+  {
+   "t": "Captain America: First Avenger",
+   "k": "film",
+   "d": "2011-08-17",
+   "c": 1,
+   "e": "1943",
+   "m": "124 min",
+   "n": "Le tout début de l'histoire, en pleine Seconde Guerre mondiale."
+  },
+  {
+   "t": "Captain Marvel",
+   "k": "film",
+   "d": "2019-03-06",
+   "c": 2,
+   "e": "1995",
+   "m": "124 min",
+   "n": "Le seul film situé dans les années 90."
+  },
+  {
+   "t": "Iron Man",
+   "k": "film",
+   "d": "2008-04-30",
+   "c": 3,
+   "e": "2010",
+   "m": "126 min",
+   "n": "Celui qui a tout lancé.",
+   "p": 1
+  },
+  {
+   "t": "Iron Man 2",
+   "k": "film",
+   "d": "2010-05-12",
+   "c": 4,
+   "e": "2011",
+   "m": "124 min",
+   "n": ""
+  },
+  {
+   "t": "L'Incroyable Hulk",
+   "k": "film",
+   "d": "2008-08-13",
+   "c": 5,
+   "e": "2011",
+   "m": "112 min",
+   "n": "Le plus oublié du lot, mais il compte pour Brave New World."
+  },
+  {
+   "t": "Thor",
+   "k": "film",
+   "d": "2011-04-27",
+   "c": 6,
+   "e": "2011",
+   "m": "115 min",
+   "n": ""
+  },
+  {
+   "t": "Avengers",
+   "k": "film",
+   "d": "2012-04-25",
+   "c": 7,
+   "e": "2012",
+   "m": "143 min",
+   "n": "La bataille de New York, pivot de toute la suite.",
+   "p": 1
+  },
+  {
+   "t": "Iron Man 3",
+   "k": "film",
+   "d": "2013-04-24",
+   "c": 8,
+   "e": "2012",
+   "m": "130 min",
+   "n": "Se passe à Noël, juste après New York."
+  },
+  {
+   "t": "Thor: Le Monde des ténèbres",
+   "k": "film",
+   "d": "2013-10-30",
+   "c": 9,
+   "e": "2013",
+   "m": "112 min",
+   "n": ""
+  },
+  {
+   "t": "Captain America: Le Soldat de l'Hiver",
+   "k": "film",
+   "d": "2014-03-26",
+   "c": 10,
+   "e": "2014",
+   "m": "136 min",
+   "n": "Chute du S.H.I.E.L.D. Un des sommets du MCU.",
+   "p": 1
+  },
+  {
+   "t": "Les Gardiens de la Galaxie",
+   "k": "film",
+   "d": "2014-08-13",
+   "c": 11,
+   "e": "2014",
+   "m": "121 min",
+   "n": ""
+  },
+  {
+   "t": "Les Gardiens de la Galaxie Vol. 2",
+   "k": "film",
+   "d": "2017-04-26",
+   "c": 12,
+   "e": "2014",
+   "m": "136 min",
+   "n": "Se passe quelques mois après le premier."
+  },
+  {
+   "t": "Avengers: L'Ère d'Ultron",
+   "k": "film",
+   "d": "2015-04-22",
+   "c": 13,
+   "e": "2015",
+   "m": "141 min",
+   "n": ""
+  },
+  {
+   "t": "Ant-Man",
+   "k": "film",
+   "d": "2015-07-14",
+   "c": 14,
+   "e": "2015",
+   "m": "117 min",
+   "n": ""
+  },
+  {
+   "t": "Captain America: Civil War",
+   "k": "film",
+   "d": "2016-04-27",
+   "c": 15,
+   "e": "2016",
+   "m": "147 min",
+   "n": "La cassure entre les Avengers.",
+   "p": 1
+  },
+  {
+   "t": "Black Widow",
+   "k": "film",
+   "d": "2021-07-07",
+   "c": 16,
+   "e": "2016",
+   "m": "134 min",
+   "n": "Se situe juste après Civil War, malgré sa sortie tardive."
+  },
+  {
+   "t": "Black Panther",
+   "k": "film",
+   "d": "2018-02-14",
+   "c": 17,
+   "e": "2016",
+   "m": "134 min",
+   "n": ""
+  },
+  {
+   "t": "Spider-Man: Homecoming",
+   "k": "film",
+   "d": "2017-07-12",
+   "c": 18,
+   "e": "2016",
+   "m": "133 min",
+   "n": ""
+  },
+  {
+   "t": "Doctor Strange",
+   "k": "film",
+   "d": "2016-10-26",
+   "c": 19,
+   "e": "2016",
+   "m": "115 min",
+   "n": ""
+  },
+  {
+   "t": "Thor: Ragnarok",
+   "k": "film",
+   "d": "2017-10-25",
+   "c": 20,
+   "e": "2017",
+   "m": "130 min",
+   "n": "Changement de ton radical, très réussi."
+  },
+  {
+   "t": "Ant-Man et la Guêpe",
+   "k": "film",
+   "d": "2018-07-18",
+   "c": 21,
+   "e": "2018",
+   "m": "118 min",
+   "n": "Sa scène post-générique se cale pendant Infinity War."
+  },
+  {
+   "t": "Avengers: Infinity War",
+   "k": "film",
+   "d": "2018-04-25",
+   "c": 22,
+   "e": "2018",
+   "m": "149 min",
+   "n": "",
+   "p": 1
+  },
+  {
+   "t": "Avengers: Endgame",
+   "k": "film",
+   "d": "2019-04-24",
+   "c": 23,
+   "e": "2018 → 2023",
+   "m": "181 min",
+   "n": "Cinq ans s'écoulent au milieu du film. Tout ce qui suit se passe après.",
+   "p": 1
+  },
+  {
+   "t": "Spider-Man: Far From Home",
+   "k": "film",
+   "d": "2019-07-03",
+   "c": 24,
+   "e": "2024",
+   "m": "129 min",
+   "n": "Juste après Endgame."
+  },
+  {
+   "t": "WandaVision",
+   "k": "serie",
+   "d": "2021-01-15",
+   "c": 24.5,
+   "e": "2024",
+   "m": "9 ép. · 30-50 min",
+   "n": "La série qui lance tout. À voir avant Doctor Strange 2.",
+   "p": 1
+  },
+  {
+   "t": "Falcon et le Soldat de l'Hiver",
+   "k": "serie",
+   "d": "2021-03-19",
+   "c": 24.6,
+   "e": "2024",
+   "m": "6 ép. · 50 min",
+   "n": "Sam Wilson devient Captain America. Enchaîne sur Brave New World."
+  },
+  {
+   "t": "Loki — saison 1",
+   "k": "serie",
+   "d": "2021-06-09",
+   "c": 24.7,
+   "e": "2024",
+   "m": "6 ép. · 50 min",
+   "n": "La TVA, le multivers, Kang. La plus importante des séries.",
+   "p": 1
+  },
+  {
+   "t": "Shang-Chi et la Légende des Dix Anneaux",
+   "k": "film",
+   "d": "2021-09-01",
+   "c": 25,
+   "e": "2024",
+   "m": "132 min",
+   "n": ""
+  },
+  {
+   "t": "Les Éternels",
+   "k": "film",
+   "d": "2021-11-03",
+   "c": 26,
+   "e": "2024",
+   "m": "156 min",
+   "n": "Le mal-aimé, mais il pose des bases pour la suite."
+  },
+  {
+   "t": "Hawkeye",
+   "k": "serie",
+   "d": "2021-11-24",
+   "c": 26.5,
+   "e": "2024",
+   "m": "6 ép. · 45 min",
+   "n": "Noël à New York. Retour de Kingpin et Yelena."
+  },
+  {
+   "t": "Spider-Man: No Way Home",
+   "k": "film",
+   "d": "2021-12-15",
+   "c": 27,
+   "e": "2024",
+   "m": "148 min",
+   "n": "Ouvre le multivers pour de bon.",
+   "p": 1
+  },
+  {
+   "t": "Moon Knight",
+   "k": "serie",
+   "d": "2022-03-30",
+   "c": 27.5,
+   "e": "2024",
+   "m": "6 ép. · 50 min",
+   "n": "Le meilleur standalone. Aucun prérequis.",
+   "p": 1
+  },
+  {
+   "t": "Miss Marvel",
+   "k": "serie",
+   "d": "2022-06-08",
+   "c": 27.6,
+   "e": "2024",
+   "m": "6 ép. · 45 min",
+   "n": "À voir avant le film The Marvels."
+  },
+  {
+   "t": "She-Hulk : avocate",
+   "k": "serie",
+   "d": "2022-08-18",
+   "c": 27.7,
+   "e": "2024",
+   "m": "9 ép. · 30 min",
+   "n": "Comédie juridique, ton très léger. Dispensable."
+  },
+  {
+   "t": "Werewolf by Night",
+   "k": "special",
+   "d": "2022-10-07",
+   "c": 27.8,
+   "e": "2024",
+   "m": "1 ép. · 55 min",
+   "n": "En noir et blanc, hommage aux films d'horreur Universal."
+  },
+  {
+   "t": "Doctor Strange in the Multiverse of Madness",
+   "k": "film",
+   "d": "2022-05-04",
+   "c": 28,
+   "e": "2025",
+   "m": "126 min",
+   "n": "À voir après WandaVision, sinon on perd le fil de Wanda.",
+   "p": 1
+  },
+  {
+   "t": "Thor: Love and Thunder",
+   "k": "film",
+   "d": "2022-07-13",
+   "c": 29,
+   "e": "2025",
+   "m": "119 min",
+   "n": ""
+  },
+  {
+   "t": "Black Panther: Wakanda Forever",
+   "k": "film",
+   "d": "2022-11-09",
+   "c": 30,
+   "e": "2025",
+   "m": "161 min",
+   "n": "Introduit Riri Williams, qu'on retrouve dans Ironheart."
+  },
+  {
+   "t": "Les Gardiens de la Galaxie : Joyeuses Fêtes",
+   "k": "special",
+   "d": "2022-11-25",
+   "c": 30.5,
+   "e": "2025",
+   "m": "1 ép. · 45 min",
+   "n": "À voir avant le volume 3."
+  },
+  {
+   "t": "Ant-Man et la Guêpe: Quantumania",
+   "k": "film",
+   "d": "2023-02-15",
+   "c": 31,
+   "e": "2026",
+   "m": "124 min",
+   "n": "Présente Kang. À voir avant Loki saison 2."
+  },
+  {
+   "t": "Loki — saison 2",
+   "k": "serie",
+   "d": "2023-10-06",
+   "c": 31.5,
+   "e": "2026",
+   "m": "6 ép. · 50 min",
+   "n": "Conclusion de l'arc TVA. Après Quantumania.",
+   "p": 1
+  },
+  {
+   "t": "Les Gardiens de la Galaxie Vol. 3",
+   "k": "film",
+   "d": "2023-05-03",
+   "c": 32,
+   "e": "2026",
+   "m": "150 min",
+   "n": "Conclusion de la trilogie, la meilleure des trois."
+  },
+  {
+   "t": "Secret Invasion",
+   "k": "serie",
+   "d": "2023-06-21",
+   "c": 32.5,
+   "e": "2026",
+   "m": "6 ép. · 50 min",
+   "n": "Nick Fury et les Skrulls. La plus mal reçue du lot."
+  },
+  {
+   "t": "The Marvels",
+   "k": "film",
+   "d": "2023-11-08",
+   "c": 33,
+   "e": "2026",
+   "m": "105 min",
+   "n": "Suite directe de Captain Marvel et de Miss Marvel."
+  },
+  {
+   "t": "Echo",
+   "k": "serie",
+   "d": "2024-01-10",
+   "c": 33.5,
+   "e": "2026",
+   "m": "5 ép. · 45 min",
+   "n": "Spin-off de Hawkeye, ton adulte."
+  },
+  {
+   "t": "Agatha All Along",
+   "k": "serie",
+   "d": "2024-09-19",
+   "c": 33.6,
+   "e": "2026",
+   "m": "9 ép. · 40 min",
+   "n": "Suite directe de WandaVision.",
+   "p": 1
+  },
+  {
+   "t": "Deadpool & Wolverine",
+   "k": "film",
+   "d": "2024-07-24",
+   "c": 34,
+   "e": "hors continuité",
+   "m": "128 min",
+   "n": "Se comprend mieux après Loki. Classé 16+."
+  },
+  {
+   "t": "Daredevil: Born Again — saison 1",
+   "k": "serie",
+   "d": "2025-03-05",
+   "c": 34.5,
+   "e": "2027",
+   "m": "9 ép. · 50 min",
+   "n": "Retour de Charlie Cox et de Kingpin. Classée 18+."
+  },
+  {
+   "t": "Ironheart",
+   "k": "serie",
+   "d": "2025-06-24",
+   "c": 34.6,
+   "e": "2027",
+   "m": "6 ép. · 45 min",
+   "n": "Riri Williams après Wakanda Forever."
+  },
+  {
+   "t": "Captain America: Brave New World",
+   "k": "film",
+   "d": "2025-02-12",
+   "c": 35,
+   "e": "2027",
+   "m": "118 min",
+   "n": "Sam Wilson en Captain America, suite de la série Falcon."
+  },
+  {
+   "t": "Thunderbolts*",
+   "k": "film",
+   "d": "2025-04-30",
+   "c": 36,
+   "e": "2027",
+   "m": "127 min",
+   "n": "Yelena, Bucky, Red Guardian. Très bon accueil."
+  },
+  {
+   "t": "Wonder Man",
+   "k": "serie",
+   "d": "2026-01-27",
+   "c": 36.5,
+   "e": "2027",
+   "m": "8 ép. · 30 min",
+   "n": "Satire d'Hollywood, très bien accueillie.",
+   "p": 1
+  },
+  {
+   "t": "Les 4 Fantastiques: Premiers pas",
+   "k": "film",
+   "d": "2025-07-23",
+   "c": 37,
+   "e": "univers parallèle",
+   "m": "115 min",
+   "n": "Se déroule dans une réalité rétro-futuriste distincte."
+  },
+  {
+   "t": "The Punisher: One Last Kill",
+   "k": "special",
+   "d": "2026-05-12",
+   "c": 37.5,
+   "e": "2027",
+   "m": "Téléfilm",
+   "n": "Jon Bernthal. Précède Spider-Man: Brand New Day."
+  },
+  {
+   "t": "Daredevil: Born Again — saison 2",
+   "k": "serie",
+   "d": "2026-03-24",
+   "c": 37.6,
+   "e": "2027",
+   "m": "8 ép. · 50 min",
+   "n": "Fisk maire de New York. Saison 3 confirmée pour 2027."
+  },
+  {
+   "t": "Spider-Man: Brand New Day",
+   "k": "film",
+   "d": "2026-07-29",
+   "c": 38,
+   "e": "2027",
+   "m": "En salles",
+   "n": "Avec Le Punisher et Hulk. Prépare Secret Wars."
+  },
+  {
+   "t": "VisionQuest",
+   "k": "serie",
+   "d": "2026-10-14",
+   "c": 38.5,
+   "e": "2027",
+   "m": "Disney+",
+   "n": "Suite de WandaVision centrée sur Vision. Prépare Secret Wars.",
+   "p": 1
+  },
+  {
+   "t": "Avengers: Doomsday",
+   "k": "film",
+   "d": "2026-12-16",
+   "c": 39,
+   "e": "2027",
+   "m": "En salles",
+   "n": "Robert Downey Jr. revient en Docteur Fatalis.",
+   "p": 1
+  },
+  {
+   "t": "Avengers: Secret Wars",
+   "k": "film",
+   "d": "2027-12-16",
+   "c": 40,
+   "e": "à venir",
+   "m": "En salles",
+   "n": "Conclusion de la saga du multivers."
+  },
+  {
+   "t": "Black Panther 3",
+   "k": "film",
+   "d": "2028-12-14",
+   "c": 41,
+   "e": "à venir",
+   "m": "En salles",
+   "n": "Annoncé au Comic-Con 2026."
+  },
+  {
+   "t": "Agent Carter",
+   "k": "serie",
+   "d": "2015-01-06",
+   "c": 1.5,
+   "e": "1946",
+   "m": "2 saisons · 18 ép.",
+   "n": "Peggy Carter dans les années 40. Charmante et courte."
+  },
+  {
+   "t": "Agents of S.H.I.E.L.D.",
+   "k": "serie",
+   "d": "2013-09-24",
+   "m": "7 saisons · 136 ép.",
+   "n": "Gros morceau. Démarre lentement, décolle après Le Soldat de l'Hiver."
+  },
+  {
+   "t": "Daredevil",
+   "k": "netflix",
+   "d": "2015-04-10",
+   "m": "3 saisons · 39 ép.",
+   "n": "Le socle avant Born Again. La saison 3 est un sommet.",
+   "p": 1
+  },
+  {
+   "t": "Jessica Jones",
+   "k": "netflix",
+   "d": "2015-11-20",
+   "m": "3 saisons · 39 ép.",
+   "n": "Thriller psychologique. Le Kilgrave de David Tennant est mémorable."
+  },
+  {
+   "t": "Luke Cage",
+   "k": "netflix",
+   "d": "2016-09-30",
+   "m": "2 saisons · 26 ép.",
+   "n": "Harlem, funk et polar."
+  },
+  {
+   "t": "Iron Fist",
+   "k": "netflix",
+   "d": "2017-03-17",
+   "m": "2 saisons · 23 ép.",
+   "n": "La plus faible des séries Netflix."
+  },
+  {
+   "t": "The Defenders",
+   "k": "netflix",
+   "d": "2017-08-18",
+   "m": "1 saison · 8 ép.",
+   "n": "Le crossover des quatre. À voir après les autres."
+  },
+  {
+   "t": "The Punisher",
+   "k": "netflix",
+   "d": "2017-11-17",
+   "m": "2 saisons · 26 ép.",
+   "n": "Très violente, très bien écrite."
+  },
+  {
+   "t": "Inhumans",
+   "k": "netflix",
+   "d": "2017-09-29",
+   "m": "1 saison · 8 ép.",
+   "n": "Ratée, à ne regarder que par curiosité."
+  },
+  {
+   "t": "Runaways",
+   "k": "netflix",
+   "d": "2017-11-21",
+   "m": "3 saisons · 33 ép.",
+   "n": "Adolescents contre leurs parents super-vilains."
+  },
+  {
+   "t": "Cloak & Dagger",
+   "k": "netflix",
+   "d": "2018-06-07",
+   "m": "2 saisons · 20 ép.",
+   "n": "Deux ados à La Nouvelle-Orléans, ton intimiste."
+  },
+  {
+   "t": "Helstrom",
+   "k": "netflix",
+   "d": "2020-10-16",
+   "m": "1 saison · 10 ép.",
+   "n": "Horreur, annulée au bout d'une saison."
+  },
+  {
+   "t": "Legion",
+   "k": "mutants",
+   "d": "2017-02-08",
+   "m": "3 saisons · 27 ép.",
+   "n": "Par le créateur de Fargo. Psychédélique, exigeante.",
+   "p": 1
+  },
+  {
+   "t": "The Gifted",
+   "k": "mutants",
+   "d": "2017-10-02",
+   "m": "2 saisons · 29 ép.",
+   "n": "Une famille en fuite dans un monde qui traque les mutants."
+  },
+  {
+   "t": "What If…? — saison 1",
+   "k": "anim",
+   "d": "2021-08-11",
+   "m": "9 ép. · 30 min",
+   "n": "Uchronies du MCU, épisodes indépendants."
+  },
+  {
+   "t": "Je s'appelle Groot — saison 1",
+   "k": "anim",
+   "d": "2022-08-10",
+   "m": "5 courts · 4 min",
+   "n": "Sans dialogue, purement décoratif."
+  },
+  {
+   "t": "What If…? — saison 2",
+   "k": "anim",
+   "d": "2023-12-22",
+   "m": "9 ép. · 30 min",
+   "n": ""
+  },
+  {
+   "t": "Je s'appelle Groot — saison 2",
+   "k": "anim",
+   "d": "2023-09-06",
+   "m": "5 courts · 4 min",
+   "n": ""
+  },
+  {
+   "t": "X-Men '97 — saison 1",
+   "k": "anim",
+   "d": "2024-03-20",
+   "m": "10 ép. · 30 min",
+   "n": "Suite directe du dessin animé de 1992. La mieux notée."
+  },
+  {
+   "t": "What If…? — saison 3",
+   "k": "anim",
+   "d": "2024-12-22",
+   "m": "8 ép. · 30 min",
+   "n": "Dernière saison."
+  },
+  {
+   "t": "Your Friendly Neighborhood Spider-Man",
+   "k": "anim",
+   "d": "2025-01-29",
+   "m": "10 ép. · 30 min",
+   "n": "Peter Parker à ses débuts, hors continuité."
+  },
+  {
+   "t": "Eyes of Wakanda",
+   "k": "anim",
+   "d": "2025-08-01",
+   "m": "4 ép. · 30 min",
+   "n": "Anthologie historique dans l'univers de Black Panther."
+  },
+  {
+   "t": "Marvel Zombies",
+   "k": "anim",
+   "d": "2025-10-03",
+   "m": "4 ép. · 30 min",
+   "n": "Dérivé de What If…?, classé adulte."
+  },
+  {
+   "t": "X-Men '97 — saison 2",
+   "k": "anim",
+   "d": "2026-08-15",
+   "m": "10 ép.",
+   "n": "La suite après la mort du professeur Xavier."
+  },
+  {
+   "t": "M.O.D.O.K.",
+   "k": "anim",
+   "d": "2021-05-21",
+   "m": "1 saison · 10 ép.",
+   "n": "Pâte à modeler, humour noir, pour adultes."
+  },
+  {
+   "t": "Hit-Monkey",
+   "k": "anim",
+   "d": "2021-11-17",
+   "m": "2 saisons · 20 ép.",
+   "n": "Un singe tueur à gages à Tokyo."
+  },
+  {
+   "t": "Spidey et ses amis extraordinaires",
+   "k": "anim",
+   "d": "2021-08-06",
+   "m": "3 saisons",
+   "n": "Pour les tout-petits."
+  },
+  {
+   "t": "Moon Girl et Dinosaure Diabolique",
+   "k": "anim",
+   "d": "2023-02-10",
+   "m": "2 saisons · 41 ép.",
+   "n": "Primée aux Emmy. Jeunesse mais soignée."
+  },
+  {
+   "t": "X-Men : la série animée",
+   "k": "classique",
+   "d": "1992-10-31",
+   "m": "5 saisons · 76 ép.",
+   "n": "L'original dont X-Men '97 est la suite directe."
+  },
+  {
+   "t": "Spider-Man, l'homme-araignée",
+   "k": "classique",
+   "d": "1994-11-19",
+   "m": "5 saisons · 65 ép.",
+   "n": "La série culte des années 90."
+  },
+  {
+   "t": "Avengers : l'équipe des super-héros",
+   "k": "classique",
+   "d": "2010-09-22",
+   "m": "2 saisons · 52 ép.",
+   "n": "La meilleure adaptation animée des Avengers."
+  },
+  {
+   "t": "Ultimate Spider-Man",
+   "k": "classique",
+   "d": "2012-04-01",
+   "m": "4 saisons · 104 ép.",
+   "n": ""
+  },
+  {
+   "t": "Hulk et les agents du S.M.A.S.H.",
+   "k": "classique",
+   "d": "2013-08-11",
+   "m": "2 saisons · 52 ép.",
+   "n": ""
+  },
+  {
+   "t": "Avengers Rassemblement",
+   "k": "classique",
+   "d": "2013-05-26",
+   "m": "5 saisons · 126 ép.",
+   "n": ""
+  },
+  {
+   "t": "Les Gardiens de la Galaxie (animé)",
+   "k": "classique",
+   "d": "2015-09-26",
+   "m": "3 saisons · 76 ép.",
+   "n": ""
+  },
+  {
+   "t": "Marvel's Spider-Man",
+   "k": "classique",
+   "d": "2017-08-19",
+   "m": "3 saisons · 58 ép.",
+   "n": ""
+  },
+  {
+   "t": "Marvel Studios : Assemblés",
+   "k": "doc",
+   "d": "2021-03-12",
+   "m": "Making-of",
+   "n": "Les coulisses de chaque production."
+  },
+  {
+   "t": "Marvel Studios : Légendes",
+   "k": "doc",
+   "d": "2021-01-08",
+   "m": "Épisodes de 10 min",
+   "n": "Résumés pour se remettre un personnage en tête avant un film.",
+   "p": 1
+  },
+  {
+   "t": "Marvel's 616",
+   "k": "doc",
+   "d": "2020-11-20",
+   "m": "8 ép. · 45 min",
+   "n": "Documentaires sur la culture Marvel."
+  },
+  {
+   "t": "Marvel's Hero Project",
+   "k": "doc",
+   "d": "2019-11-12",
+   "m": "20 ép. · 25 min",
+   "n": "Portraits de jeunes engagés. Format familial."
+  },
+  {
+   "t": "Marvel : derrière le masque",
+   "k": "doc",
+   "d": "2021-02-12",
+   "m": "1 ép. · 60 min",
+   "n": "Sur l'histoire des identités secrètes dans les comics."
+  }
  ]
 }
