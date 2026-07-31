@@ -175,8 +175,8 @@
 <script>
 const KEY = "marvel-tracker-franck";
 const GROUPES = {
-  film:      ["Films Marvel Studios", "L'ordre de sortie au cinéma. Basculez sur Chronologie pour l'ordre de l'histoire."],
-  serie:     ["Séries Marvel Studios", "Le cœur du MCU sur Disney+."],
+  film:      ["Films hors continuité", "Films non rattachés au fil principal de l'histoire."],
+  serie:     ["Séries en marge de la saga", "Rattachées au MCU mais pas indispensables au fil principal."],
   special:   ["Formats courts et spéciaux", "Une soirée chacun."],
   netflix:   ["L'ère Netflix et Marvel Television", "Continuité à part, mais Daredevil et Le Punisher alimentent Born Again."],
   mutants:   ["Mutants et hors-MCU", "Produites par la Fox, continuité séparée."],
@@ -220,6 +220,7 @@ function ligne(i, montrerDate){
                 + (i.p && s==="todo" ? " prio" : "");
   const label = s==="vu"?"Vu":s==="cours"?"En cours":est?"À venir":"À voir";
   const tag = i.k==="film" ? '<span class="tag film">film</span>'
+            : i.k==="special" ? '<span class="tag">spécial</span>'
             : ANIMES.includes(i.k) ? '<span class="tag anim">animé</span>'
             : '<span class="tag">série</span>';
   const an = i.d ? i.d.slice(0,4) : "";
@@ -243,8 +244,32 @@ function ligne(i, montrerDate){
 }
 
 function vueListe(){
+  // 1. La saga principale, dans l'ordre de l'histoire (films, séries et
+  //    spéciaux mélangés : chaque série est placée là où elle se regarde).
+  const saga = DATA.filter(i => i.c !== undefined && visible(i))
+                   .sort((a,b) => a.c - b.c);
+  if (saga.length){
+    const el = document.createElement("section");
+    const vus = saga.filter(i => statut(i) === "vu").length;
+    el.innerHTML = '<div class="sec-head"><h2>L\'histoire dans l\'ordre</h2>' +
+                   '<span>' + vus + '/' + saga.length + '</span></div>' +
+                   '<p class="sec-note">Films, séries et spéciaux mélangés, dans l\'ordre des événements de l\'histoire (pas l\'ordre de sortie). Chaque série apparaît à sa place, entre les deux films qu\'elle relie.</p>';
+    let ere = null;
+    saga.forEach(i => {
+      if (i.e && i.e !== ere){
+        ere = i.e;
+        const h = document.createElement("div");
+        h.className = "ere"; h.textContent = ere;
+        el.appendChild(h);
+      }
+      el.appendChild(ligne(i, false));
+    });
+    app.appendChild(el);
+  }
+  // 2. Le reste (Netflix, mutants, animation, classiques, docs…) : hors
+  //    continuité principale, toujours groupé par famille.
   ORDRE.forEach(k => {
-    const items = DATA.filter(i => i.k === k && visible(i));
+    const items = DATA.filter(i => i.c === undefined && i.k === k && visible(i));
     if (!items.length) return;
     const el = document.createElement("section");
     const vus = items.filter(i => statut(i) === "vu").length;
