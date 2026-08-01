@@ -358,10 +358,58 @@
       'Si tu ne vois pas le menu, fais glisser la page vers le bas : la barre du navigateur réapparaît.';
   }
 
-  // Bouton 📲 de l'en-tete : toujours disponible, quoi qu'il arrive.
+  // A-t-on deja installe CETTE application-ci ? (drapeau pose par appinstalled)
+  var installeeIci = false;
+  try { installeeIci = localStorage.getItem("validation_installee") === "1"; } catch (e) {}
+
+  // Cas piegeux : la page s'affiche en plein ecran alors qu'on ne l'a jamais
+  // installee => elle a ete happee par l'application cliente "Atelier 3D",
+  // dont la portee (/atelier-figurines-3d/) englobe ce dossier. Impossible
+  // d'installer quoi que ce soit depuis l'interieur d'une autre application :
+  // il faut d'abord revenir dans le navigateur.
+  var dansAutreApp = deja && !installeeIci;
+
+  window.copierLien = function () {
+    var lien = location.href.split("#")[0];
+    var b = $("btn-copie");
+    var fait = function () { if (b) b.textContent = "✅ Lien copié"; };
+    var rate = function () { if (b) b.textContent = "↓ Copie le lien ci-dessous à la main"; };
+    // La copie automatique n'est pas toujours autorisee : dans ce cas le lien
+    // reste affiche juste en dessous, selectionnable au doigt.
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(lien).then(fait, rate);
+        return;
+      }
+      var t = document.createElement("textarea");
+      t.value = lien; t.style.position = "fixed"; t.style.opacity = "0";
+      document.body.appendChild(t); t.select();
+      var ok = document.execCommand("copy");
+      document.body.removeChild(t);
+      ok ? fait() : rate();
+    } catch (e) { rate(); }
+  };
+
+  function texteSortirAppli() {
+    return '<b>⚠️ Cette page s\'est ouverte dans ton application « Atelier 3D »</b><br>' +
+      'C\'est pour ça qu\'aucune icône séparée n\'apparaît : on ne peut pas installer ' +
+      'une application depuis l\'intérieur d\'une autre.<br><br>' +
+      '<b>Pour avoir ta deuxième icône :</b><br>' +
+      '1. Copie le lien ci-dessous.<br>' +
+      '2. Ouvre <b>Chrome</b> (ou Safari) et colle-le dans la barre d\'adresse.<br>' +
+      '3. Appuie sur le bouton <b>📲</b> en haut : cette fois l\'installation sera proposée.' +
+      '<br><button class="go" id="btn-copie" onclick="copierLien()">📋 Copier le lien</button>' +
+      '<div style="margin-top:10px;padding:9px 11px;background:#0f1115;border:1px solid #2a2f3a;' +
+      'border-radius:8px;font-size:12px;color:#c3ccd8;word-break:break-all;user-select:all">' +
+      esc(location.href.split("#")[0]) + '</div>';
+  }
+
+  // Bouton 📲 de l'en-tete : toujours disponible, et jamais de cul-de-sac.
   window.aideInstall = function () {
-    if (deja) {
-      afficherInstall('<b>C\'est déjà fait 👍</b><br>Tu utilises la version installée sur ton écran d\'accueil.', true);
+    if (dansAutreApp) { afficherInstall(texteSortirAppli(), true); return; }
+    if (installeeIci && deja) {
+      afficherInstall('<b>C\'est déjà fait 👍</b><br>Tu utilises la version installée sur ton écran d\'accueil.' +
+        '<br><br>Tu ne vois pas l\'icône ? Voici comment la remettre :<br>' + texteAide(), true);
       return;
     }
     if (promptDiffere) {
@@ -387,15 +435,27 @@
     promptDiffere.prompt();
     promptDiffere.userChoice.then(function () { promptDiffere = null; masquerInstall(); });
   };
-  window.addEventListener("appinstalled", masquerInstall);
+  window.addEventListener("appinstalled", function () {
+    try { localStorage.setItem("validation_installee", "1"); } catch (e) {}
+    installeeIci = true; dansAutreApp = false;
+    masquerInstall();
+  });
 
-  // Mode d'emploi de secours : si le navigateur ne propose pas de bouton
-  // (iPhone, ou Chrome qui n'a pas encore juge la page installable), on
-  // explique le geste exact au lieu de ne rien afficher du tout.
-  setTimeout(function () {
-    if (promptDiffere || deja) return;
-    afficherInstall(texteAide());
-  }, 2500);
+  // Si la page a ete happee par l'autre application, on le dit tout de suite :
+  // c'est la question que Franck se pose, autant y repondre sans qu'il cherche.
+  if (dansAutreApp) {
+    // force = true : sans ca, afficherInstall se tait des que la page est en
+    // plein ecran... c'est-a-dire precisement dans le cas qu'on veut signaler.
+    setTimeout(function () { afficherInstall(texteSortirAppli(), true); }, 800);
+  } else {
+    // Mode d'emploi de secours : si le navigateur ne propose pas de bouton
+    // (iPhone, ou Chrome qui n'a pas encore juge la page installable), on
+    // explique le geste exact au lieu de ne rien afficher du tout.
+    setTimeout(function () {
+      if (promptDiffere || deja) return;
+      afficherInstall(texteAide());
+    }, 2500);
+  }
 
   // Service worker PROPRE a ce dossier (/validation/). Il ne touche jamais a
   // l'app cliente : portee separee, cache separe, aucun effacement global.
