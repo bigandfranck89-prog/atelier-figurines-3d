@@ -1,0 +1,15 @@
+{
+  "name": "Validation catalogue — Atelier 3D",
+  "short_name": "Validation 3D",
+  "description": "Valider les propositions de figurines du catalogue.",
+  "start_url": "./validation.html",
+  "scope": "./",
+  "id": "/atelier-figurines-3d/validation",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1115",
+  "theme_color": "#14171d",
+  "icons": [
+    { "src": "icon-validation.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
