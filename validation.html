@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Validation catalogue — Atelier 3D</title>
+<link rel="icon" href="icon.svg">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0f1115;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       -webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+  header{position:sticky;top:0;z-index:10;background:#14171d;border-bottom:1px solid #23262e;
+         padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+  header h1{font-size:17px;margin:0;display:flex;align-items:center;gap:8px}
+  header p{margin:4px 0 0;color:#8b98a5;font-size:12.5px;line-height:1.4}
+  .filtres{display:flex;gap:6px;margin-top:10px}
+  .filtres button{flex:1;background:#1b1f27;border:1px solid #2a2f3a;color:#9aa0a6;border-radius:999px;
+                  padding:8px 4px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .filtres button.on{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+  .cpt{padding:12px 14px 2px;color:#8b98a5;font-size:13px}
+  .cpt b{color:#e6edf3}
+  .liste{padding:8px 12px 28px;display:flex;flex-direction:column;gap:14px}
+  .card{background:#161b26;border:1px solid #2a2f3a;border-radius:16px;overflow:hidden}
+  .card img{width:100%;display:block;background:#0f1115;min-height:150px;max-height:300px;object-fit:contain}
+  .ph{display:none;padding:34px 14px;text-align:center;color:#8b98a5;font-size:13px;background:#0f1115;line-height:1.5}
+  .corps{padding:12px 14px 14px}
+  .nom{font-size:16px;font-weight:700;margin:0 0 2px}
+  .cat{color:#7ea6ff;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .desc{color:#c3ccd8;font-size:13.5px;line-height:1.5;margin:8px 0 0}
+  .sol{margin-top:10px;background:#131a17;border:1px solid #24463a;border-radius:10px;
+       padding:9px 11px;color:#9fd8bf;font-size:12.5px;line-height:1.45}
+  .ep{margin-top:8px;font-size:12.5px}
+  .actions{display:flex;gap:8px;margin-top:12px}
+  .actions button{flex:1;border:0;border-radius:12px;padding:14px 6px;font-size:15px;font-weight:700;cursor:pointer}
+  .oui{background:#15803d;color:#fff}
+  .non{background:#242a35;color:#c3ccd8}
+  .etat{padding:10px 14px;font-size:13.5px;font-weight:600;border-bottom:1px solid #2a2f3a}
+  .etat.g{color:#5be3a5;background:#12211a}
+  .etat.r{color:#9aa0a6;background:#1a1d24}
+  .annul{background:none;border:0;color:#7ea6ff;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0 0 0 8px}
+  .vide,.err{padding:34px 18px;text-align:center;color:#8b98a5;font-size:14px;line-height:1.6}
+  .err{color:#ff9aa4}
+  .rbtn{display:inline-block;margin-top:14px;background:#1d4ed8;color:#fff;border:0;border-radius:12px;
+        padding:12px 22px;font-size:14px;font-weight:700;cursor:pointer}
+  .fade{opacity:.5}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗳️ Validation du catalogue</h1>
+  <p>Les propositions du jour. <b>Garder</b> les envoie au catalogue vendable, <b>Rejeter</b> les écarte.
+     Aucune sculpture 3D n'est lancée sans ton feu vert.</p>
+  <div class="filtres">
+    <button id="f-propose" class="on" onclick="voir('propose')">⏳ En attente</button>
+    <button id="f-garde" onclick="voir('garde')">✅ Gardées</button>
+    <button id="f-rejete" onclick="voir('rejete')">✖️ Rejetées</button>
+  </div>
+</header>
+
+<div class="cpt" id="cpt"></div>
+<div class="liste" id="liste"></div>
+
+<script>
+(function () {
+  "use strict";
+  var SUPA = "https://bmvytqfddrfgcgokoxfn.supabase.co";
+  var KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtdnl0cWZkZHJmZ2Nnb2tveGZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3Njk3NDgsImV4cCI6MjA5MjM0NTc0OH0.Bcy6o77bQHaM8e8yDjMgRuLP5Tr2dxAmnliUITMGGas";
+  var H = { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json" };
+
+  var LIB = {
+    propose: { un: "en attente de ton choix", plus: "en attente de ton choix" },
+    garde:   { un: "gardée",  plus: "gardées"  },
+    rejete:  { un: "rejetée", plus: "rejetées" }
+  };
+  var statutCourant = "propose";
+
+  // "3 propositions gardées." / "1 proposition gardée."
+  function phraseCompteur(n) {
+    var m = LIB[statutCourant];
+    return "<b>" + n + "</b> proposition" + (n > 1 ? "s " : " ") + (n > 1 ? m.plus : m.un) + ".";
+  }
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function verdictEp(mm) {
+    mm = Number(mm);
+    if (mm >= 3)   return '<span style="color:#5be3a5">✅ Mesuré sur le fichier 3D : ' + mm.toFixed(1) + ' mm (≥ 3 mm partout).</span>';
+    if (mm >= 1.5) return '<span style="color:#ffcf7a">🟠 Mesuré : ' + mm.toFixed(1) + ' mm — fragile, à épaissir.</span>';
+    return '<span style="color:#ff9aa4">🔴 Mesuré : ' + mm.toFixed(1) + ' mm — casserait, à corriger.</span>';
+  }
+
+  window.voir = function (statut) {
+    statutCourant = statut;
+    ["propose", "garde", "rejete"].forEach(function (s) {
+      $("f-" + s).className = (s === statut) ? "on" : "";
+    });
+    charger();
+  };
+
+  function charger() {
+    var liste = $("liste"), cpt = $("cpt");
+    cpt.textContent = "";
+    liste.innerHTML = '<div class="vide">Chargement…</div>';
+    var url = SUPA + "/rest/v1/catalogue_propositions?statut=eq." + statutCourant +
+              "&order=cree_le.desc&limit=200";
+    fetch(url, { headers: H })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) rows = [];
+        if (!rows.length) {
+          liste.innerHTML = '<div class="vide">Rien ici pour l\'instant.<br>' +
+            (statutCourant === "propose"
+              ? "Les nouvelles propositions arrivent chaque jour automatiquement."
+              : "Tes décisions apparaîtront ici.") + '</div>';
+          return;
+        }
+        cpt.innerHTML = phraseCompteur(rows.length);
+        liste.innerHTML = rows.map(carte).join("");
+      })
+      .catch(function () {
+        cpt.textContent = "";
+        liste.innerHTML = '<div class="err">Impossible de charger les propositions.<br>Vérifie ta connexion.' +
+          '<br><button class="rbtn" onclick="rafraichir()">Réessayer</button></div>';
+      });
+  }
+  window.rafraichir = charger;
+
+  function carte(p) {
+    var img = p.image_url
+      ? '<img src="' + esc(p.image_url) + '" loading="lazy" alt="' + esc(p.nom) + '"' +
+        ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'">' +
+        '<div class="ph">🖼️ L\'aperçu ne s\'affiche pas.<br>Tu peux quand même décider avec le texte.</div>'
+      : '';
+    var boutons = (statutCourant === "propose")
+      ? '<div class="actions">' +
+          '<button class="oui" onclick="decider(' + p.id + ',\'garde\')">✅ Garder</button>' +
+          '<button class="non" onclick="decider(' + p.id + ',\'rejete\')">✖️ Rejeter</button>' +
+        '</div>'
+      : '<div class="actions"><button class="non" onclick="decider(' + p.id + ',\'propose\')">↩︎ Remettre en attente</button></div>';
+    return '<div class="card" id="p' + p.id + '">' +
+      '<div id="e' + p.id + '"></div>' + img +
+      '<div class="corps">' +
+        '<div class="cat">' + esc(p.categorie || "—") + '</div>' +
+        '<h2 class="nom">' + esc(p.nom || "Sans nom") + '</h2>' +
+        '<p class="desc">' + esc(p.description || "") + '</p>' +
+        (p.regles_solidite ? '<div class="sol">🛡️ ' + esc(p.regles_solidite) + '</div>' : '') +
+        '<div class="ep">' + (p.epaisseur_min_mm != null
+            ? verdictEp(p.epaisseur_min_mm)
+            : '<span style="color:#8b98a5">📏 Épaisseur pas encore mesurée (pas de fichier 3D).</span>') + '</div>' +
+        boutons +
+      '</div></div>';
+  }
+
+  window.decider = function (id, decision) {
+    var carteEl = $("p" + id), etat = $("e" + id);
+    etat.innerHTML = '<div class="etat r">Enregistrement…</div>';
+    fetch(SUPA + "/rest/v1/catalogue_propositions?id=eq." + id, {
+      method: "PATCH",
+      headers: Object.assign({}, H, { Prefer: "return=minimal" }),
+      body: JSON.stringify({ statut: decision, decide_le: new Date().toISOString() })
+    })
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      if (decision === "propose") { charger(); return; }
+      carteEl.className = "card fade";
+      etat.innerHTML = '<div class="etat ' + (decision === "garde" ? "g" : "r") + '">' +
+        (decision === "garde" ? "✅ Gardée — elle part au catalogue." : "✖️ Rejetée.") +
+        '<button class="annul" onclick="decider(' + id + ',\'propose\')">annuler</button></div>';
+      var c = $("cpt"), n = parseInt(c.textContent, 10);
+      if (!isNaN(n) && n > 0) {
+        n = n - 1;
+        c.innerHTML = phraseCompteur(n);
+      }
+    })
+    .catch(function () {
+      // ne jamais laisser croire que c'est enregistré
+      etat.innerHTML = '<div class="etat" style="color:#ff9aa4;background:#241a1d">' +
+        '⚠️ Pas enregistré (connexion ?). Réessaie.</div>';
+    });
+  };
+
+  charger();
+})();
+</script>
+</body>
+</html>
