@@ -533,7 +533,7 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
     <div class="acc-offre"><span><span class="n">Premium finition peinte</span><br><span class="d">grande taille ou peinture fine</span></span><span class="p">69-99 €</span></div>
   </div>
   <button class="acc-cta" onclick="fermerAccueil()">🚀 Créer ma figurine</button>
-  <div class="acc-note">Prix de lancement, confirmés avant tout paiement — rien n'est imprimé sans ta validation du rendu 3D. Une question ? Onglet <a href="#" onclick="fermerAccueil();document.querySelector('nav button[data-p="aide"]').click();return false">Aide</a>.</div>
+  <div class="acc-note">Prix de lancement, confirmés avant tout paiement — rien n'est imprimé sans ta validation du rendu 3D. Une question ? Onglet <a href="#" onclick="fermerAccueil();document.querySelector('nav button[data-p=\u0022aide\u0022]').click();return false">Aide</a>.</div>
 </div>
 <script>
 function fermerAccueil(){document.getElementById('accueil-ov').classList.add('off');try{localStorage.setItem('accueil_vu','1')}catch(e){}}
