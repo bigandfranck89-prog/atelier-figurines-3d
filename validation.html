@@ -3,9 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f1115">
+<meta name="theme-color" content="#14171d">
 <title>Validation catalogue — Atelier 3D</title>
-<link rel="icon" href="icon.svg">
+<link rel="icon" href="icon-validation.svg">
+<link rel="apple-touch-icon" href="icon-validation.svg">
+<link rel="manifest" href="validation.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Validation 3D">
 <style>
   *{box-sizing:border-box}
   body{margin:0;background:#0f1115;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
@@ -44,6 +50,13 @@
   .rbtn{display:inline-block;margin-top:14px;background:#1d4ed8;color:#fff;border:0;border-radius:12px;
         padding:12px 22px;font-size:14px;font-weight:700;cursor:pointer}
   .fade{opacity:.5}
+  /* bandeau "ajouter a l'ecran d'accueil" */
+  #install{display:none;margin:10px 12px 0;background:#12211a;border:1px solid #24463a;border-radius:14px;
+           padding:12px 14px;font-size:13px;color:#9fd8bf;line-height:1.5}
+  #install b{color:#e6edf3}
+  #install button{margin-top:10px;background:#15803d;color:#fff;border:0;border-radius:10px;
+                  padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer}
+  #install .x{float:right;background:none;border:0;color:#8b98a5;font-size:18px;padding:0;margin:0;cursor:pointer}
 </style>
 </head>
 <body>
@@ -59,6 +72,7 @@
   </div>
 </header>
 
+<div id="install"></div>
 <div class="cpt" id="cpt"></div>
 <div class="liste" id="liste"></div>
 
@@ -185,6 +199,51 @@
         '⚠️ Pas enregistré (connexion ?). Réessaie.</div>';
     });
   };
+
+  // ---------- Ajouter a l'ecran d'accueil ----------
+  // Android/Chrome : bouton d'installation natif. iPhone/Safari : mode d'emploi,
+  // car Apple n'autorise pas l'installation par un bouton.
+  var promptDiffere = null;
+  var deja = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+  function masquerInstall() {
+    $("install").style.display = "none";
+    try { localStorage.setItem("install_masque", "1"); } catch (e) {}
+  }
+  window.masquerInstall = masquerInstall;
+
+  function afficherInstall(html) {
+    if (deja) return;
+    try { if (localStorage.getItem("install_masque") === "1") return; } catch (e) {}
+    var d = $("install");
+    d.innerHTML = '<button class="x" onclick="masquerInstall()" aria-label="Fermer">✕</button>' + html;
+    d.style.display = "block";
+  }
+
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    promptDiffere = e;
+    afficherInstall('<b>Mettre cette page sur ton écran d\'accueil ?</b><br>' +
+      'Tu l\'ouvriras ensuite comme une application, sans taper l\'adresse.' +
+      '<br><button onclick="installer()">📲 Ajouter à l\'écran d\'accueil</button>');
+  });
+
+  window.installer = function () {
+    if (!promptDiffere) return;
+    promptDiffere.prompt();
+    promptDiffere.userChoice.then(function () { promptDiffere = null; masquerInstall(); });
+  };
+
+  window.addEventListener("appinstalled", masquerInstall);
+
+  // iPhone / iPad : pas de bouton possible, on explique le geste exact.
+  var estIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+               (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (estIOS && !deja) {
+    afficherInstall('<b>Mettre cette page sur ton écran d\'accueil</b><br>' +
+      'Appuie sur le bouton <b>Partager</b> en bas de Safari (le carré avec une flèche vers le haut), ' +
+      'puis fais défiler et choisis <b>« Sur l\'écran d\'accueil »</b>.');
+  }
 
   charger();
 })();
