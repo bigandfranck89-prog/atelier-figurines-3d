@@ -19,6 +19,8 @@
   header{position:sticky;top:0;z-index:10;background:#14171d;border-bottom:1px solid #23262e;
          padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
   header h1{font-size:17px;margin:0;display:flex;align-items:center;gap:8px}
+  #btn-install{margin-left:auto;background:#1b1f27;border:1px solid #2a2f3a;border-radius:10px;
+               font-size:17px;padding:5px 10px;cursor:pointer;line-height:1}
   header p{margin:4px 0 0;color:#8b98a5;font-size:12.5px;line-height:1.4}
   .filtres{display:flex;gap:6px;margin-top:10px}
   .filtres button{flex:1;background:#1b1f27;border:1px solid #2a2f3a;color:#9aa0a6;border-radius:999px;
@@ -71,7 +73,8 @@
 <body>
 
 <header>
-  <h1>🗳️ Validation du catalogue</h1>
+  <h1>🗳️ Validation du catalogue
+    <button id="btn-install" onclick="aideInstall()" title="Ajouter à l'écran d'accueil">📲</button></h1>
   <p>Les propositions du jour. <b>Garder</b> les envoie au catalogue vendable, <b>Rejeter</b> les écarte.
      Aucune sculpture 3D n'est lancée sans ton feu vert.</p>
   <div class="filtres">
@@ -95,7 +98,8 @@
 
   var PAR_PAGE = 12;          // on n'affiche pas 91 cartes d'un coup
   var IMG_PARALLELE = 2;      // Pollinations fabrique chaque image a la demande :
-  var IMG_TIMEOUT = 75000;    // au-dela de 2 en meme temps, il ignore les suivantes.
+  var IMG_TIMEOUT = 30000;    // au-dela de 2 en meme temps, il ignore les suivantes.
+                              // 30 s : au-dela on rend la main plutot que de bloquer la file.
 
   var LIB = {
     propose: { un: "en attente de ton choix", plus: "en attente de ton choix" },
@@ -148,16 +152,20 @@
     }
   }
 
-  function charger1(id, url) {
+  // horsFile = relance manuelle : elle ne doit pas attendre derriere la file,
+  // sinon le bouton "Reessayer" a l'air de ne rien faire pendant 30 s.
+  function charger1(id, url, horsFile) {
     var zone = $("v" + id);
-    if (!zone) { enCours--; pomper(); return; }
+    if (!zone) { if (!horsFile) { enCours--; pomper(); } return; }
     var fini = false;
     var img = new Image();
+    function libere() { if (!horsFile) { enCours--; pomper(); } }
+
     var minuteur = setTimeout(function () {
       if (fini) return;
       fini = true; img.src = "";
       echec(id, url, "L'aperçu met trop de temps à se fabriquer.");
-      enCours--; pomper();
+      libere();
     }, IMG_TIMEOUT);
 
     img.onload = function () {
@@ -165,33 +173,48 @@
       fini = true; clearTimeout(minuteur);
       var z = $("v" + id);
       if (z) { z.innerHTML = ""; z.appendChild(img); }
-      enCours--; pomper();
+      libere();
     };
     img.onerror = function () {
       if (fini) return;
       fini = true; clearTimeout(minuteur);
+      // un echec vient souvent d'une fabrication abandonnee : on retente une
+      // fois tout seul avec un autre grain avant d'embeter Franck.
+      if (!horsFile && !dejaRetente[id]) {
+        dejaRetente[id] = 1;
+        var u2 = nouveauGrain(url);
+        setTimeout(function () { charger1(id, u2, true); }, 600);
+        libere();
+        return;
+      }
       echec(id, url, "L'aperçu n'a pas pu être fabriqué.");
-      enCours--; pomper();
+      libere();
     };
     img.alt = "";
     img.src = url;
   }
 
+  var dejaRetente = {};
+
+  function nouveauGrain(url) {
+    return String(url).replace(/([?&])seed=\d+/, "$1seed=" + Math.floor(Math.random() * 999999));
+  }
+
   function echec(id, url, msg) {
     var z = $("v" + id);
     if (!z) return;
+    z.setAttribute("data-url", url);
     z.innerHTML = '<div class="att">🖼️ ' + esc(msg) + '<br>Tu peux décider avec le texte.' +
       '<br><button class="rimg" onclick="relancerImg(' + id + ')">🔄 Réessayer l\'aperçu</button></div>';
-    z.setAttribute("data-url", url);
   }
 
   window.relancerImg = function (id) {
     var z = $("v" + id); if (!z) return;
     var url = z.getAttribute("data-url");
+    if (!url) return;
     z.innerHTML = '<div class="att">Aperçu en préparation<span class="pt"></span><span class="pt"></span><span class="pt"></span></div>';
-    // un grain different force une nouvelle fabrication au lieu d'un echec repete
-    file.unshift({ id: id, url: url.replace(/([?&])seed=\d+/, "$1seed=" + Math.floor(Math.random() * 999999)) });
-    pomper();
+    // relance immediate, sans passer par la file : Franck a demande celle-ci
+    charger1(id, nouveauGrain(url), true);
   };
 
   // ---------- chargement des propositions ----------
@@ -204,7 +227,7 @@
   };
 
   function charger() {
-    file = []; enCours = 0; toutes = []; affichees = 0;
+    file = []; enCours = 0; toutes = []; affichees = 0; dejaRetente = {};
     $("suite").innerHTML = "";
     $("cpt").textContent = "";
     $("liste").innerHTML = '<div class="vide">Chargement…</div>';
@@ -302,21 +325,53 @@
   var promptDiffere = null;
   var deja = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   var banniereMontree = false;
+  var estIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+               (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-  function masquerInstall() {
-    $("install").style.display = "none";
-    try { localStorage.setItem("install_masque", "1"); } catch (e) {}
-  }
+  // Une version precedente memorisait la fermeture du bandeau pour toujours :
+  // une croix cliquee par megarde le faisait disparaitre definitivement. On
+  // efface cette memoire, et la fermeture ne vaut plus que pour la visite.
+  try { localStorage.removeItem("install_masque"); } catch (e) {}
+
+  function masquerInstall() { $("install").style.display = "none"; }
   window.masquerInstall = masquerInstall;
 
-  function afficherInstall(html) {
-    if (deja || banniereMontree) return;
-    try { if (localStorage.getItem("install_masque") === "1") return; } catch (e) {}
+  function afficherInstall(html, force) {
+    if (deja && !force) return;
+    if (banniereMontree && !force) return;
     banniereMontree = true;
     var d = $("install");
     d.innerHTML = '<button class="x" onclick="masquerInstall()" aria-label="Fermer">✕</button>' + html;
     d.style.display = "block";
+    if (force) d.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
+
+  function texteAide() {
+    if (estIOS) {
+      return '<b>Mettre cette page sur ton écran d\'accueil</b><br>' +
+        'Appuie sur <b>Partager</b> en bas de Safari (le carré avec une flèche vers le haut), ' +
+        'puis fais défiler et choisis <b>« Sur l\'écran d\'accueil »</b>.';
+    }
+    return '<b>Mettre cette page sur ton écran d\'accueil</b><br>' +
+      'Ouvre le menu de ton navigateur (les <b>⋮</b> en haut à droite, ou <b>Aa</b> selon le navigateur), ' +
+      'puis choisis <b>« Ajouter à l\'écran d\'accueil »</b> ou <b>« Installer l\'application »</b>.<br>' +
+      'Si tu ne vois pas le menu, fais glisser la page vers le bas : la barre du navigateur réapparaît.';
+  }
+
+  // Bouton 📲 de l'en-tete : toujours disponible, quoi qu'il arrive.
+  window.aideInstall = function () {
+    if (deja) {
+      afficherInstall('<b>C\'est déjà fait 👍</b><br>Tu utilises la version installée sur ton écran d\'accueil.', true);
+      return;
+    }
+    if (promptDiffere) {
+      afficherInstall('<b>Mettre cette page sur ton écran d\'accueil ?</b><br>' +
+        'Tu l\'ouvriras ensuite comme une application, sans taper l\'adresse.' +
+        '<br><button class="go" onclick="installer()">📲 Ajouter à l\'écran d\'accueil</button>', true);
+      return;
+    }
+    afficherInstall(texteAide(), true);
+  };
 
   window.addEventListener("beforeinstallprompt", function (e) {
     e.preventDefault();
@@ -334,24 +389,12 @@
   };
   window.addEventListener("appinstalled", masquerInstall);
 
-  var estIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-               (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
   // Mode d'emploi de secours : si le navigateur ne propose pas de bouton
   // (iPhone, ou Chrome qui n'a pas encore juge la page installable), on
   // explique le geste exact au lieu de ne rien afficher du tout.
   setTimeout(function () {
     if (promptDiffere || deja) return;
-    if (estIOS) {
-      afficherInstall('<b>Mettre cette page sur ton écran d\'accueil</b><br>' +
-        'Appuie sur <b>Partager</b> en bas de Safari (le carré avec une flèche vers le haut), ' +
-        'puis fais défiler et choisis <b>« Sur l\'écran d\'accueil »</b>.');
-    } else {
-      afficherInstall('<b>Mettre cette page sur ton écran d\'accueil</b><br>' +
-        'Ouvre le menu de ton navigateur (les <b>⋮</b> en haut à droite, ou <b>Aa</b> selon le navigateur), ' +
-        'puis choisis <b>« Ajouter à l\'écran d\'accueil »</b> ou <b>« Installer l\'application »</b>.<br>' +
-        'Si tu ne vois pas le menu, fais glisser la page vers le bas : la barre du navigateur réapparaît.');
-    }
+    afficherInstall(texteAide());
   }, 2500);
 
   // Service worker : necessaire pour que Chrome propose l'installation,
