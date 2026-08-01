@@ -26,10 +26,17 @@
   .filtres button.on{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
   .cpt{padding:12px 14px 2px;color:#8b98a5;font-size:13px}
   .cpt b{color:#e6edf3}
-  .liste{padding:8px 12px 28px;display:flex;flex-direction:column;gap:14px}
+  .liste{padding:8px 12px 10px;display:flex;flex-direction:column;gap:14px}
   .card{background:#161b26;border:1px solid #2a2f3a;border-radius:16px;overflow:hidden}
-  .card img{width:100%;display:block;background:#0f1115;min-height:150px;max-height:300px;object-fit:contain}
-  .ph{display:none;padding:34px 14px;text-align:center;color:#8b98a5;font-size:13px;background:#0f1115;line-height:1.5}
+  .vign{position:relative;background:#0f1115;min-height:170px;display:flex;align-items:center;justify-content:center}
+  .vign img{width:100%;display:block;max-height:300px;object-fit:contain}
+  .att{padding:24px 14px;text-align:center;color:#8b98a5;font-size:13px;line-height:1.5}
+  .att .pt{display:inline-block;width:7px;height:7px;border-radius:50%;background:#7ea6ff;margin:0 2px;
+           animation:cl 1.2s infinite ease-in-out}
+  .att .pt:nth-child(2){animation-delay:.2s} .att .pt:nth-child(3){animation-delay:.4s}
+  @keyframes cl{0%,80%,100%{opacity:.25}40%{opacity:1}}
+  .rimg{background:#242a35;color:#c3ccd8;border:0;border-radius:10px;padding:9px 16px;font-size:13px;
+        font-weight:600;cursor:pointer;margin-top:8px}
   .corps{padding:12px 14px 14px}
   .nom{font-size:16px;font-weight:700;margin:0 0 2px}
   .cat{color:#7ea6ff;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
@@ -49,13 +56,15 @@
   .err{color:#ff9aa4}
   .rbtn{display:inline-block;margin-top:14px;background:#1d4ed8;color:#fff;border:0;border-radius:12px;
         padding:12px 22px;font-size:14px;font-weight:700;cursor:pointer}
+  .suite{margin:0 12px 26px}
+  .suite button{width:100%;background:#1b1f27;border:1px solid #2a2f3a;color:#dbe4ff;border-radius:14px;
+                padding:15px;font-size:14.5px;font-weight:700;cursor:pointer}
   .fade{opacity:.5}
-  /* bandeau "ajouter a l'ecran d'accueil" */
   #install{display:none;margin:10px 12px 0;background:#12211a;border:1px solid #24463a;border-radius:14px;
            padding:12px 14px;font-size:13px;color:#9fd8bf;line-height:1.5}
   #install b{color:#e6edf3}
-  #install button{margin-top:10px;background:#15803d;color:#fff;border:0;border-radius:10px;
-                  padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer}
+  #install button.go{margin-top:10px;background:#15803d;color:#fff;border:0;border-radius:10px;
+                     padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer}
   #install .x{float:right;background:none;border:0;color:#8b98a5;font-size:18px;padding:0;margin:0;cursor:pointer}
 </style>
 </head>
@@ -75,6 +84,7 @@
 <div id="install"></div>
 <div class="cpt" id="cpt"></div>
 <div class="liste" id="liste"></div>
+<div class="suite" id="suite"></div>
 
 <script>
 (function () {
@@ -83,24 +93,31 @@
   var KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtdnl0cWZkZHJmZ2Nnb2tveGZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3Njk3NDgsImV4cCI6MjA5MjM0NTc0OH0.Bcy6o77bQHaM8e8yDjMgRuLP5Tr2dxAmnliUITMGGas";
   var H = { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json" };
 
+  var PAR_PAGE = 12;          // on n'affiche pas 91 cartes d'un coup
+  var IMG_PARALLELE = 2;      // Pollinations fabrique chaque image a la demande :
+  var IMG_TIMEOUT = 75000;    // au-dela de 2 en meme temps, il ignore les suivantes.
+
   var LIB = {
     propose: { un: "en attente de ton choix", plus: "en attente de ton choix" },
     garde:   { un: "gardée",  plus: "gardées"  },
     rejete:  { un: "rejetée", plus: "rejetées" }
   };
   var statutCourant = "propose";
-
-  // "3 propositions gardées." / "1 proposition gardée."
-  function phraseCompteur(n) {
-    var m = LIB[statutCourant];
-    return "<b>" + n + "</b> proposition" + (n > 1 ? "s " : " ") + (n > 1 ? m.plus : m.un) + ".";
-  }
+  var toutes = [];      // toutes les lignes recues
+  var affichees = 0;    // combien sont deja dans la page
 
   function $(id) { return document.getElementById(id); }
   function esc(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function phraseCompteur() {
+    var n = toutes.length, m = LIB[statutCourant];
+    var t = "<b>" + n + "</b> proposition" + (n > 1 ? "s " : " ") + (n > 1 ? m.plus : m.un) + ".";
+    if (n > affichees) t += " <span style=\"color:#7ea6ff\">" + affichees + " affichée" + (affichees > 1 ? "s" : "") + ".</span>";
+    return t;
   }
 
   function verdictEp(mm) {
@@ -110,6 +127,74 @@
     return '<span style="color:#ff9aa4">🔴 Mesuré : ' + mm.toFixed(1) + ' mm — casserait, à corriger.</span>';
   }
 
+  // ---------- file d'attente des apercus ----------
+  // Chaque image est generee a la demande (plusieurs secondes). On en demande
+  // 2 a la fois : au-dela, le service laisse tomber les requetes en trop.
+  var file = [], enCours = 0;
+
+  function allegerUrl(u) {
+    // 768 px inutile sur un telephone, et 2x plus long a fabriquer
+    return String(u).replace(/([?&])width=\d+/, "$1width=512").replace(/([?&])height=\d+/, "$1height=512");
+  }
+
+  function enfiler(id, url) { file.push({ id: id, url: url }); pomper(); }
+
+  function pomper() {
+    while (enCours < IMG_PARALLELE && file.length) {
+      var t = file.shift();
+      if (!$("v" + t.id)) continue;   // carte plus a l'ecran
+      enCours++;
+      charger1(t.id, t.url);
+    }
+  }
+
+  function charger1(id, url) {
+    var zone = $("v" + id);
+    if (!zone) { enCours--; pomper(); return; }
+    var fini = false;
+    var img = new Image();
+    var minuteur = setTimeout(function () {
+      if (fini) return;
+      fini = true; img.src = "";
+      echec(id, url, "L'aperçu met trop de temps à se fabriquer.");
+      enCours--; pomper();
+    }, IMG_TIMEOUT);
+
+    img.onload = function () {
+      if (fini) return;
+      fini = true; clearTimeout(minuteur);
+      var z = $("v" + id);
+      if (z) { z.innerHTML = ""; z.appendChild(img); }
+      enCours--; pomper();
+    };
+    img.onerror = function () {
+      if (fini) return;
+      fini = true; clearTimeout(minuteur);
+      echec(id, url, "L'aperçu n'a pas pu être fabriqué.");
+      enCours--; pomper();
+    };
+    img.alt = "";
+    img.src = url;
+  }
+
+  function echec(id, url, msg) {
+    var z = $("v" + id);
+    if (!z) return;
+    z.innerHTML = '<div class="att">🖼️ ' + esc(msg) + '<br>Tu peux décider avec le texte.' +
+      '<br><button class="rimg" onclick="relancerImg(' + id + ')">🔄 Réessayer l\'aperçu</button></div>';
+    z.setAttribute("data-url", url);
+  }
+
+  window.relancerImg = function (id) {
+    var z = $("v" + id); if (!z) return;
+    var url = z.getAttribute("data-url");
+    z.innerHTML = '<div class="att">Aperçu en préparation<span class="pt"></span><span class="pt"></span><span class="pt"></span></div>';
+    // un grain different force une nouvelle fabrication au lieu d'un echec repete
+    file.unshift({ id: id, url: url.replace(/([?&])seed=\d+/, "$1seed=" + Math.floor(Math.random() * 999999)) });
+    pomper();
+  };
+
+  // ---------- chargement des propositions ----------
   window.voir = function (statut) {
     statutCourant = statut;
     ["propose", "garde", "rejete"].forEach(function (s) {
@@ -119,38 +204,51 @@
   };
 
   function charger() {
-    var liste = $("liste"), cpt = $("cpt");
-    cpt.textContent = "";
-    liste.innerHTML = '<div class="vide">Chargement…</div>';
-    var url = SUPA + "/rest/v1/catalogue_propositions?statut=eq." + statutCourant +
-              "&order=cree_le.desc&limit=200";
-    fetch(url, { headers: H })
+    file = []; enCours = 0; toutes = []; affichees = 0;
+    $("suite").innerHTML = "";
+    $("cpt").textContent = "";
+    $("liste").innerHTML = '<div class="vide">Chargement…</div>';
+    fetch(SUPA + "/rest/v1/catalogue_propositions?statut=eq." + statutCourant + "&order=cree_le.desc&limit=500",
+          { headers: H })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (rows) {
-        if (!Array.isArray(rows)) rows = [];
-        if (!rows.length) {
-          liste.innerHTML = '<div class="vide">Rien ici pour l\'instant.<br>' +
+        toutes = Array.isArray(rows) ? rows : [];
+        if (!toutes.length) {
+          $("liste").innerHTML = '<div class="vide">Rien ici pour l\'instant.<br>' +
             (statutCourant === "propose"
               ? "Les nouvelles propositions arrivent chaque jour automatiquement."
               : "Tes décisions apparaîtront ici.") + '</div>';
           return;
         }
-        cpt.innerHTML = phraseCompteur(rows.length);
-        liste.innerHTML = rows.map(carte).join("");
+        $("liste").innerHTML = "";
+        ajouterPage();
       })
       .catch(function () {
-        cpt.textContent = "";
-        liste.innerHTML = '<div class="err">Impossible de charger les propositions.<br>Vérifie ta connexion.' +
+        $("cpt").textContent = "";
+        $("liste").innerHTML = '<div class="err">Impossible de charger les propositions.<br>Vérifie ta connexion.' +
           '<br><button class="rbtn" onclick="rafraichir()">Réessayer</button></div>';
       });
   }
   window.rafraichir = charger;
 
+  function ajouterPage() {
+    var lot = toutes.slice(affichees, affichees + PAR_PAGE);
+    var html = lot.map(carte).join("");
+    $("liste").insertAdjacentHTML("beforeend", html);
+    lot.forEach(function (p) { if (p.image_url) enfiler(p.id, allegerUrl(p.image_url)); });
+    affichees += lot.length;
+    $("cpt").innerHTML = phraseCompteur();
+    var reste = toutes.length - affichees;
+    $("suite").innerHTML = reste > 0
+      ? '<button onclick="pageSuivante()">Voir les ' + Math.min(PAR_PAGE, reste) + ' suivantes (' + reste + ' restantes)</button>'
+      : '';
+  }
+  window.pageSuivante = ajouterPage;
+
   function carte(p) {
-    var img = p.image_url
-      ? '<img src="' + esc(p.image_url) + '" loading="lazy" alt="' + esc(p.nom) + '"' +
-        ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'">' +
-        '<div class="ph">🖼️ L\'aperçu ne s\'affiche pas.<br>Tu peux quand même décider avec le texte.</div>'
+    var vign = p.image_url
+      ? '<div class="vign" id="v' + p.id + '"><div class="att">Aperçu en préparation' +
+        '<span class="pt"></span><span class="pt"></span><span class="pt"></span></div></div>'
       : '';
     var boutons = (statutCourant === "propose")
       ? '<div class="actions">' +
@@ -159,7 +257,7 @@
         '</div>'
       : '<div class="actions"><button class="non" onclick="decider(' + p.id + ',\'propose\')">↩︎ Remettre en attente</button></div>';
     return '<div class="card" id="p' + p.id + '">' +
-      '<div id="e' + p.id + '"></div>' + img +
+      '<div id="e' + p.id + '"></div>' + vign +
       '<div class="corps">' +
         '<div class="cat">' + esc(p.categorie || "—") + '</div>' +
         '<h2 class="nom">' + esc(p.nom || "Sans nom") + '</h2>' +
@@ -187,11 +285,11 @@
       etat.innerHTML = '<div class="etat ' + (decision === "garde" ? "g" : "r") + '">' +
         (decision === "garde" ? "✅ Gardée — elle part au catalogue." : "✖️ Rejetée.") +
         '<button class="annul" onclick="decider(' + id + ',\'propose\')">annuler</button></div>';
-      var c = $("cpt"), n = parseInt(c.textContent, 10);
-      if (!isNaN(n) && n > 0) {
-        n = n - 1;
-        c.innerHTML = phraseCompteur(n);
+      // la proposition ne compte plus dans le lot en attente
+      for (var i = 0; i < toutes.length; i++) {
+        if (toutes[i].id === id) { toutes.splice(i, 1); affichees--; break; }
       }
+      $("cpt").innerHTML = phraseCompteur();
     })
     .catch(function () {
       // ne jamais laisser croire que c'est enregistré
@@ -201,10 +299,9 @@
   };
 
   // ---------- Ajouter a l'ecran d'accueil ----------
-  // Android/Chrome : bouton d'installation natif. iPhone/Safari : mode d'emploi,
-  // car Apple n'autorise pas l'installation par un bouton.
   var promptDiffere = null;
   var deja = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  var banniereMontree = false;
 
   function masquerInstall() {
     $("install").style.display = "none";
@@ -213,8 +310,9 @@
   window.masquerInstall = masquerInstall;
 
   function afficherInstall(html) {
-    if (deja) return;
+    if (deja || banniereMontree) return;
     try { if (localStorage.getItem("install_masque") === "1") return; } catch (e) {}
+    banniereMontree = true;
     var d = $("install");
     d.innerHTML = '<button class="x" onclick="masquerInstall()" aria-label="Fermer">✕</button>' + html;
     d.style.display = "block";
@@ -223,9 +321,10 @@
   window.addEventListener("beforeinstallprompt", function (e) {
     e.preventDefault();
     promptDiffere = e;
+    banniereMontree = false;   // le vrai bouton remplace le mode d'emploi
     afficherInstall('<b>Mettre cette page sur ton écran d\'accueil ?</b><br>' +
       'Tu l\'ouvriras ensuite comme une application, sans taper l\'adresse.' +
-      '<br><button onclick="installer()">📲 Ajouter à l\'écran d\'accueil</button>');
+      '<br><button class="go" onclick="installer()">📲 Ajouter à l\'écran d\'accueil</button>');
   });
 
   window.installer = function () {
@@ -233,17 +332,31 @@
     promptDiffere.prompt();
     promptDiffere.userChoice.then(function () { promptDiffere = null; masquerInstall(); });
   };
-
   window.addEventListener("appinstalled", masquerInstall);
 
-  // iPhone / iPad : pas de bouton possible, on explique le geste exact.
   var estIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  if (estIOS && !deja) {
-    afficherInstall('<b>Mettre cette page sur ton écran d\'accueil</b><br>' +
-      'Appuie sur le bouton <b>Partager</b> en bas de Safari (le carré avec une flèche vers le haut), ' +
-      'puis fais défiler et choisis <b>« Sur l\'écran d\'accueil »</b>.');
-  }
+
+  // Mode d'emploi de secours : si le navigateur ne propose pas de bouton
+  // (iPhone, ou Chrome qui n'a pas encore juge la page installable), on
+  // explique le geste exact au lieu de ne rien afficher du tout.
+  setTimeout(function () {
+    if (promptDiffere || deja) return;
+    if (estIOS) {
+      afficherInstall('<b>Mettre cette page sur ton écran d\'accueil</b><br>' +
+        'Appuie sur <b>Partager</b> en bas de Safari (le carré avec une flèche vers le haut), ' +
+        'puis fais défiler et choisis <b>« Sur l\'écran d\'accueil »</b>.');
+    } else {
+      afficherInstall('<b>Mettre cette page sur ton écran d\'accueil</b><br>' +
+        'Ouvre le menu de ton navigateur (les <b>⋮</b> en haut à droite, ou <b>Aa</b> selon le navigateur), ' +
+        'puis choisis <b>« Ajouter à l\'écran d\'accueil »</b> ou <b>« Installer l\'application »</b>.<br>' +
+        'Si tu ne vois pas le menu, fais glisser la page vers le bas : la barre du navigateur réapparaît.');
+    }
+  }, 2500);
+
+  // Service worker : necessaire pour que Chrome propose l'installation,
+  // et il garde les apercus en cache (plus de refabrication a chaque visite).
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
 
   charger();
 })();
