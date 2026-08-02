@@ -130,6 +130,7 @@
     <h2>💬 Chat</h2><p>Décris ta figurine en parlant (🎤) ou en écrivant. L'atelier te propose une image : critique-la ou valide. Ensuite choisis perso/vente, la taille, et la sculpture 3D se lance toute seule.</p>
     <h2>🎤 Parler</h2><p>Appuie sur le micro et parle — tu peux faire des pauses, il continue d'écouter. Quand tu as fini, appuie encore sur le micro pour envoyer.</p>
     <h2>📎 Photos</h2><p>Avec le trombone, envoie jusqu'à 4 photos (plusieurs angles = meilleure sculpture).</p>
+    <h2>🖊️ Entourer un défaut</h2><p>Touche une image envoyée par l'atelier dans le chat (ou le bouton 🖊️ sur la fiche d'une figurine) : entoure au doigt la zone qui ne va pas, écris ce qu'il faut corriger, envoie. L'atelier ne retouche QUE cette zone — le reste de l'image ne bouge pas.</p>
     <h2>📋 Figurines</h2><p>La liste de tes figurines. Clique sur une figurine : sa fiche montre les coûts, le prix conseillé, l'annonce de vente, et le bouton « Voir en 3D » — la 3D s'affiche en haut, le chat en bas pour dire les défauts en direct.</p>
     <h2>🖨️ Imprimer</h2><p>Sur la fiche, appuie sur « Créer le fichier à imprimer ». L'appli règle tout toute seule et te donne le fichier .3mf à ouvrir dans Bambu Handy / Bambu Studio. Si la figurine est trop grande pour l'imprimante, l'appli la coupe en morceaux qui s'emboîtent (tu imprimes, tu emboîtes, tu colles).</p>
     <h2>📚 Catalogue</h2><p>Toutes les sortes d'objets qu'on sait faire, rangées par catégorie avec une recherche. Clique « Demander cette création » et ça remplit le chat tout seul.</p>
@@ -419,7 +420,7 @@ window.ouvrirFig = (i) => {
   figIdx = i;
   $("figzone").innerHTML = `<div class="detail">
     <button class="abtn sec" onclick="vueListe()">← Retour à la liste</button>
-    ${f.image_url ? `<img class="big" src="${esc(f.image_url)}">` : ""}
+    ${f.image_url ? `<img class="big" src="${esc(f.image_url)}"><button class="abtn sec" onclick="ouvrirAnnotation('${esc(f.image_url)}')">🖊️ Entourer un défaut sur l'image</button>` : ""}
     <div><div style="font-weight:800;font-size:16px">#${f.id} — ${esc(f.nom || f.annonce_titre || f.demande || "")}</div>
     ${f.nom || f.annonce_titre ? `<div style="font-size:12.5px;color:#9aa0a6;margin-top:2px">${esc((f.demande || "").slice(0, 90))}</div>` : ""}
     <span class="badge ${f.statut === "3d_valide" ? "ok" : ""}">${STATUTS[f.statut] || esc(f.statut)}</span></div>
@@ -533,13 +534,87 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
     <div class="acc-offre"><span><span class="n">Premium finition peinte</span><br><span class="d">grande taille ou peinture fine</span></span><span class="p">69-99 €</span></div>
   </div>
   <button class="acc-cta" onclick="fermerAccueil()">🚀 Créer ma figurine</button>
-  <div class="acc-note">Prix de lancement, confirmés avant tout paiement — rien n'est imprimé sans ta validation du rendu 3D. Une question ? Onglet <a href="#" onclick="fermerAccueil();document.querySelector('nav button[data-p=\u0022aide\u0022]').click();return false">Aide</a>.</div>
+  <div class="acc-note">Prix de lancement, confirmés avant tout paiement — rien n'est imprimé sans ta validation du rendu 3D. Une question ? Onglet <a href="#" onclick="fermerAccueil();document.querySelector('nav button[data-p="aide"]').click();return false">Aide</a>.</div>
 </div>
 <script>
 function fermerAccueil(){document.getElementById('accueil-ov').classList.add('off');try{localStorage.setItem('accueil_vu','1')}catch(e){}}
 try{if(localStorage.getItem('accueil_vu')==='1'){document.getElementById('accueil-ov').classList.add('off')}}catch(e){}
 // Mode Franck : l'ecran d'accueil client ne le concerne pas, on le passe.
 try{var _q=new URLSearchParams(location.search);if(localStorage.getItem('atelier_admin')==='1'||_q.get('admin')==='1'||location.hash==='#admin'){document.getElementById('accueil-ov').classList.add('off')}}catch(e){}
+</script>
+
+<!-- ============================================================= -->
+<!-- 🖊️ CORRECTION PAR ZONE (02/08) : entourer un défaut au doigt.  -->
+<!-- La retouche ne touche QUE la zone entourée, le reste est figé. -->
+<!-- ============================================================= -->
+<style>
+#annot-ov{position:fixed;inset:0;z-index:1200;background:#0d1117;display:none;flex-direction:column}
+#annot-ov.on{display:flex}
+#annot-top{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px;color:#e6edf3;font-size:14px}
+#annot-wrap{flex:1 1 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:6px}
+#annot-cv{max-width:100%;max-height:100%;border-radius:10px;touch-action:none;background:#fff}
+#annot-bar{flex:0 0 auto;display:flex;gap:6px;padding:8px 10px;background:#14171d;border-top:1px solid #23262e;align-items:center;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+#annot-bar input{flex:1;min-width:0;background:#0f1115;border:1px solid #2f3542;color:#fff;border-radius:22px;padding:11px 14px;font-size:15px;outline:none}
+#annot-bar button{border:0;border-radius:12px;padding:11px 12px;font-size:14px;cursor:pointer;color:#fff;background:#2a2f3a;flex:0 0 auto}
+#annot-bar button.go{background:#16a34a;font-weight:700}
+</style>
+<div id="annot-ov">
+  <div id="annot-top"><b>🖊️ Entoure la zone à corriger</b><span style="color:#8b98a5">— dessine au doigt</span><button onclick="fermerAnnotation()" style="margin-left:auto;background:#2a2f3a;color:#fff;border:0;border-radius:10px;padding:8px 12px;cursor:pointer">✖</button></div>
+  <div id="annot-wrap"><canvas id="annot-cv"></canvas></div>
+  <div id="annot-bar">
+    <button onclick="annotEffacer()" title="Effacer le tracé">↩️</button>
+    <input id="annot-txt" placeholder="Quoi corriger dans la zone ? (obligatoire)">
+    <button class="go" onclick="annotEnvoyer()">Envoyer ➤</button>
+  </div>
+</div>
+<script>
+(function(){
+  const cv = document.getElementById('annot-cv');
+  let ctx = null, baseImg = null, drawing = false, traces = false;
+  window.ouvrirAnnotation = function(url){
+    const ov = document.getElementById('annot-ov'); ov.classList.add('on');
+    document.getElementById('annot-txt').value = '';
+    traces = false; ctx = null; baseImg = null;
+    const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = function(){
+      baseImg = im;
+      const MAX = 1280; const k = Math.min(1, MAX / Math.max(im.naturalWidth, im.naturalHeight));
+      cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k);
+      ctx = cv.getContext('2d'); ctx.drawImage(im, 0, 0, cv.width, cv.height);
+      ctx.strokeStyle = '#ff2d2d'; ctx.lineWidth = Math.max(5, cv.width / 120); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    };
+    im.onerror = function(){ alert("Image impossible à charger, réessaie."); fermerAnnotation(); };
+    im.src = url;
+  };
+  window.fermerAnnotation = function(){ document.getElementById('annot-ov').classList.remove('on'); };
+  window.annotEffacer = function(){ if (ctx && baseImg){ ctx.drawImage(baseImg, 0, 0, cv.width, cv.height); traces = false; } };
+  function pos(e){ const r = cv.getBoundingClientRect(); const t = (e.touches && e.touches[0]) || e; return { x: (t.clientX - r.left) * cv.width / r.width, y: (t.clientY - r.top) * cv.height / r.height }; }
+  function down(e){ if (!ctx) return; e.preventDefault(); drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+  function move(e){ if (!drawing || !ctx) return; e.preventDefault(); const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); traces = true; }
+  function up(){ drawing = false; }
+  cv.addEventListener('pointerdown', down); cv.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+  window.annotEnvoyer = async function(){
+    const consigne = document.getElementById('annot-txt').value.trim();
+    if (!traces){ alert('Entoure d\'abord la zone à corriger sur l\'image.'); return; }
+    if (!consigne){ alert('Écris ce qu\'il faut corriger dans la zone.'); return; }
+    try {
+      const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.92));
+      const path = 'app/annot_' + SESSION + '_' + Date.now() + '.jpg';
+      const up2 = await fetch(SUPA + '/storage/v1/object/photos/' + path, { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'image/jpeg' }, body: blob });
+      if (!up2.ok) throw new Error('upload ' + up2.status);
+      const url = SUPA + '/storage/v1/object/public/photos/' + path;
+      await fetch(SUPA + '/rest/v1/app_messages', { method: 'POST', headers: { ...H, Prefer: 'return=minimal' }, body: JSON.stringify({ session: SESSION, role: 'user', texte: consigne, image_url: url }) });
+      fermerAnnotation();
+      attente = true; try { document.getElementById('typing').style.display = 'block'; } catch(e) {}
+      pollChat();
+    } catch (e) { alert('Envoi raté (' + (e.message || e) + '), réessaie.'); }
+  };
+  // Toucher une image du bot dans le chat = l'ouvrir pour l'entourer
+  document.addEventListener('click', function(e){
+    const img = e.target;
+    if (img && img.tagName === 'IMG' && img.closest('.b.bot')) { ouvrirAnnotation(img.src); }
+  });
+})();
 </script>
 </body>
 </html>
