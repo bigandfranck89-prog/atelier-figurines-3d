@@ -44,11 +44,14 @@
 
   /* ---------- FIGURINES ---------- */
   .figzone { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-  .list { flex: 1 1 auto; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-  .card { background: #1a1d24; border: 1px solid #262a33; border-radius: 14px; padding: 12px; display: flex; gap: 12px; cursor: pointer; align-items: center; }
-  .card img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; background: #0f1115; flex: 0 0 auto; }
-  .card .t { font-size: 14px; font-weight: 600; }
-  .card .s { font-size: 12px; color: #9aa0a6; margin-top: 3px; }
+  .list { flex: 1 1 auto; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: start; }
+  @media (max-width: 380px) { .list { grid-template-columns: 1fr; } }
+  .card { background: #1a1d24; border: 1px solid #262a33; border-radius: 14px; cursor: pointer; overflow: hidden; display: flex; flex-direction: column; }
+  .card .card-img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #0f1115; display: block; }
+  .card .card-img-ph { width: 100%; aspect-ratio: 1 / 1; background: #0f1115; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #3a3f4a; }
+  .card .card-body { padding: 8px 10px 10px; }
+  .card .t { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .card .s { font-size: 11px; color: #9aa0a6; margin-top: 2px; }
   .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #262a33; color: #cbd5e1; margin-top: 4px; }
   .badge.ok { background: #123b2a; color: #34d399; }
   .detail { flex: 1 1 auto; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
@@ -103,7 +106,10 @@
   <!-- CHAT -->
   <section class="page on" id="p-chat"><div class="chatwrap">
     <div style="display:flex;justify-content:flex-end;padding:6px 10px 0;flex:0 0 auto"><button onclick="resetChat()" style="background:#2a2f3a;color:#dbe4ff;border:1px solid #39404e;border-radius:14px;padding:5px 12px;font-size:12.5px;cursor:pointer">🆕 Nouvelle conversation</button></div><div class="msgs" id="msgs"></div>
-    <div class="typing" id="typing">⌛ l'atelier travaille…</div>
+    <div class="typing" id="typing" style="align-self:flex-start;padding:4px 12px 6px;display:none;width:100%">
+      <div id="etapes-bar" style="display:flex;gap:2px;margin-bottom:4px"></div>
+      <div id="etapes-label" style="font-size:12px;color:#9aa0a6">⌛ l'atelier travaille…</div>
+    </div>
     <div class="inbar">
       <button id="photo" class="gris" title="Envoyer une photo">📎</button>
       <button id="mic" class="gris" title="Parler au lieu d'écrire">🎤</button>
@@ -229,6 +235,34 @@ let SESSION = localStorage.getItem("atelier_session");
 if (!SESSION) { SESSION = Math.random().toString(36).slice(2, 10); localStorage.setItem("atelier_session", SESSION); }
 
 const $ = id => document.getElementById(id);
+// Barre d'étapes progressive pendant la génération
+const ETAPES_GEN = [
+  {k:"image_en_cours",   label:"🎨 Image",       c:"#3b82f6"},
+  {k:"attente_couleurs", label:"🎨 Couleurs",     c:"#8b5cf6"},
+  {k:"image_validee",    label:"✅ Image validée",c:"#10b981"},
+  {k:"collecte_photos",  label:"📸 Photos",       c:"#f59e0b"},
+  {k:"3d_en_cours",      label:"🔧 Sculpture 3D", c:"#ec4899"},
+  {k:"3d_valide",        label:"🎉 3D prête",     c:"#34d399"}
+];
+let _etapeTimer = null, _etapeIdx = 0;
+function demarrerBarreEtapes() {
+  _etapeIdx = 0;
+  const bar = document.getElementById("etapes-bar");
+  const lbl = document.getElementById("etapes-label");
+  if (!bar || !lbl) return;
+  function rafraichir() {
+    if (_etapeIdx >= ETAPES_GEN.length) _etapeIdx = ETAPES_GEN.length - 1;
+    const e = ETAPES_GEN[_etapeIdx];
+    bar.innerHTML = ETAPES_GEN.map((step, si) =>
+      `<div style="flex:1;height:5px;border-radius:3px;background:${si <= _etapeIdx ? step.c : "#2a2f3a"};transition:background .4s"></div>`
+    ).join("");
+    lbl.textContent = "⌛ " + e.label + "…";
+    if (_etapeIdx < ETAPES_GEN.length - 1) { _etapeIdx++; _etapeTimer = setTimeout(rafraichir, 18000); }
+  }
+  clearTimeout(_etapeTimer);
+  rafraichir();
+}
+function arreterBarreEtapes() { clearTimeout(_etapeTimer); }
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const linkify = s => esc(s).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
 
@@ -272,8 +306,7 @@ async function pollChat() {
     const rows = await r.json();
     if (Array.isArray(rows) && rows.length) {
       const boxes = document.querySelectorAll(".msgs");
-      rows.forEach(m => { if (m.id <= lastId) return; lastId = m.id; boxes.forEach(bx => bx.insertAdjacentHTML("beforeend", bulleHTML(m))); if (m.role === "bot") attente = false; });
-      boxes.forEach(bx => bx.scrollTop = bx.scrollHeight);
+      rows.forEach(m => { if (m.id <= lastId) return; lastId = m.id; boxes.forEach(bx => bx.insertAdjacentHTML("beforeend", bulleHTML(m))); if (m.role === "bot") { attente = false; arreterBarreEtapes(); } }); boxes.forEach(bx => bx.scrollTop = bx.scrollHeight);
       $("typing").style.display = attente ? "block" : "none";
     }
   } catch (e) {}
@@ -282,7 +315,7 @@ async function pollChat() {
 
 async function envoyer(texte) {
   if (!texte) return;
-  attente = true; $("typing").style.display = "block";
+  attente = true; $("typing").style.display = "block"; demarrerBarreEtapes();
   await fetch(`${SUPA}/rest/v1/app_messages`, { method: "POST", headers: { ...H, Prefer: "return=minimal" }, body: JSON.stringify({ session: SESSION, role: "user", texte }) });
   pollChat();
 }
@@ -408,10 +441,12 @@ function vueListe() {
   figIdx = -1;
   $("figzone").innerHTML = `<div class="list">` + (FIGS.length ? FIGS.map((f, i) => `
     <div class="card" onclick="ouvrirFig(${i})">
-      ${f.image_url ? `<img src="${esc(f.image_url)}" loading="lazy">` : `<img alt="">`}
-      <div><div class="t">#${f.id} — ${esc((f.nom || f.annonce_titre || f.demande || "").slice(0, 60))}</div>
-      <div class="s">${esc(f.taille || "")} ${f.usage === "vente" ? "· 🏷️ vente" : ""} ${f.model_url ? "· 🧊 3D prête" : ""}</div>
-      <span class="badge ${f.statut === "3d_valide" ? "ok" : ""}">${STATUTS[f.statut] || esc(f.statut)}</span></div>
+      ${f.image_url ? `<img class="card-img" src="${esc(f.image_url)}" loading="lazy">` : `<div class="card-img-ph">🧸</div>`}
+      <div class="card-body">
+        <div class="t">${esc((f.nom || f.annonce_titre || f.demande || "Figurine").slice(0, 38))}</div>
+        <div class="s">${esc(f.taille || "")}${(()=>{try{const ph=JSON.parse(f.photos_urls||"[]");return ph.length>1?" · +"+(ph.length-1)+" 📷":"";}catch(e){return "";}})()}</div>
+        <span class="badge ${f.statut==="3d_valide"?"ok":""}">${STATUTS[f.statut]||esc(f.statut)}</span>
+      </div>
     </div>`).join("") : `<div style="color:#6b7280;text-align:center;padding:30px">Aucune figurine — passe par l'onglet 💬 Chat !</div>`) + `</div>`;
 }
 
@@ -432,8 +467,9 @@ window.ouvrirFig = (i) => {
       <div class="tile"><div class="l">Usage</div><div class="v">${f.usage === "vente" ? "🏷️ Vente" : "🎮 Perso"}</div></div>
       <div class="tile"><div class="l">Matière (PLA)</div><div class="v">${f.poids_g ? "~" + f.poids_g + " g" : "—"}</div></div>
       <div class="tile"><div class="l">Impression</div><div class="v">${fmtMn(f.temps_impression_min)}</div></div>
-      <div class="tile"><div class="l">Coût de revient</div><div class="v">${eur(f.cout_total_eur)}</div></div>
-      <div class="tile"><div class="l">Prix conseillé</div><div class="v">${f.prix_conseille_eur ? f.prix_conseille_eur + " €" : "—"}</div></div>
+      ${(typeof estAdmin === 'function' ? estAdmin() : false) ? `
+  <div class="tile"><div class="l">Coût de revient</div><div class="v">${eur(f.cout_total_eur)}</div></div>
+  <div class="tile"><div class="l">Prix conseillé</div><div class="v">${f.prix_conseille_eur ? f.prix_conseille_eur + " €" : "—"}</div></div>` : ""}
     </div>
 
     <!-- PANNEAU IMPRESSION (rempli par renderImpr) -->
@@ -464,7 +500,7 @@ window.ouvrirFig = (i) => {
       <div id="fpl-res" class="impr" style="margin-top:10px"></div>
     </details>
 
-    ${f.annonce_titre || f.annonce_texte ? `<div class="tile"><div class="l">📝 Annonce de vente (brouillon)</div><div class="v" style="font-size:14.5px">${esc(f.annonce_titre || "")}</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${esc(f.annonce_texte || "")}</div><div style="font-size:12.5px;color:#5be3a5;margin-top:8px;border-top:1px solid #23303a;padding-top:8px">🛡️ Nos garanties (à mettre dans l'annonce) : tu valides l'image <b>puis</b> la sculpture 3D avant toute impression, corrections illimitées, et un contrôle qualité + un contrôle d'imprimabilité passent sur chaque pièce.</div></div>` : ""}
+    ${(f.annonce_titre || f.annonce_texte) && (typeof estAdmin === 'function' ? estAdmin() : false) ? `<div class="tile"><div class="l">📝 Annonce de vente (brouillon)</div><div class="v" style="font-size:14.5px">${esc(f.annonce_titre || "")}</div><div style="font-size:13.5px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap">${esc(f.annonce_texte || "")}</div><div style="font-size:12.5px;color:#5be3a5;margin-top:8px;border-top:1px solid #23303a;padding-top:8px">🛡️ Nos garanties (à mettre dans l'annonce) : tu valides l'image <b>puis</b> la sculpture 3D avant toute impression, corrections illimitées, et un contrôle qualité + un contrôle d'imprimabilité passent sur chaque pièce.</div></div>` : ""}
     <div style="font-size:12.5px;color:#9aa0a6;text-align:center">🛡️ Rien ne part en impression sans TA validation de l'image ET de la 3D.</div>
   </div>`;
   try { renderImpr(i); } catch (e) { $("impr-panel").innerHTML = `<div class="impr"><div class="al bad">Le module d'impression a eu un souci : ${esc(e.message||e)}</div></div>`; }
