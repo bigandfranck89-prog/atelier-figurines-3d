@@ -44,13 +44,15 @@
 
   /* ---------- FIGURINES ---------- */
   .figzone { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-  .list { flex: 1 1 auto; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: start; }
-  @media (max-width: 380px) { .list { grid-template-columns: 1fr; } }
+  /* 07/08 (#953) : galerie toujours en 2 colonnes, grandes images */
+  .list { flex: 1 1 auto; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
   .card { background: #1a1d24; border: 1px solid #262a33; border-radius: 14px; cursor: pointer; overflow: hidden; display: flex; flex-direction: column; }
   .card .card-img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #0f1115; display: block; }
-  .card .card-img-ph { width: 100%; aspect-ratio: 1 / 1; background: #0f1115; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #3a3f4a; }
+  .card .card-img-ph { width: 100%; aspect-ratio: 1 / 1; background: #0f1115; display: flex; align-items: center; justify-content: center; font-size: 44px; color: #3a3f4a; }
+  .card .card-thumbs { display: flex; gap: 4px; padding: 6px 8px 0; }
+  .card .card-thumbs img { flex: 1; width: 100%; height: 40px; object-fit: cover; border-radius: 7px; background: #0f1115; }
   .card .card-body { padding: 8px 10px 10px; }
-  .card .t { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .card .t { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
   .card .s { font-size: 11px; color: #9aa0a6; margin-top: 2px; }
   .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #262a33; color: #cbd5e1; margin-top: 4px; }
   .badge.ok { background: #123b2a; color: #34d399; }
@@ -234,6 +236,17 @@ const VIEWER = "viewer.html?src=";
 let SESSION = localStorage.getItem("atelier_session");
 if (!SESSION) { SESSION = Math.random().toString(36).slice(2, 10); localStorage.setItem("atelier_session", SESSION); }
 
+// 07/08 (#953) : mode admin (Franck) = ?admin=1, #admin, ou localStorage atelier_admin=1.
+// Sert à n'afficher les coûts / prix conseillé / annonce de vente QU'à l'admin.
+window.estAdmin = function(){
+  try {
+    const q = new URLSearchParams(location.search);
+    return localStorage.getItem("atelier_admin") === "1" || q.get("admin") === "1" || location.hash === "#admin";
+  } catch (e) { return false; }
+};
+// Si l'admin arrive avec ?admin=1, on mémorise pour les navigations suivantes.
+try { if (new URLSearchParams(location.search).get("admin") === "1" || location.hash === "#admin") localStorage.setItem("atelier_admin", "1"); } catch (e) {}
+
 const $ = id => document.getElementById(id);
 // Barre d'étapes progressive pendant la génération
 const ETAPES_GEN = [
@@ -244,27 +257,68 @@ const ETAPES_GEN = [
   {k:"3d_en_cours",      label:"🔧 Sculpture 3D", c:"#ec4899"},
   {k:"3d_valide",        label:"🎉 3D prête",     c:"#34d399"}
 ];
-let _etapeTimer = null, _etapeIdx = 0;
-function demarrerBarreEtapes() {
-  _etapeIdx = 0;
+// 07/08 (#953) : la barre lit le VRAI statut de la figurine (table atelier_figurines)
+// au lieu d'avancer à l'aveugle sur un minuteur. Un fallback très doux montre juste
+// que « ça travaille » tant qu'aucun signal n'est arrivé, sans jamais annoncer « 3D prête ».
+let _etapeTimer = null, _etapeIdx = 0, _etapePoll = null, _etapeBaseline = null;
+function majBarreEtapes() {
   const bar = document.getElementById("etapes-bar");
   const lbl = document.getElementById("etapes-label");
   if (!bar || !lbl) return;
-  function rafraichir() {
-    if (_etapeIdx >= ETAPES_GEN.length) _etapeIdx = ETAPES_GEN.length - 1;
-    const e = ETAPES_GEN[_etapeIdx];
-    bar.innerHTML = ETAPES_GEN.map((step, si) =>
-      `<div style="flex:1;height:5px;border-radius:3px;background:${si <= _etapeIdx ? step.c : "#2a2f3a"};transition:background .4s"></div>`
-    ).join("");
-    lbl.textContent = "⌛ " + e.label + "…";
-    if (_etapeIdx < ETAPES_GEN.length - 1) { _etapeIdx++; _etapeTimer = setTimeout(rafraichir, 18000); }
-  }
-  clearTimeout(_etapeTimer);
-  rafraichir();
+  if (_etapeIdx >= ETAPES_GEN.length) _etapeIdx = ETAPES_GEN.length - 1;
+  if (_etapeIdx < 0) _etapeIdx = 0;
+  const e = ETAPES_GEN[_etapeIdx];
+  bar.innerHTML = ETAPES_GEN.map((step, si) =>
+    `<div style="flex:1;height:5px;border-radius:3px;background:${si <= _etapeIdx ? step.c : "#2a2f3a"};transition:background .4s"></div>`
+  ).join("");
+  lbl.textContent = "⌛ " + e.label + "…";
 }
-function arreterBarreEtapes() { clearTimeout(_etapeTimer); }
+async function lireEtapeReelle() {
+  if (!attente) { arreterBarreEtapes(); return; }
+  try {
+    const r = await fetch(`${SUPA}/rest/v1/atelier_figurines?select=statut,maj_le&order=maj_le.desc&limit=1`, { headers: H });
+    const rows = await r.json();
+    const f = Array.isArray(rows) && rows[0];
+    // On n'adopte la figurine que si elle a bougé DEPUIS le début de cette génération
+    // (maj_le > baseline) : évite d'afficher le statut d'une ancienne pièce déjà finie.
+    if (f && f.statut && (!_etapeBaseline || String(f.maj_le) > _etapeBaseline)) {
+      const idx = ETAPES_GEN.findIndex(s => s.k === f.statut);
+      if (idx >= 0 && idx > _etapeIdx) { _etapeIdx = idx; majBarreEtapes(); }
+    }
+  } catch (e) {}
+}
+function demarrerBarreEtapes() {
+  _etapeIdx = 0;
+  majBarreEtapes();
+  // 1) baseline : dernière maj connue AVANT cette génération
+  _etapeBaseline = null;
+  fetch(`${SUPA}/rest/v1/atelier_figurines?select=maj_le&order=maj_le.desc&limit=1`, { headers: H })
+    .then(r => r.json())
+    .then(rows => { _etapeBaseline = (Array.isArray(rows) && rows[0] && String(rows[0].maj_le)) || null; })
+    .catch(() => {});
+  // 2) suivi réel du statut, toutes les 3 s
+  clearInterval(_etapePoll);
+  _etapePoll = setInterval(lireEtapeReelle, 3000);
+  // 3) fallback très doux : montre que ça vit (étape 0 → 1) mais s'arrête là ;
+  //    seul le vrai statut peut avancer plus loin.
+  clearTimeout(_etapeTimer);
+  const avanceDouce = () => {
+    if (_etapeIdx < 1) { _etapeIdx++; majBarreEtapes(); }
+    _etapeTimer = setTimeout(avanceDouce, 15000);
+  };
+  _etapeTimer = setTimeout(avanceDouce, 15000);
+}
+function arreterBarreEtapes() { clearTimeout(_etapeTimer); clearInterval(_etapePoll); }
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const linkify = s => esc(s).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+
+// 07/08 (#953) : lit photos_urls quel que soit son format (jsonb array déjà parsé, ou texte JSON).
+function photosDe(f) {
+  let p = f && f.photos_urls;
+  if (Array.isArray(p)) return p.filter(Boolean);
+  if (typeof p === "string") { try { const a = JSON.parse(p || "[]"); return Array.isArray(a) ? a.filter(Boolean) : []; } catch (e) { return []; } }
+  return [];
+}
 
 /* ================= NAVIGATION ================= */
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
@@ -439,15 +493,21 @@ async function chargerFigs() {
 
 function vueListe() {
   figIdx = -1;
-  $("figzone").innerHTML = `<div class="list">` + (FIGS.length ? FIGS.map((f, i) => `
+  $("figzone").innerHTML = `<div class="list">` + (FIGS.length ? FIGS.map((f, i) => {
+    const ph = photosDe(f);
+    const extra = ph.length > 1 ? ` · +${ph.length - 1} 📷` : "";
+    const thumbs = ph.length > 1 ? `<div class="card-thumbs">` + ph.slice(0, 3).map(u => `<img src="${esc(u)}" loading="lazy">`).join("") + `</div>` : "";
+    return `
     <div class="card" onclick="ouvrirFig(${i})">
       ${f.image_url ? `<img class="card-img" src="${esc(f.image_url)}" loading="lazy">` : `<div class="card-img-ph">🧸</div>`}
+      ${thumbs}
       <div class="card-body">
         <div class="t">${esc((f.nom || f.annonce_titre || f.demande || "Figurine").slice(0, 38))}</div>
-        <div class="s">${esc(f.taille || "")}${(()=>{try{const ph=JSON.parse(f.photos_urls||"[]");return ph.length>1?" · +"+(ph.length-1)+" 📷":"";}catch(e){return "";}})()}</div>
+        <div class="s">${esc(f.taille || "")}${extra}</div>
         <span class="badge ${f.statut==="3d_valide"?"ok":""}">${STATUTS[f.statut]||esc(f.statut)}</span>
       </div>
-    </div>`).join("") : `<div style="color:#6b7280;text-align:center;padding:30px">Aucune figurine — passe par l'onglet 💬 Chat !</div>`) + `</div>`;
+    </div>`;
+  }).join("") : `<div style="color:#6b7280;text-align:center;padding:30px">Aucune figurine — passe par l'onglet 💬 Chat !</div>`) + `</div>`;
 }
 
 window.ouvrirFig = (i) => {
@@ -570,7 +630,7 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
     <div class="acc-offre"><span><span class="n">Premium finition peinte</span><br><span class="d">grande taille ou peinture fine</span></span><span class="p">69-99 €</span></div>
   </div>
   <button class="acc-cta" onclick="fermerAccueil()">🚀 Créer ma figurine</button>
-  <div class="acc-note">Prix de lancement, confirmés avant tout paiement — rien n'est imprimé sans ta validation du rendu 3D. Une question ? Onglet <a href="#" onclick="fermerAccueil();document.querySelector('nav button[data-p="aide"]').click();return false">Aide</a>.</div>
+  <div class="acc-note">Prix de lancement, confirmés avant tout paiement — rien n'est imprimé sans ta validation du rendu 3D. Une question ? Onglet <a href="#" onclick="fermerAccueil();document.querySelector('nav button[data-p=&quot;aide&quot;]').click();return false">Aide</a>.</div>
 </div>
 <script>
 function fermerAccueil(){document.getElementById('accueil-ov').classList.add('off');try{localStorage.setItem('accueil_vu','1')}catch(e){}}
