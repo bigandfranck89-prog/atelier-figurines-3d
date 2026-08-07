@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forgeon — Valider le catalogue (07/08/2026)</title>
+<style>
+  :root{--encre:#1c2430;--gris:#5c6773;--ligne:#e3e7ec;--fond:#f6f7f9;--carte:#fff;--bleu:#2563b0;--vert:#1e8a5a;--orange:#c26a1b;--rouge:#b53a48;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--fond);color:var(--encre);line-height:1.4;padding:20px 14px 120px;max-width:1100px;margin:0 auto;}
+  h1{font-size:1.35em;} .sous{color:var(--gris);margin:4px 0 14px;}
+  h2{font-size:1em;text-transform:uppercase;letter-spacing:.05em;color:var(--gris);margin:24px 0 10px;border-bottom:2px solid var(--ligne);padding-bottom:5px;}
+  .avert{background:#fdf3e4;border:1px solid #f0d9b0;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.92em;}
+  .grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+  .obj{background:var(--carte);border:1px solid var(--ligne);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;}
+  .obj img{width:100%;aspect-ratio:1;object-fit:cover;background:#eceff2;}
+  .obj .corps{padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .obj .nom{font-weight:700;} .obj .spec{font-size:.83em;color:var(--gris);flex:1;}
+  .etq{display:inline-block;font-size:.72em;font-weight:700;padding:1px 7px;border-radius:9px;}
+  .etq-neuf{background:#fdeedd;color:var(--orange);} .etq-vrai{background:#e2f2ea;color:var(--vert);} .etq-attention{background:#fbe4e7;color:var(--rouge);}
+  .choix{display:flex;gap:5px;flex-wrap:wrap;}
+  .choix button{flex:1;min-width:60px;border:1.5px solid var(--ligne);background:#fff;border-radius:7px;padding:6px 4px;cursor:pointer;font-size:.85em;font-weight:600;color:var(--gris);}
+  .choix button.on-garde{background:var(--vert);border-color:var(--vert);color:#fff;}
+  .choix button.on-jette{background:var(--rouge);border-color:var(--rouge);color:#fff;}
+  .choix button.on-revoir{background:var(--orange);border-color:var(--orange);color:#fff;}
+  label.imgko{font-size:.8em;color:var(--gris);display:flex;gap:6px;align-items:center;cursor:pointer;}
+  .barre{position:fixed;left:0;right:0;bottom:0;background:var(--carte);border-top:2px solid var(--ligne);padding:12px 16px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;}
+  .barre .compte{color:var(--gris);font-size:.9em;}
+  .barre button{background:var(--bleu);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:1em;font-weight:700;cursor:pointer;}
+  #resu{display:none;position:fixed;inset:8% 6%;background:#fff;border:2px solid var(--encre);border-radius:12px;padding:18px;z-index:10;overflow:auto;}
+  #resu textarea{width:100%;height:60%;font-family:monospace;font-size:.9em;margin:10px 0;}
+</style>
+</head>
+<body>
+<h1>Forgeon — le catalogue à valider</h1>
+<div class="sous">Pour chaque objet : <b>Je garde</b>, <b>Je jette</b> ou <b>À revoir</b>. Si l'image ne colle pas au titre, coche « image fausse ». À la fin, bouton bleu en bas → copie ta réponse et colle-la-moi dans la discussion.</div>
+
+<div class="avert">⚠️ Les images de la section 1 ont été <b>régénérées aujourd'hui</b> (la planche du 04/08 n'a pas été retrouvée en base) et je n'ai <b>pas pu les vérifier à l'œil une par une</b> depuis cette session. Le titre et la description font foi : si l'image raconte autre chose, c'est l'image qui a tort — coche « image fausse » et je la referai.</div>
+
+<h2>1 · Les 18 objets jugés « bons » le 04/08 <span class="etq etq-neuf">images régénérées, non vérifiées</span></h2>
+<div class="grille" id="g1"></div>
+
+<h2>2 · Les 4 objets « à moitié bons » — corriger ou abandonner ?</h2>
+<div class="grille" id="g2"></div>
+
+<h2>3 · Les 12 déjà marqués « gardés » en base (vraies images d'origine) <span class="etq etq-vrai">images d'origine</span></h2>
+<div class="avert">Certains contredisent les règles de sécurité actées le 04/08 (indiqué en rouge sur la carte). Dis-moi si on les garde quand même, en version corrigée, ou si on les jette.</div>
+<div class="grille" id="g3"></div>
+
+<div class="barre">
+  <span class="compte" id="compte">0 / 34 réponses</span>
+  <button onclick="montrerResume()">Terminer → copier ma réponse</button>
+</div>
+
+<div id="resu">
+  <b>Ta réponse — copie-la et colle-la dans la discussion Claude :</b>
+  <textarea id="resuTxt" readonly></textarea>
+  <div style="display:flex;gap:10px;">
+    <button style="background:var(--bleu);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:700;cursor:pointer;" onclick="copier()">📋 Copier</button>
+    <button style="background:var(--gris);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:700;cursor:pointer;" onclick="document.getElementById('resu').style.display='none'">Fermer</button>
+  </div>
+</div>
+
+<script>
+function pol(p){return 'https://image.pollinations.ai/prompt/'+encodeURIComponent(p+', single solid light gray color, monochrome, chunky rounded solid volumes, flat stable base, no thin parts, 3D printable design, smooth neutral studio background, product photo')+'?width=512&height=512&nologo=true';}
+
+const BONS=[
+ ['Pince à sachet','Se vend par lot de 6, ~15 min d\'impression (ton idée).',pol('a simple sturdy bag clip clamp for sealing food bags')],
+ ['Serre-câble de bureau','Guide les câbles au bord du bureau.',pol('a desk cable organizer clip holding several cables')],
+ ['Crochet mural','Base plate, se colle ou se visse.',pol('a minimalist wall hook with flat mounting base')],
+ ['Porte-éponge','Égouttoir d\'évier.',pol('a kitchen sink sponge holder with drainage slots')],
+ ['Porte-savon à rainures','Rainures d\'écoulement intégrées.',pol('a soap dish with parallel drainage grooves')],
+ ['Organiseur de bureau','Compartiments stylos / trombones / téléphone.',pol('a desk organizer with several compartments for pens and clips')],
+ ['Range-brosses à dents','Trous verticaux, fond ouvert pour sécher.',pol('a toothbrush holder stand with vertical slots')],
+ ['Range-tournevis','Support d\'atelier, trous par taille.',pol('a screwdriver rack stand with graduated holes, workshop tool organizer')],
+ ['Cache-pot','Pour pot de fleurs standard.',pol('a decorative plant pot cover cylindrical sleeve')],
+ ['Vase spirale','Déco, imprimé en mode vase.',pol('a spiral twisted decorative vase')],
+ ['Dessous-de-verre','Se vend par lot.',pol('a set of round geometric drink coasters')],
+ ['Pot à crayons','Simple et solide.',pol('a sturdy cylindrical pencil holder cup')],
+ ['Porte-cartes','Cartes de visite, comptoir.',pol('a business card holder stand for a counter')],
+ ['Arbre à bagues','Bijoux du soir, branches ÉPAISSES.',pol('a ring holder tree with thick rounded branches for jewelry')],
+ ['Presse-papier','Lourd, plein, aucun porte-à-faux.',pol('a solid heavy decorative paperweight dome')],
+ ['Coupelle vague','Vide-poche en forme de vague.',pol('a wave shaped trinket dish bowl with thick curling rim')],
+ ['Statuette Moaï','Déjà en base (vraie image conservée).','https://image.pollinations.ai/prompt/a%20chunky%20stylized%20moai%20stone%20head%20statue%2C%20rounded%20solid%20volumes'],
+ ['Support téléphone géométrique','Le remplaçant du koala : berceau ouvert 22 mm, dossier à 60°.',pol('a geometric angular phone stand with open cradle and inclined backrest')]
+];
+const AJUSTER=[
+ ['Support casque','Mât trop fin → passer à 25 mm.',pol('a headphone stand with a very thick 25mm central column')],
+ ['Range-télécommande','La poche ne se voyait pas → à redessiner.',pol('a remote control holder caddy with clearly visible open pockets')],
+ ['Statuette rhinocéros','Corne fine + pattes détachées = supports d\'impression.','https://image.pollinations.ai/prompt/A%20cute%20stylized%20rhinoceros%20standing%20statue%2C%20chunky%20rounded%20body%2C%20single%20solid%20light%20gray'],
+ ['Chat (statuette)','Oreilles trop fines à l\'impression.',pol('a sitting cat statue with thick rounded ears')]
+];
+const GARDES=[
+ [73,'Support téléphone koala','Monochrome illisible → prévu pour la ligne « à peindre ».','https://image.pollinations.ai/prompt/highly%20detailed%20collectible%203D%20printable%20phone%20stand%20shaped%20like%20a%20koala',''],
+ [79,'Statuette Moaï','RAS — déjà dans la liste des 18.','https://image.pollinations.ai/prompt/a%20chunky%20stylized%20moai%20stone%20head%20statue%2C%20rounded%20solid%20volumes',''],
+ [86,'Statuette rhinocéros','Voir section 2 (à ajuster).','https://image.pollinations.ai/prompt/A%20cute%20stylized%20rhinoceros%20standing%20statue%2C%20chunky%20rounded%20body%2C%20single%20solid%20light%20gray',''],
+ [88,'Vide-poche crabe','⚠ L\'image d\'origine n\'avait ni pattes ni pinces (constat 04/08).','https://image.pollinations.ai/prompt/A%20cute%20stylized%20crab%20shaped%20trinket%20dish%2C%20wide%20rounded%20shell','attention'],
+ [89,'Tirelire tonneau','RAS.','https://image.pollinations.ai/prompt/A%20classic%20wooden%20barrel%20money%20box%20piggy%20bank%2C%20chunky%20cylindrical',''],
+ [92,'Porte-photo écureuil','RAS.','https://image.pollinations.ai/prompt/A%20cute%20chubby%20squirrel%20photo%20card%20holder%2C%20thick%20rounded%20body',''],
+ [94,'Coquetier poule','⚠ Contact alimentaire : le plastique imprimé retient les bactéries (règle 04/08).','https://image.pollinations.ai/prompt/a%20plump%20stylized%20hen%20egg%20cup%2C%20rounded%20solid%20body%20with%20a%20cup','attention'],
+ [95,'Bougeoir spirale','⚠ Gardé UNIQUEMENT en version bougie LED (le PLA fond à 55-60°).','https://image.pollinations.ai/prompt/a%20chunky%20spiral%20tealight%20candle%20holder%2C%20thick%20swirling%20solid%20ring','attention'],
+ [96,'Porte-encens vague','⚠ ÉCARTÉ par la règle sécurité (braise > 200°, cendres brûlantes).','https://image.pollinations.ai/prompt/a%20solid%20ocean%20wave%20shaped%20incense%20stick%20holder%2C%20thick%20curling','attention'],
+ [97,'Support bouteille en équilibre','RAS.','https://image.pollinations.ai/prompt/a%20chunky%20balancing%20wine%20bottle%20holder%2C%20thick%20angled%20solid%20block',''],
+ [98,'Porte-cartes immeuble','RAS.','https://image.pollinations.ai/prompt/a%20small%20stylized%20modern%20building%20shaped%20business%20card%20holder',''],
+ [99,'Cale-porte chat','⚠ Reporté le 04/08 : sans antidérapant il glisse sur le carrelage.','https://image.pollinations.ai/prompt/a%20heavy%20wedge%20shaped%20sleeping%20cat%20doorstop%2C%20solid%20chunky%20cat','attention']
+];
+
+const reponses={};
+function carte(section,i,nom,spec,img,etq){
+  const id=section+'-'+i;
+  return `<div class="obj" id="c${id}">
+    <img src="${img}" loading="lazy" alt="${nom}">
+    <div class="corps">
+      <div class="nom">${nom} ${etq==='attention'?'<span class="etq etq-attention">règle sécurité</span>':''}</div>
+      <div class="spec">${spec}</div>
+      <div class="choix">
+        <button onclick="choisir('${id}','garde',this)">✅ Je garde</button>
+        <button onclick="choisir('${id}','jette',this)">❌ Je jette</button>
+        <button onclick="choisir('${id}','revoir',this)">✏️ À revoir</button>
+      </div>
+      <label class="imgko"><input type="checkbox" onchange="imgKo('${id}',this.checked)"> l'image ne correspond pas au titre</label>
+    </div>
+  </div>`;
+}
+const NOMS={};
+document.getElementById('g1').innerHTML=BONS.map((o,i)=>{NOMS['A-'+i]=o[0];return carte('A',i,o[0],o[1],o[2],'');}).join('');
+document.getElementById('g2').innerHTML=AJUSTER.map((o,i)=>{NOMS['B-'+i]=o[0];return carte('B',i,o[0],o[1],o[2],'');}).join('');
+document.getElementById('g3').innerHTML=GARDES.map((o,i)=>{NOMS['C-'+i]='#'+o[0]+' '+o[1];return carte('C',i,'#'+o[0]+' '+o[1],o[2],o[3],o[4]);}).join('');
+const TOTAL=BONS.length+AJUSTER.length+GARDES.length;
+document.getElementById('compte').textContent='0 / '+TOTAL+' réponses';
+
+function choisir(id,val,btn){
+  reponses[id]=reponses[id]||{}; reponses[id].choix=val;
+  const p=btn.parentElement;
+  [...p.children].forEach(b=>b.className='');
+  btn.className='on-'+val;
+  majCompte();
+}
+function imgKo(id,v){reponses[id]=reponses[id]||{}; reponses[id].imgko=v; majCompte();}
+function majCompte(){
+  const n=Object.values(reponses).filter(r=>r.choix).length;
+  document.getElementById('compte').textContent=n+' / '+TOTAL+' réponses';
+}
+function montrerResume(){
+  const lignes=['VALIDATION CATALOGUE FORGEON — '+new Date().toLocaleDateString('fr-FR')];
+  const secs={'A':'— Les 18 bons —','B':'— Les 4 à ajuster —','C':'— Les 12 gardés en base —'};
+  let cur='';
+  Object.keys(NOMS).forEach(id=>{
+    const s=id[0];
+    if(s!==cur){cur=s;lignes.push('',secs[s]);}
+    const r=reponses[id]||{};
+    const lib={garde:'JE GARDE',jette:'JE JETTE',revoir:'À REVOIR'}[r.choix]||'(pas répondu)';
+    lignes.push(`${NOMS[id]} : ${lib}${r.imgko?' — IMAGE FAUSSE':''}`);
+  });
+  document.getElementById('resuTxt').value=lignes.join('\n');
+  document.getElementById('resu').style.display='block';
+}
+function copier(){
+  const t=document.getElementById('resuTxt');
+  t.select();
+  if(navigator.clipboard){navigator.clipboard.writeText(t.value);}
+  else{document.execCommand('copy');}
+  alert('Copié ! Colle-le dans la discussion Claude.');
+}
+</script>
+</body>
+</html>
