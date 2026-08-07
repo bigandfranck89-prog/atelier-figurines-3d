@@ -1,0 +1,194 @@
+{
+  "name": "Marvel — mise à jour du calendrier",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [1],
+              "triggerAtHour": 6,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "trigger-hebdo",
+      "name": "Chaque lundi 6h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-200, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.themoviedb.org/3/discover/movie",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "with_companies", "value": "420" },
+            { "name": "sort_by", "value": "primary_release_date.asc" },
+            { "name": "primary_release_date.gte", "value": "={{ $now.toFormat('yyyy-MM-dd') }}" },
+            { "name": "region", "value": "FR" },
+            { "name": "language", "value": "fr-FR" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tmdb-films",
+      "name": "TMDB — films à venir",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [40, 300],
+      "credentials": {
+        "httpHeaderAuth": { "id": "TMDB_CRED_ID", "name": "TMDB" }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.themoviedb.org/3/discover/tv",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "with_companies", "value": "420" },
+            { "name": "sort_by", "value": "first_air_date.asc" },
+            { "name": "first_air_date.gte", "value": "={{ $now.toFormat('yyyy-MM-dd') }}" },
+            { "name": "language", "value": "fr-FR" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tmdb-series",
+      "name": "TMDB — séries à venir",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 300],
+      "credentials": {
+        "httpHeaderAuth": { "id": "TMDB_CRED_ID", "name": "TMDB" }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/bigandfranck89-prog/atelier-figurines-3d/main/marvel/data.json",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "lire-actuel",
+      "name": "Lire le fichier actuel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fusionne le calendrier TMDB avec le fichier existant.\n// Règle : on ne touche JAMAIS aux notes, à la chronologie ni aux catégories\n// déjà saisies. On corrige les dates et on ajoute les titres inconnus.\n\nconst actuel = $('Lire le fichier actuel').first().json;\nconst items = actuel.items || [];\n\nconst films  = ($('TMDB — films à venir').first().json.results  || []);\nconst series = ($('TMDB — séries à venir').first().json.results || []);\n\nconst norm = s => (s || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]/g, '');\n\nconst index = new Map(items.map(i => [norm(i.t), i]));\n\nlet ajouts = 0, corrections = 0;\nconst journal = [];\n\nfunction traiter(entree, titre, date, kind) {\n  if (!titre || !date) return;\n  const cle = norm(titre);\n  const existant = index.get(cle);\n\n  if (existant) {\n    if (existant.d !== date) {\n      journal.push(`Date corrigée — ${existant.t} : ${existant.d} → ${date}`);\n      existant.d = date;\n      corrections++;\n    }\n  } else {\n    const nouveau = {\n      t: titre,\n      k: kind,\n      d: date,\n      m: kind === 'film' ? 'En salles' : 'Disney+',\n      n: 'Ajouté automatiquement depuis TMDB — à relire.'\n    };\n    items.push(nouveau);\n    index.set(cle, nouveau);\n    journal.push(`Nouveau titre — ${titre} (${date})`);\n    ajouts++;\n  }\n}\n\nfor (const f of films)  traiter(f, f.title, f.release_date, 'film');\nfor (const s of series) traiter(s, s.name,  s.first_air_date, 'serie');\n\nif (ajouts === 0 && corrections === 0) {\n  return [{ json: { modifie: false, resume: 'Aucun changement.' } }];\n}\n\nactuel.items = items;\nactuel.maj = new Date().toISOString().slice(0, 10);\nactuel.source = 'TMDB + manuel';\n\nreturn [{\n  json: {\n    modifie: true,\n    contenu: JSON.stringify(actuel, null, 1),\n    resume: `${ajouts} ajout(s), ${corrections} correction(s)`,\n    journal\n  }\n}];"
+      },
+      "id": "fusion",
+      "name": "Fusionner sans écraser",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "version": 2 },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.modifie }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "si-change",
+      "name": "Quelque chose a changé ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "bigandfranck89-prog",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "atelier-figurines-3d",
+          "mode": "name"
+        },
+        "filePath": "marvel/data.json",
+        "fileContent": "={{ $json.contenu }}",
+        "commitMessage": "=Marvel : mise a jour automatique du calendrier ({{ $json.resume }})"
+      },
+      "id": "ecrire-github",
+      "name": "Écrire sur GitHub",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [1160, 200],
+      "credentials": {
+        "githubApi": { "id": "GH_CRED_ID", "name": "GitHub" }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "res",
+              "name": "resultat",
+              "value": "=Rien à faire — le calendrier Marvel n'a pas bougé.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "rien",
+      "name": "Rien à faire",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1160, 420]
+    }
+  ],
+  "connections": {
+    "Chaque lundi 6h": {
+      "main": [[{ "node": "TMDB — films à venir", "type": "main", "index": 0 }]]
+    },
+    "TMDB — films à venir": {
+      "main": [[{ "node": "TMDB — séries à venir", "type": "main", "index": 0 }]]
+    },
+    "TMDB — séries à venir": {
+      "main": [[{ "node": "Lire le fichier actuel", "type": "main", "index": 0 }]]
+    },
+    "Lire le fichier actuel": {
+      "main": [[{ "node": "Fusionner sans écraser", "type": "main", "index": 0 }]]
+    },
+    "Fusionner sans écraser": {
+      "main": [[{ "node": "Quelque chose a changé ?", "type": "main", "index": 0 }]]
+    },
+    "Quelque chose a changé ?": {
+      "main": [
+        [{ "node": "Écrire sur GitHub", "type": "main", "index": 0 }],
+        [{ "node": "Rien à faire", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}
