@@ -13,7 +13,13 @@
   .avert{background:#fdf3e4;border:1px solid #f0d9b0;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.92em;}
   .grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
   .obj{background:var(--carte);border:1px solid var(--ligne);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;}
-  .obj img{width:100%;aspect-ratio:1;object-fit:cover;background:#eceff2;}
+  .imgbox{position:relative;}
+  .obj img{width:100%;aspect-ratio:1;object-fit:cover;background:#eceff2;display:block;min-height:120px;}
+  .imgbox .etat{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--gris);font-size:.85em;background:#eceff2;}
+  .imgbox.ok .etat{display:none;}
+  .imgbox .recharger{position:absolute;top:6px;right:6px;border:none;background:rgba(255,255,255,.9);border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:1em;display:none;}
+  .imgbox.echec .recharger{display:block;}
+  .imgbox.echec .etat{content:'';}
   .obj .corps{padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1;}
   .obj .nom{font-weight:700;} .obj .spec{font-size:.83em;color:var(--gris);flex:1;}
   .etq{display:inline-block;font-size:.72em;font-weight:700;padding:1px 7px;border-radius:9px;}
@@ -29,13 +35,14 @@
   .barre button{background:var(--bleu);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:1em;font-weight:700;cursor:pointer;}
   #resu{display:none;position:fixed;inset:8% 6%;background:#fff;border:2px solid var(--encre);border-radius:12px;padding:18px;z-index:10;overflow:auto;}
   #resu textarea{width:100%;height:60%;font-family:monospace;font-size:.9em;margin:10px 0;}
+  #resu .fermer{background:var(--gris);}
 </style>
 </head>
 <body>
 <h1>Forgeon — le catalogue à valider</h1>
 <div class="sous">Pour chaque objet : <b>Je garde</b>, <b>Je jette</b> ou <b>À revoir</b>. Si l'image ne colle pas au titre, coche « image fausse ». À la fin, bouton bleu en bas → copie ta réponse et colle-la-moi dans la discussion.</div>
 
-<div class="avert">⚠️ Les images de la section 1 ont été <b>régénérées aujourd'hui</b> (la planche du 04/08 n'a pas été retrouvée en base) et je n'ai <b>pas pu les vérifier à l'œil une par une</b> depuis cette session. Le titre et la description font foi : si l'image raconte autre chose, c'est l'image qui a tort — coche « image fausse » et je la referai.</div>
+<div class="avert">⚠️ Les images de la section 1 ont été <b>régénérées aujourd'hui</b> (la planche du 04/08 n'a pas été retrouvée en base) et je n'ai <b>pas pu les vérifier à l'œil une par une</b> depuis cette session. Le titre et la description font foi : si l'image raconte autre chose, c'est l'image qui a tort — coche « image fausse » et je la referai. Les images se dessinent une par une : laisse la page ouverte, elles arrivent au fur et à mesure.</div>
 
 <h2>1 · Les 18 objets jugés « bons » le 04/08 <span class="etq etq-neuf">images régénérées, non vérifiées</span></h2>
 <div class="grille" id="g1"></div>
@@ -56,7 +63,7 @@
   <b>Ta réponse — copie-la et colle-la dans la discussion Claude :</b>
   <textarea id="resuTxt" readonly></textarea>
   <div style="display:flex;gap:10px;">
-    <button style="background:var(--bleu);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:700;cursor:pointer;" onclick="copier()">📋 Copier</button>
+    <button class="barre-btn" style="background:var(--bleu);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:700;cursor:pointer;" onclick="copier()">📋 Copier</button>
     <button style="background:var(--gris);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:700;cursor:pointer;" onclick="document.getElementById('resu').style.display='none'">Fermer</button>
   </div>
 </div>
@@ -109,7 +116,11 @@ const reponses={};
 function carte(section,i,nom,spec,img,etq){
   const id=section+'-'+i;
   return `<div class="obj" id="c${id}">
-    <img src="${img}" loading="lazy" alt="${nom}">
+    <div class="imgbox">
+      <img data-src="${img}" alt="${nom}">
+      <div class="etat">⏳ en file d'attente…</div>
+      <button class="recharger" onclick="recharger(this)" title="Recharger l'image">↻</button>
+    </div>
     <div class="corps">
       <div class="nom">${nom} ${etq==='attention'?'<span class="etq etq-attention">règle sécurité</span>':''}</div>
       <div class="spec">${spec}</div>
@@ -162,6 +173,35 @@ function copier(){
   else{document.execCommand('copy');}
   alert('Copié ! Colle-le dans la discussion Claude.');
 }
+
+/* Chargement des images une par une (les images se dessinent à la demande : trop d'un coup = échecs) */
+const FILE=[...document.querySelectorAll('img[data-src]')].map(im=>({im,essais:0}));
+let actifs=0; const MAXPAR=2;
+function suivant(){
+  while(actifs<MAXPAR && FILE.length){ lancer(FILE.shift()); }
+}
+function lancer(t){
+  actifs++;
+  const box=t.im.closest('.imgbox');
+  box.querySelector('.etat').textContent='⏳ dessin de l\'image…';
+  const sep=t.im.dataset.src.includes('?')?'&':'?';
+  const url=t.essais===0?t.im.dataset.src:t.im.dataset.src+sep+'essai='+t.essais;
+  t.im.onload=()=>{actifs--; box.classList.add('ok'); box.classList.remove('echec'); suivant();};
+  t.im.onerror=()=>{
+    actifs--; t.essais++;
+    if(t.essais<3){ setTimeout(()=>{FILE.push(t); suivant();}, 3000*t.essais); }
+    else{ box.classList.add('echec'); box.querySelector('.etat').textContent='❌ image pas chargée — clique ↻'; }
+    suivant();
+  };
+  t.im.src=url;
+}
+function recharger(btn){
+  const box=btn.closest('.imgbox'); const im=box.querySelector('img');
+  box.classList.remove('echec');
+  FILE.unshift({im,essais:Math.floor(Math.random()*100)+10});
+  suivant();
+}
+suivant();
 </script>
 </body>
 </html>
