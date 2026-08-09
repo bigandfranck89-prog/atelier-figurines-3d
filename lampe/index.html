@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Votre photo devient une lampe — Forgeon</title>
+<meta name="description" content="Envoyez une photo, recevez une lampe lumineuse à imprimer en 3D. Le soir venu, votre souvenir s'allume.">
+<style>
+  :root{
+    --nuit:#141118; --nuit2:#1e1a24; --creme:#f7f2e8; --or:#e0a94f; --or2:#f0c87a;
+    --gris:#a89f96; --ligne:rgba(247,242,232,.14); --vert:#5cc294;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--nuit);
+       color:var(--creme);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .bande{max-width:900px;margin:0 auto;padding:0 18px;}
+
+  header{text-align:center;padding:46px 18px 30px;
+    background:radial-gradient(ellipse at 50% -10%, rgba(224,169,79,.20), transparent 62%);}
+  .marque{font-size:.78em;letter-spacing:.34em;text-transform:uppercase;color:var(--or);margin-bottom:14px;}
+  h1{font-size:clamp(1.7em,5.4vw,2.5em);font-weight:600;line-height:1.18;margin-bottom:12px;}
+  h1 em{font-style:normal;color:var(--or2);}
+  .accroche{color:var(--gris);max-width:520px;margin:0 auto;font-size:1.03em;}
+
+  section{padding:26px 0;border-top:1px solid var(--ligne);}
+  .titre-etape{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .num{width:30px;height:30px;min-width:30px;border-radius:50%;background:var(--or);color:var(--nuit);
+       display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95em;}
+  .titre-etape h2{font-size:1.12em;font-weight:600;}
+  .titre-etape span{color:var(--gris);font-size:.86em;display:block;font-weight:400;}
+
+  .depot{border:2px dashed var(--ligne);border-radius:16px;padding:34px 20px;text-align:center;
+    cursor:pointer;transition:.2s;background:var(--nuit2);}
+  .depot:hover,.depot.actif{border-color:var(--or);background:rgba(224,169,79,.07);}
+  .depot .icone{font-size:2.3em;margin-bottom:8px;}
+  .depot b{display:block;margin-bottom:4px;font-size:1.05em;}
+  .depot small{color:var(--gris);}
+  input[type=file]{display:none;}
+
+  #apercu{display:none;}
+  .scene{position:relative;border-radius:16px;overflow:hidden;background:#0d0b10;
+    box-shadow:0 18px 50px rgba(0,0,0,.55);}
+  .scene canvas{width:100%;display:block;}
+  #cEteint{position:absolute;inset:0;}
+  .curseur{margin:16px 0 4px;}
+  .curseur label{display:flex;justify-content:space-between;font-size:.9em;color:var(--gris);margin-bottom:8px;}
+  input[type=range]{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;
+    background:linear-gradient(90deg,#3a3340,var(--or));outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+    background:var(--or2);cursor:pointer;box-shadow:0 0 14px rgba(224,169,79,.75);}
+  input[type=range]::-moz-range-thumb{width:26px;height:26px;border:0;border-radius:50%;
+    background:var(--or2);cursor:pointer;box-shadow:0 0 14px rgba(224,169,79,.75);}
+
+  .tailles{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .taille{border:2px solid var(--ligne);border-radius:14px;padding:16px;cursor:pointer;
+    background:var(--nuit2);transition:.18s;text-align:center;}
+  .taille:hover{border-color:rgba(224,169,79,.5);}
+  .taille.on{border-color:var(--or);background:rgba(224,169,79,.1);}
+  .taille b{display:block;font-size:1.1em;margin-bottom:2px;}
+  .taille .dim{color:var(--gris);font-size:.85em;}
+  .taille .prix{color:var(--or2);font-weight:700;margin-top:8px;font-size:1.15em;}
+
+  .action{width:100%;padding:17px;border:0;border-radius:14px;background:var(--or);color:#221a09;
+    font-size:1.08em;font-weight:700;cursor:pointer;transition:.18s;font-family:inherit;}
+  .action:hover:not(:disabled){background:var(--or2);transform:translateY(-1px);}
+  .action:disabled{opacity:.45;cursor:not-allowed;}
+  .attente{display:none;text-align:center;padding:20px;color:var(--gris);}
+  .rond{width:34px;height:34px;border:3px solid var(--ligne);border-top-color:var(--or);
+    border-radius:50%;margin:0 auto 12px;animation:tourne .8s linear infinite;}
+  @keyframes tourne{to{transform:rotate(360deg);}}
+
+  #resultat{display:none;text-align:center;background:var(--nuit2);border:1px solid var(--ligne);
+    border-radius:16px;padding:26px 20px;}
+  #resultat .coche{font-size:2.4em;margin-bottom:8px;}
+  .fiche{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin:18px 0;}
+  .fiche div{background:rgba(247,242,232,.05);border-radius:10px;padding:11px 8px;}
+  .fiche b{display:block;color:var(--or2);font-size:1.15em;}
+  .fiche span{color:var(--gris);font-size:.78em;}
+
+  .rassure{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-top:8px;}
+  .rassure div{background:var(--nuit2);border:1px solid var(--ligne);border-radius:12px;padding:15px;}
+  .rassure b{display:block;margin-bottom:4px;}
+  .rassure span{color:var(--gris);font-size:.9em;}
+  footer{text-align:center;padding:34px 18px 44px;color:var(--gris);font-size:.86em;
+    border-top:1px solid var(--ligne);margin-top:18px;}
+  .note{color:var(--gris);font-size:.85em;margin-top:10px;}
+  .avis{background:rgba(92,194,148,.1);border-left:3px solid var(--vert);border-radius:8px;
+    padding:12px 15px;margin-top:14px;font-size:.9em;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="marque">Forgeon</div>
+  <h1>Votre photo devient<br><em>une lampe</em></h1>
+  <p class="accroche">Le jour, un objet blanc tout simple. Le soir, on l'allume — et votre photo apparaît,
+  avec ses ombres et ses nuances. Un souvenir qui s'éclaire.</p>
+</header>
+
+<div class="bande">
+
+  <section>
+    <div class="titre-etape"><div class="num">1</div>
+      <div><h2>Choisissez votre photo</h2><span>Un visage, un animal, un lieu — les portraits rendent le mieux</span></div>
+    </div>
+    <label class="depot" id="depot">
+      <div class="icone">📷</div>
+      <b>Appuyez pour choisir une photo</b>
+      <small>ou glissez-la ici · JPG ou PNG</small>
+      <input type="file" id="fichier" accept="image/*">
+    </label>
+  </section>
+
+  <section id="apercu">
+    <div class="titre-etape"><div class="num">2</div>
+      <div><h2>Voyez le résultat</h2><span>Faites glisser pour allumer la lampe</span></div>
+    </div>
+    <div class="scene">
+      <canvas id="cAllume"></canvas>
+      <canvas id="cEteint"></canvas>
+    </div>
+    <div class="curseur">
+      <label><span>Lumière éteinte</span><span>Allumée</span></label>
+      <input type="range" id="lumiere" min="0" max="100" value="72">
+    </div>
+    <p class="note">C'est un aperçu calculé à partir de votre photo : voilà ce que donnera la vraie plaque.</p>
+  </section>
+
+  <section id="etapeTaille" style="display:none">
+    <div class="titre-etape"><div class="num">3</div>
+      <div><h2>Choisissez la taille</h2><span>Plus c'est grand, plus les détails ressortent</span></div>
+    </div>
+    <div class="tailles">
+      <div class="taille on" data-mm="100"><b>Format carte</b><div class="dim">10 cm de large</div><div class="prix">12 €</div></div>
+      <div class="taille" data-mm="150"><b>Format cadre</b><div class="dim">15 cm de large</div><div class="prix">18 €</div></div>
+    </div>
+    <div class="avis">Vous recevez le <b>fichier à imprimer</b> par e-mail sous 24 h, avec la notice de réglages.
+    Vous l'imprimez chez vous, ou chez un imprimeur près de chez vous.</div>
+    <button class="action" id="creer" style="margin-top:16px">Créer ma lampe</button>
+    <div class="attente" id="attente"><div class="rond"></div>Fabrication de votre fichier…</div>
+  </section>
+
+  <section>
+    <div id="resultat">
+      <div class="coche">✨</div>
+      <h2 style="font-size:1.2em;margin-bottom:6px">Votre lampe est prête</h2>
+      <p style="color:var(--gris);font-size:.93em">Fichier vérifié, prêt à imprimer.</p>
+      <div class="fiche" id="fiche"></div>
+      <a id="lien" class="action" style="display:block;text-decoration:none;padding:15px">⬇ Télécharger mon fichier</a>
+      <p class="note">Fichier .STL — s'ouvre dans tous les logiciels d'impression 3D.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="rassure">
+      <div><b>🖨️ Sur toute imprimante</b><span>PLA blanc, plaque debout, 0,08 mm, remplissage 100 %. Tout est dans la notice.</span></div>
+      <div><b>💡 Une simple bougie LED</b><span>Ou un ruban LED, une lampe. Jamais de flamme — le plastique n'aime pas la chaleur.</span></div>
+      <div><b>🎁 Le cadeau qu'on garde</b><span>Un animal disparu, un mariage, un enfant. On ne jette pas ça.</span></div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <b style="color:var(--creme)">Forgeon</b> — atelier de créations 3D<br>
+  <span id="mention">Démonstration : le fichier est réellement fabriqué et gratuit pendant la phase de test.</span>
+</footer>
+
+<script>
+const FONCTION = "https://bmvytqfddrfgcgokoxfn.supabase.co/functions/v1/lithophanie";
+const EP_MIN = 0.8, EP_MAX = 3.0;
+let imageChoisie = null, largeurMm = 100;
+
+/* ---------- lecture de la photo ---------- */
+const depot = document.getElementById('depot');
+const champ = document.getElementById('fichier');
+champ.addEventListener('change', e => { if (e.target.files[0]) charger(e.target.files[0]); });
+['dragover','dragenter'].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.add('actif'); }));
+['dragleave','drop'].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.remove('actif'); }));
+depot.addEventListener('drop', e => { if (e.dataTransfer.files[0]) charger(e.dataTransfer.files[0]); });
+
+function charger(f) {
+  const lecteur = new FileReader();
+  lecteur.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      // on réduit avant d'envoyer : une photo de téléphone pèse 4 Mo pour rien
+      const max = 900;
+      const ech = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * ech); c.height = Math.round(img.height * ech);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      imageChoisie = c.toDataURL('image/jpeg', 0.9);
+      dessinerApercu(c);
+      document.getElementById('apercu').style.display = 'block';
+      document.getElementById('etapeTaille').style.display = 'block';
+      document.getElementById('resultat').style.display = 'none';
+      document.getElementById('apercu').scrollIntoView({behavior:'smooth', block:'start'});
+    };
+    img.src = ev.target.result;
+  };
+  lecteur.readAsDataURL(f);
+}
+
+/* ---------- aperçu : exactement le même calcul que le serveur ---------- */
+function dessinerApercu(source) {
+  const L = 420, H = Math.round(L * source.height / source.width);
+  const tmp = document.createElement('canvas');
+  tmp.width = L; tmp.height = H;
+  const ctx = tmp.getContext('2d');
+  ctx.drawImage(source, 0, 0, L, H);
+  const d = ctx.getImageData(0, 0, L, H);
+
+  const g = new Float64Array(L * H);
+  for (let i = 0; i < g.length; i++) {
+    g[i] = (0.299*d.data[i*4] + 0.587*d.data[i*4+1] + 0.114*d.data[i*4+2]) / 255;
+  }
+  const tri = Float64Array.from(g).sort();
+  const bas = tri[Math.floor(tri.length*0.01)], haut = tri[Math.floor(tri.length*0.99)];
+  const ec = Math.max(haut - bas, 1e-6);
+  for (let i = 0; i < g.length; i++) g[i] = Math.min(1, Math.max(0, (g[i]-bas)/ec));
+
+  // récupération des ombres : sans ça, un sujet foncé devient un aplat noir
+  let sombres = 0; for (const v of g) if (v < 0.10) sombres++;
+  const part = sombres / g.length;
+  const dose = part < 0.08 ? 0 : Math.min(0.55, 0.40 + part);
+  if (dose > 0) {
+    const hist = new Float64Array(256);
+    for (const v of g) hist[Math.min(255, Math.round(v*255))]++;
+    const cdf = new Float64Array(256); let cum = 0;
+    for (let i = 0; i < 256; i++) { cum += hist[i]; cdf[i] = cum/g.length; }
+    for (let i = 0; i < g.length; i++) g[i] = g[i]*(1-dose) + cdf[Math.min(255,Math.round(g[i]*255))]*dose;
+  }
+  for (let i = 0; i < g.length; i++) g[i] = Math.min(1, Math.max(0, (g[i]-0.5)*1.15 + 0.5));
+
+  // épaisseur : loi de Beer-Lambert (transmission réelle de la lumière)
+  const e = new Float64Array(g.length), lb = Math.log(1e-3);
+  for (let i = 0; i < g.length; i++) {
+    const l = Math.min(1, Math.max(1e-3, g[i]));
+    e[i] = EP_MIN + (EP_MAX-EP_MIN) * (-Math.log(l)/-lb);
+  }
+  const b = Math.round(L * 0.03);
+  for (let y = 0; y < H; y++) for (let x = 0; x < L; x++)
+    if (y<b||y>=H-b||x<b||x>=L-b) e[y*L+x] = EP_MAX;
+
+  // rendu allumé : lumière traversante, teinte chaude
+  const ca = document.getElementById('cAllume'); ca.width = L; ca.height = H;
+  const ia = ca.getContext('2d').createImageData(L, H);
+  let mn = 1e9, mx = -1e9;
+  const t = new Float64Array(e.length);
+  for (let i = 0; i < e.length; i++) { t[i] = Math.exp(-1.9*(e[i]-EP_MIN)); mn = Math.min(mn,t[i]); mx = Math.max(mx,t[i]); }
+  for (let i = 0; i < e.length; i++) {
+    const v = (t[i]-mn)/(mx-mn||1) * 255;
+    ia.data[i*4] = v; ia.data[i*4+1] = v*0.90; ia.data[i*4+2] = v*0.74; ia.data[i*4+3] = 255;
+  }
+  ca.getContext('2d').putImageData(ia, 0, 0);
+
+  // rendu éteint : relief en lumière rasante, plastique blanc
+  const ce = document.getElementById('cEteint'); ce.width = L; ce.height = H;
+  const ie = ce.getContext('2d').createImageData(L, H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < L; x++) {
+    const i = y*L+x;
+    const gx = e[i] - e[y*L + Math.max(0,x-1)];
+    const gy = e[i] - e[Math.max(0,y-1)*L + x];
+    const om = Math.min(1, Math.max(0, 0.55 - (gx*2.6 + gy*1.7)));
+    const v = 214*om + 30;
+    ie.data[i*4] = v; ie.data[i*4+1] = v*0.99; ie.data[i*4+2] = v*0.96; ie.data[i*4+3] = 255;
+  }
+  ce.getContext('2d').putImageData(ie, 0, 0);
+  majLumiere();
+}
+const curseur = document.getElementById('lumiere');
+function majLumiere(){ document.getElementById('cEteint').style.opacity = 1 - curseur.value/100; }
+curseur.addEventListener('input', majLumiere);
+
+/* ---------- taille ---------- */
+document.querySelectorAll('.taille').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.taille').forEach(x => x.classList.remove('on'));
+  t.classList.add('on'); largeurMm = +t.dataset.mm;
+}));
+
+/* ---------- fabrication ---------- */
+document.getElementById('creer').addEventListener('click', async () => {
+  if (!imageChoisie) return;
+  const bouton = document.getElementById('creer');
+  bouton.disabled = true;
+  document.getElementById('attente').style.display = 'block';
+  document.getElementById('resultat').style.display = 'none';
+  try {
+    const r = await fetch(FONCTION, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64: imageChoisie, largeur_mm: largeurMm, session: 'boutique' })
+    });
+    const rep = await r.json();
+    if (!rep.ok) throw new Error(rep.erreur || 'fabrication impossible');
+    const c = rep.controle;
+    document.getElementById('fiche').innerHTML =
+      '<div><b>' + c.dimensions_mm[0] + ' × ' + c.dimensions_mm[2] + '</b><span>millimètres</span></div>' +
+      '<div><b>' + c.poids_g + ' g</b><span>de matière</span></div>' +
+      '<div><b>' + (c.millisecondes/1000).toFixed(1) + ' s</b><span>de fabrication</span></div>' +
+      '<div><b>✓</b><span>prêt à imprimer</span></div>';
+    document.getElementById('lien').href = rep.url;
+    document.getElementById('lien').setAttribute('download', 'ma_lampe_forgeon.stl');
+    document.getElementById('resultat').style.display = 'block';
+    document.getElementById('resultat').scrollIntoView({behavior:'smooth', block:'center'});
+  } catch (err) {
+    alert("La fabrication n'a pas abouti : " + err.message + "\nRéessayez avec une autre photo.");
+  } finally {
+    bouton.disabled = false;
+    document.getElementById('attente').style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>
