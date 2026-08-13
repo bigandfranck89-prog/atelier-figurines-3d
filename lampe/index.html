@@ -147,13 +147,14 @@
       <p style="color:var(--gris);font-size:.93em">Fichier vérifié, prêt à imprimer.</p>
       <div class="fiche" id="fiche"></div>
       <a id="lien" class="action" style="display:block;text-decoration:none;padding:15px">⬇ Télécharger mon fichier</a>
+      <a id="lien-socle" class="action" style="display:none;text-decoration:none;padding:15px;margin-top:8px;background:#2a2f3a">⬇ Le socle (2e fichier)</a>
       <p class="note">Fichier .STL — s'ouvre dans tous les logiciels d'impression 3D.</p>
     </div>
   </section>
 
   <section>
     <div class="rassure">
-      <div><b>🖨️ Sur toute imprimante</b><span>PLA blanc, plaque debout, 0,08 mm, remplissage 100 %. Tout est dans la notice.</span></div>
+      <div><b>🖨️ Sur toute imprimante</b><span>Deux fichiers : la plaque (PLA blanc, debout, 0,08 mm, remplissage 100 %) et son socle (couleur libre, à plat, 15 %). Tout est dans la notice.</span></div>
       <div><b>💡 Une simple bougie LED</b><span>Ou un ruban LED, une lampe. Jamais de flamme — le plastique n'aime pas la chaleur.</span></div>
       <div><b>🎁 Le cadeau qu'on garde</b><span>Un animal disparu, un mariage, un enfant. On ne jette pas ça.</span></div>
     </div>
@@ -301,6 +302,12 @@ document.getElementById('creer').addEventListener('click', async () => {
       '<div><b>✓</b><span>prêt à imprimer</span></div>';
     document.getElementById('lien').href = rep.url;
     document.getElementById('lien').setAttribute('download', 'ma_lampe_forgeon.stl');
+    if (rep.socle && rep.socle.url) {
+      var ls = document.getElementById('lien-socle');
+      ls.href = rep.socle.url;
+      ls.setAttribute('download', 'ma_lampe_socle_forgeon.stl');
+      ls.style.display = 'block';
+    }
     document.getElementById('resultat').style.display = 'block';
     document.getElementById('resultat').scrollIntoView({behavior:'smooth', block:'center'});
   } catch (err) {
