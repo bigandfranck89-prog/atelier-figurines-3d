@@ -18,6 +18,12 @@
   model-viewer{width:100%;height:calc(100vh - 110px);--poster-color:transparent}
   .hint{text-align:center;color:var(--muted);font-size:12px;padding:10px}
   .err{padding:40px 20px;text-align:center;color:var(--muted);line-height:1.7}
+  /* Quand la visionneuse est ouverte DANS l'application (dans un cadre),
+     on retire la barre du haut et on prend toute la place disponible. */
+  body.dans-app .top{display:none}
+  body.dans-app model-viewer{height:100%}
+  body.dans-app{display:flex;flex-direction:column}
+  body.dans-app #zone{flex:1 1 auto;min-height:0}
 </style>
 </head>
 <body>
@@ -25,6 +31,30 @@
 <div id="zone"></div>
 <div class="hint">Glisse pour tourner · pince pour zoomer</div>
 <script>
+/* Tâche 354 — sur un grand écran, la 3D à gauche et le chat à droite.
+   La mise en page appartient à la page qui nous contient : comme elle est du
+   même site, on lui pose la règle d'affichage depuis ici. Sur téléphone,
+   rien ne change : la 3D en haut, le chat dessous. */
+try {
+  if (window.parent && window.parent !== window) {
+    document.body.classList.add('dans-app');
+    var p = window.parent.document;
+    if (p && !p.getElementById('regle-3d-cote-a-cote')) {
+      var st = p.createElement('style');
+      st.id = 'regle-3d-cote-a-cote';
+      st.textContent =
+        '@media (min-width:900px){' +
+        '.v3wrap{display:grid;grid-template-columns:1fr 340px;grid-template-rows:auto 1fr;column-gap:10px}' +
+        '.v3wrap .v3top{grid-column:1/-1}' +
+        '.v3wrap iframe{grid-column:1;grid-row:2;height:100%}' +
+        '.v3wrap .v3chat{grid-column:2;grid-row:2;border-top:0;border-left:1px solid #23262e;height:100%}' +
+        '.v3wrap .v3chat .msgs{flex:1 1 auto;max-height:none;overflow-y:auto}' +
+        '}';
+      p.head.appendChild(st);
+    }
+  }
+} catch (e) { /* si la page mère refuse, on continue normalement */ }
+
 const src = new URLSearchParams(location.search).get('src');
 const zone = document.getElementById('zone');
 if (!src) {
