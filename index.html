@@ -98,6 +98,9 @@
   .aide { overflow-y: auto; padding: 16px; line-height: 1.6; font-size: 14.5px; }
   .aide h2 { font-size: 16px; margin: 14px 0 6px; }
   .aide p { color: #cbd5e1; }
+  /* Le calculateur de cout et de marge est un outil PRO : les clients ne le voient pas. */
+  .outil-pro { display: none; }
+  body.mode-admin .outil-pro { display: block; }
 </style>
 </head>
 <body>
@@ -474,7 +477,7 @@ window.ouvrirFig = (i) => {
 
     <!-- PANNEAU IMPRESSION (rempli par renderImpr) -->
     <div id="impr-panel"></div>
-    <details class="tech" style="margin-top:4px">
+    <details class="tech outil-pro" style="margin-top:4px">
       <summary>🧰 Coût & remplissage du plateau</summary>
       <div style="font-size:12.5px;color:#9aa0a6;margin-top:6px">Estime le prix de vente de CETTE pièce et combien tu peux en poser sur le plateau.</div>
       <table class="techtab">
@@ -535,6 +538,15 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
 <!--  Tout est isolé : si ça plante, le reste de l'appli marche.   -->
 <!-- ============================================================= -->
 <script src="js/app.js"></script>
+<script>
+/* Tache 953 (13/08) - la marge et le calculateur de prix sont reserves a Franck. */
+try {
+  var q = new URLSearchParams(location.search);
+  if (localStorage.getItem('atelier_admin') === '1' || q.get('admin') === '1' || location.hash === '#admin') {
+    document.body.classList.add('mode-admin');
+  }
+} catch (e) {}
+</script>
 
 <!-- ECRAN D'ACCUEIL (banc d'essai client 26/07 - P1 #608) -->
 <style>
