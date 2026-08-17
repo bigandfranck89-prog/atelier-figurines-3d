@@ -1,5 +1,5 @@
 {
- "maj": "2026-08-10",
+ "maj": "2026-08-17",
  "source": "TMDB + manuel",
  "items": [
   {
@@ -543,7 +543,7 @@
   {
    "t": "Avengers: Secret Wars",
    "k": "film",
-   "d": "2027-09-15",
+   "d": "2027-12-15",
    "c": 40,
    "e": "à venir",
    "m": "En salles",
@@ -849,6 +849,20 @@
    "d": "2021-02-12",
    "m": "1 ép. · 60 min",
    "n": "Sur l'histoire des identités secrètes dans les comics."
+  },
+  {
+   "t": "Spidey and the Avengers: Halloween Team-Up!",
+   "k": "film",
+   "d": "2026-09-24",
+   "m": "En salles",
+   "n": "Ajouté automatiquement depuis TMDB — à relire."
+  },
+  {
+   "t": "Untitled X-Men Film",
+   "k": "film",
+   "d": "2028-05-05",
+   "m": "En salles",
+   "n": "Ajouté automatiquement depuis TMDB — à relire."
   }
  ]
 }
