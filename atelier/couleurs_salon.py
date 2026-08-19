@@ -26,8 +26,9 @@ from races2 import RACES
 # =====================================================================
 # 1. PHOTOPHORE SILHOUETTE DE RACE
 #    Deux bandes, UN SEUL changement. Paroi mince partout dans la bande
-#    haute : la bougie la traverse. La silhouette, elle, garde toute son
-#    epaisseur — donc elle reste NOIRE en ombre chinoise sur la lumiere.
+#    haute : la bougie la traverse. La silhouette est un RELIEF EXTERIEUR :
+#    on la voit eteinte (l'objet a une tete sur l'etagere), et allumee elle
+#    reste NOIRE en ombre chinoise parce qu'elle est deux fois plus epaisse.
 # =====================================================================
 
 PHOTO_DIAM = 78.0     # diametre exterieur
@@ -47,17 +48,21 @@ def _anneau(r_ext, r_int, z0, z1, seg=180):
     return m
 
 
-def _plaque_cintree(poly, r_peau, ep, z_bas, angle0=0.0, pas=0.9):
-    """Prend un contour 2D et l'enroule sur l'interieur du cylindre.
+def _plaque_cintree(poly, r_peau, ep, z_bas, angle0=0.0, pas=0.9, vers='dehors'):
+    """Prend un contour 2D et l'enroule sur la paroi du cylindre.
 
     poly est dans un repere ou x est la LONGUEUR D'ARC en mm et y la hauteur.
     Le resultat mord de 0,3 mm dans la paroi pour que la soudure soit franche.
+    vers='dehors' : relief visible a l'oeil nu, et qui fait aussi l'ombre.
     """
     plate = extrude_multi(poly, ep + 0.3)
     v, f = trimesh.remesh.subdivide_to_size(plate.vertices, plate.faces, max_edge=pas)
     x, y, z = v[:, 0], v[:, 1], v[:, 2]
     theta = angle0 + x / r_peau               # longueur d'arc -> angle
-    r = (r_peau + 0.3) - z                    # z=0 dans la paroi, z=max vers l'interieur
+    if vers == 'dehors':
+        r = (r_peau - 0.3) + z                # z=0 dans la paroi, z=max vers l'exterieur
+    else:
+        r = (r_peau + 0.3) - z                # z=0 dans la paroi, z=max vers l'interieur
     w = np.column_stack([r * np.cos(theta), r * np.sin(theta), z_bas + y])
     m = trimesh.Trimesh(vertices=w, faces=f, process=True)
     m.fix_normals()
@@ -87,28 +92,28 @@ def photophore_race(race='neutre', prenom=None, diam=PHOTO_DIAM, haut=PHOTO_HAUT
     zone_h = haut - PHOTO_BAS - 16.0                     # marge haute
     sil = RACES[race][1]().buffer(0)
     x0, y0, x1, y1 = sil.bounds
-    k = min((np.pi * ri_mince * 0.62) / (x1 - x0), zone_h / (y1 - y0))
+    k = min((np.pi * ro * 0.62) / (x1 - x0), zone_h / (y1 - y0))
     sil = sh_scale(sil, xfact=k, yfact=k, origin=(x0, y0))
     x0, y0, x1, y1 = sil.bounds
     sil = sh_translate(sil, xoff=-x0, yoff=-y0)
     arc = x1 - x0
     pieces.append(_plaque_cintree(
-        sil, ri_mince, PHOTO_EPAIS - PHOTO_MINCE + 0.6,
-        z_bas=PHOTO_BAS + 6.0, angle0=-arc / (2 * ri_mince)))
+        sil, ro, PHOTO_EPAIS - PHOTO_MINCE + 0.6,
+        z_bas=PHOTO_BAS + 6.0, angle0=-arc / (2 * ro)))
 
     # --- le prenom, enroule a l'oppose ---
     if prenom:
         t = texte_poly(prenom, taille=22)
         tx0, ty0, tx1, ty1 = t.bounds
-        kt = min((np.pi * ri_mince * 0.40) / (tx1 - tx0), 16.0 / (ty1 - ty0))
+        kt = min((np.pi * ro * 0.40) / (tx1 - tx0), 16.0 / (ty1 - ty0))
         t = sh_scale(t, xfact=kt, yfact=kt, origin=(tx0, ty0))
         tx0, ty0, tx1, ty1 = t.bounds
         t = sh_translate(t, xoff=-tx0, yoff=-ty0)
         arct = tx1 - tx0
         pieces.append(_plaque_cintree(
-            t, ri_mince, PHOTO_EPAIS - PHOTO_MINCE + 0.6,
+            t, ro, PHOTO_EPAIS - PHOTO_MINCE + 0.6,
             z_bas=PHOTO_BAS + 14.0,
-            angle0=np.pi - arct / (2 * ri_mince)))
+            angle0=np.pi - arct / (2 * ro)))
 
     m = trimesh.boolean.union(pieces)
     m.fix_normals()
