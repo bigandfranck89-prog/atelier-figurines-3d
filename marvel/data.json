@@ -1,5 +1,5 @@
 {
- "maj": "2026-08-17",
+ "maj": "2026-08-31",
  "source": "TMDB + manuel",
  "items": [
   {
@@ -552,7 +552,7 @@
   {
    "t": "Black Panther 3",
    "k": "film",
-   "d": "2028-12-14",
+   "d": "2028-12-13",
    "c": 41,
    "e": "à venir",
    "m": "En salles",
@@ -860,7 +860,14 @@
   {
    "t": "Untitled X-Men Film",
    "k": "film",
-   "d": "2028-05-05",
+   "d": "2028-05-04",
+   "m": "En salles",
+   "n": "Ajouté automatiquement depuis TMDB — à relire."
+  },
+  {
+   "t": "Ghost Rider",
+   "k": "film",
+   "d": "2028-07-27",
    "m": "En salles",
    "n": "Ajouté automatiquement depuis TMDB — à relire."
   }
